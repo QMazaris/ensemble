@@ -439,7 +439,7 @@ def plot_runs_at_threshold(
     ax.legend(
         combined_handles,
         combined_labels,
-        loc='upper left',            # anchor “point” is the lower‐center of the legend box
+        loc='upper left',            # anchor "point" is the lower‐center of the legend box
         ncol=2,                        # spread items in 4 columns (if you like)
     )
 
@@ -484,7 +484,7 @@ def save_all_model_probabilities_from_structure(
     From a list of ModelEvaluationRun, builds a CSV with:
       • 1st column: ground truth (y_true)
       • subsequent columns: one probability column per model
-        (using the “Full” split when available)
+        (using the "Full" split when available)
 
     Args:
         results_total: list of ModelEvaluationRun
@@ -505,10 +505,15 @@ def save_all_model_probabilities_from_structure(
 
     # helper to pick the "Full" split or fall back to the longest array
     def pick_full_or_longest(probas):
-        return probas.get(
-            'Full',
-            max(probas.values(), key=lambda arr: arr.shape[0])
-        )
+        if not probas:
+            return None
+        if 'Full' in probas:
+            return probas['Full']
+        # Only consider non-empty arrays
+        non_empty = [arr for arr in probas.values() if arr is not None and hasattr(arr, 'shape')]
+        if not non_empty:
+            return None
+        return max(non_empty, key=lambda arr: arr.shape[0])
 
     # now add exactly one column per model
     for run in results_total:
@@ -516,6 +521,9 @@ def save_all_model_probabilities_from_structure(
         probas = pick_full_or_longest(run.probabilities)
 
         # align by length/index
+        if probas is None:
+            print(f"[WARN] No probabilities found for model {model_col}, skipping.")
+            continue
         if len(probas) == len(index):
             wide_df[model_col] = probas
         else:
@@ -624,271 +632,196 @@ def main(config):
     # Save feature columns for later use only if SAVE_MODEL is True
     if SAVE_MODEL:
         # Dynamically build encoding info for all one-hot encoded categoricals
-        encoding_info = {}
-        # Identify which columns in df were categorical and one-hot encoded
-        for col in df.columns:
-            if col not in feature_cols and col in df.select_dtypes(include=['object', 'category', 'bool']).columns:
-                encoding_info[col] = {
-                    'type': 'one_hot',
-                    'original_column': col,
-                    'categories': sorted(df[col].unique().tolist())
-                }
-        feature_info = {
-            'feature_cols': feature_cols,  # Original numeric features
-            'encoded_cols': encoded_cols,  # One-hot encoded columns
-            'encoding': encoding_info
-        }
-        joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl"))
+        Save_Feature_Info(model_path, df, feature_cols, encoded_cols)
+
     # ===== Cross‑Validation vs Single‑Split =====
     if config.USE_KFOLD:
-        print(f"Running {config.N_SPLITS}‑fold cross‑validation…")
-        kf = StratifiedKFold(
-            n_splits = config.N_SPLITS,
-            shuffle  = True,
-            random_state = getattr(config, 'RANDOM_STATE', 42)
-        )
-        # KFold logic does not use train_idx/test_idx here
-        cv_splits = []
-        for fold_idx, (train_idx, test_idx) in enumerate(kf.split(X, y), start=1):
-            print(f"  Fold {fold_idx}/{config.N_SPLITS}")
-            X_tr, y_tr = X.iloc[train_idx], y.iloc[train_idx]
-            X_te, y_te = X.iloc[test_idx],  y.iloc[test_idx]
-            cv_splits.append( (f"Fold{fold_idx}", (X_tr, y_tr), (X_te, y_te)) )
-        DO_KFOLD = True
+        cv_splits = CV_Split(config, X, y)
     else:
-        print("Running single train/test split…")
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.20, random_state=getattr(config,'RANDOM_STATE',42),
-            stratify=y
-        )
-        train_idx = X_train.index
-        test_idx  = X_test.index
-        # Single-split “splits” dict mirrors your old code
-        single_splits = {
-            'Train': (X_train, y_train),
-            'Test':  (X_test,  y_test),
-            'Full':  (X,       y)
-        }
-        DO_KFOLD = False
+        X_train, y_train, train_idx, test_idx, single_splits = Regular_Split(config, X, y)
 # =============================================
 
-    
-    # Collect results for each model and split
-    results_total = []  # All raw probabilities for each model}
-    
+    # ──────────────────────────── CORE LOOP ────────────────────────────
+    # Collect averaged-fold or single-split results for every model
+    results_total = []
+
     for model_name, model in MODELS.items():
         print(f"\n{'-'*40}\nEvaluating {model_name}\n{'-'*40}")
-        this_model_results = []
-        this_model_probs   = {}
 
-        if DO_KFOLD:
-            # --- K‑Fold branch: one fold at a time ---
+        # ------------------------------------------------------------------
+        # ❶ K-FOLD PATH  ─ gather per-fold results, keep *only* the average
+        # ------------------------------------------------------------------
+        if config.USE_KFOLD:
+            fold_cost_results = []          # one cost-opt ModelEvaluationResult / fold
+            fold_acc_results  = []          # one acc-opt  ModelEvaluationResult / fold
+            fold_prob_arrays  = []          # raw probability array / fold
+
             for fold_name, (X_tr, y_tr), (X_te, y_te) in cv_splits:
-                print(f" Fold: {fold_name}")
+                print(f"  Fold {fold_name}")
+
                 split_preds, _ = train_and_evaluate_model(
                     model, X_tr, y_tr,
                     splits={fold_name: (X_te, y_te)},
                     model_name=None, model_dir=None, save_model=False
                 )
                 proba, y_eval = split_preds[fold_name]
-                # Run threshold sweep and collect results
-                sweep, best_by_cost, best_by_acc = threshold_sweep_with_cost(
+
+                sweep, best_cost, best_acc = threshold_sweep_with_cost(
                     proba, y_eval, C_FP=C_FP, C_FN=C_FN
                 )
-                cost_thr = best_by_cost['threshold']
-                acc_thr  = best_by_acc['threshold']
-                y_cost = (proba >= cost_thr).astype(int)
-                y_acc  = (proba >= acc_thr).astype(int)
-                mets_cost = compute_metrics(y_eval, y_cost, C_FP=C_FP, C_FN=C_FN)
-                mets_acc  = compute_metrics(y_eval, y_acc,  C_FP=C_FP, C_FN=C_FN)
-                cost_result = ModelEvaluationResult(
-                    model_name    = model_name,
-                    split         = fold_name,
-                    threshold_type= 'cost',
-                    threshold     = cost_thr,
-                    precision     = mets_cost['precision'],
-                    recall        = mets_cost['recall'],
-                    accuracy      = mets_cost['accuracy'],
-                    cost          = mets_cost['cost'],
-                    tp            = mets_cost['tp'],
-                    fp            = mets_cost['fp'],
-                    tn            = mets_cost['tn'],
-                    fn            = mets_cost['fn'],
-                    is_base_model = False
+
+                # optional per-fold sweep plot
+                if SAVE_PLOTS:
+                    plot_threshold_sweep(
+                        sweep, C_FP, C_FN,
+                        cost_optimal_thr=best_cost['threshold'],
+                        accuracy_optimal_thr=best_acc['threshold'],
+                        output_path=os.path.join(
+                            image_path,
+                            f"{model_name}_{fold_name.lower()}_threshold_sweep.png")
+                    )
+
+                # build result objects for this fold
+                def _mk_result(best, thr_type):
+                    return ModelEvaluationResult(
+                        model_name=model_name,
+                        split=fold_name,
+                        threshold_type=thr_type,
+                        threshold=best['threshold'],
+                        precision=best['precision'],
+                        recall=best['recall'],
+                        accuracy=best['accuracy'],
+                        cost=best['cost'],
+                        tp=best['tp'], fp=best['fp'],
+                        tn=best['tn'], fn=best['fn'],
+                        is_base_model=False
+                    )
+
+                fold_cost_results.append(_mk_result(best_cost, 'cost'))
+                fold_acc_results.append(_mk_result(best_acc,  'accuracy'))
+                fold_prob_arrays.append(proba)
+
+            # ----- average helper functions -----
+            def _average_results(res_list):
+                """Return a single ModelEvaluationResult averaged over folds."""
+                fields = ['precision', 'recall', 'accuracy', 'cost',
+                        'tp', 'fp', 'tn', 'fn']
+                avg = {f: float(np.mean([getattr(r, f) for r in res_list]))
+                    for f in fields}
+                return ModelEvaluationResult(
+                    model_name=f'kfold_avg_{model_name}',
+                    split='Full',
+                    threshold_type=res_list[0].threshold_type,
+                    threshold=float(np.mean([r.threshold for r in res_list])),
+                    is_base_model=False,
+                    **avg
                 )
-                acc_result = ModelEvaluationResult(
-                    model_name    = model_name,
-                    split         = fold_name,
-                    threshold_type= 'accuracy',
-                    threshold     = acc_thr,
-                    precision     = mets_acc['precision'],
-                    recall        = mets_acc['recall'],
-                    accuracy      = mets_acc['accuracy'],
-                    cost          = mets_acc['cost'],
-                    tp            = mets_acc['tp'],
-                    fp            = mets_acc['fp'],
-                    tn            = mets_acc['tn'],
-                    fn            = mets_acc['fn'],
-                    is_base_model = False
+
+            def _average_probabilities(prob_arrays):
+                if not prob_arrays:
+                    return None
+                min_len = min(map(len, prob_arrays))
+                return np.mean([p[:min_len] for p in prob_arrays], axis=0)
+
+            avg_cost_res = _average_results(fold_cost_results)
+            avg_acc_res  = _average_results(fold_acc_results)
+            avg_probs    = _average_probabilities(fold_prob_arrays)
+
+            # store *only* the averaged K-fold run
+            results_total.append(
+                ModelEvaluationRun(
+                    model_name=f'kfold_avg_{model_name}',
+                    results=[avg_cost_res, avg_acc_res],
+                    probabilities={'Full': avg_probs} if avg_probs is not None else {}
                 )
-                this_model_results.extend([cost_result, acc_result])
-                this_model_probs[fold_name] = proba
+            )
+
+            # still train a production model on all data, but **do not**
+            # push its metrics into results_total
+            train_and_evaluate_model(
+                model, X, y,
+                splits={'Full': (X, y)},
+                model_name=f'kfold_final_{model_name}',
+                model_dir=model_path,
+                save_model=True
+            )
+
+        # ------------------------------------------------------------------
+        # ❷ SINGLE-SPLIT PATH  ─ original logic unchanged
+        # ------------------------------------------------------------------
         else:
-            # --- Single‑split branch: exactly your old logic ---
             split_preds, _ = train_and_evaluate_model(
-                model,
-                X_train, y_train,
+                model, X_train, y_train,
                 splits=single_splits,
                 model_name=f"meta_model_v2.1_{model_name}",
                 model_dir=model_path,
                 save_model=SAVE_MODEL
             )
+
+            single_results = []
+            single_probs   = {}
+
             for split_name, (proba, y_eval) in split_preds.items():
-                sweep, best_by_cost, best_by_acc = threshold_sweep_with_cost(
+                sweep, best_cost, best_acc = threshold_sweep_with_cost(
                     proba, y_eval, C_FP=C_FP, C_FN=C_FN
                 )
-                cost_thr = best_by_cost['threshold']
-                acc_thr  = best_by_acc['threshold']
-                y_cost = (proba >= cost_thr).astype(int)
-                y_acc  = (proba >= acc_thr).astype(int)
-                mets_cost = compute_metrics(y_eval, y_cost, C_FP=C_FP, C_FN=C_FN)
-                mets_acc  = compute_metrics(y_eval, y_acc,  C_FP=C_FP, C_FN=C_FN)
-                cost_result = ModelEvaluationResult(
-                    model_name    = model_name,
-                    split         = split_name,
-                    threshold_type= 'cost',
-                    threshold     = cost_thr,
-                    precision     = mets_cost['precision'],
-                    recall        = mets_cost['recall'],
-                    accuracy      = mets_cost['accuracy'],
-                    cost          = mets_cost['cost'],
-                    tp            = mets_cost['tp'],
-                    fp            = mets_cost['fp'],
-                    tn            = mets_cost['tn'],
-                    fn            = mets_cost['fn'],
-                    is_base_model = False
+
+                if SAVE_PLOTS:
+                    plot_threshold_sweep(
+                        sweep, C_FP, C_FN,
+                        cost_optimal_thr=best_cost['threshold'],
+                        accuracy_optimal_thr=best_acc['threshold'],
+                        output_path=os.path.join(
+                            image_path,
+                            f"{model_name}_{split_name.lower()}_threshold_sweep.png")
+                    )
+
+                def _mk_result(best, thr_type):
+                    return ModelEvaluationResult(
+                        model_name=model_name,
+                        split=split_name,
+                        threshold_type=thr_type,
+                        threshold=best['threshold'],
+                        precision=best['precision'],
+                        recall=best['recall'],
+                        accuracy=best['accuracy'],
+                        cost=best['cost'],
+                        tp=best['tp'], fp=best['fp'],
+                        tn=best['tn'], fn=best['fn'],
+                        is_base_model=False
+                    )
+
+                single_results.extend([
+                    _mk_result(best_cost, 'cost'),
+                    _mk_result(best_acc,  'accuracy')
+                ])
+                single_probs[split_name] = proba
+
+            results_total.append(
+                ModelEvaluationRun(
+                    model_name=model_name,
+                    results=single_results,
+                    probabilities=single_probs
                 )
-                acc_result = ModelEvaluationResult(
-                    model_name    = model_name,
-                    split         = split_name,
-                    threshold_type= 'accuracy',
-                    threshold     = acc_thr,
-                    precision     = mets_acc['precision'],
-                    recall        = mets_acc['recall'],
-                    accuracy      = mets_acc['accuracy'],
-                    cost          = mets_acc['cost'],
-                    tp            = mets_acc['tp'],
-                    fp            = mets_acc['fp'],
-                    tn            = mets_acc['tn'],
-                    fn            = mets_acc['fn'],
-                    is_base_model = False
-                )
-                this_model_results.extend([cost_result, acc_result])
-                this_model_probs[split_name] = proba
-        # finally, one run per model
-        results_total.append(
-            ModelEvaluationRun(
-                model_name   = model_name,
-                results      = this_model_results,
-                probabilities= this_model_probs
             )
-        )
-        this_model_results = []     # List[ModelEvaluationResult]
-        this_model_probs: dict = {} # Dict[split_name -> np.array]
+    # ─────────────────────── END OF CORE LOOP REPLACEMENT ───────────────────────
 
-        # train once, get all split probs and the trained model back
-        split_preds, trained_model = train_and_evaluate_model(
-            model=model,
-            X_train=X_train, y_train=y_train,
-            splits=single_splits,
-            model_name=f"meta_model_v2.1_{model_name}",
-            model_dir=model_path,
-            save_model=SAVE_MODEL
-        )
-
-        # now loop splits exactly as before, but WITHOUT retraining
-        for split_name, (proba, y_eval) in split_preds.items():
-            print(f"\nEvaluating on {split_name} split...")
-
-            # threshold sweep
-            sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                proba, y_eval,
-                thresholds=np.linspace(0,1,21),
-                C_FP=C_FP, C_FN=C_FN
-            )
-            cost_thr = best_cost['threshold']
-            acc_thr  = best_acc['threshold']
-
-            # plot
-            if SAVE_PLOTS:
-                plot_threshold_sweep(
-                    sweep,
-                    output_path=f"{image_path}/{model_name}_{split_name.lower()}_threshold_sweep.png",
-                    cost_optimal_thr=cost_thr,
-                    accuracy_optimal_thr=acc_thr,
-                    C_FP=C_FP, C_FN=C_FN
-                )
-                plt.close()
-
-            # compute metrics at both thresholds
-            y_cost = (proba >= cost_thr).astype(int)
-            y_acc  = (proba >= acc_thr).astype(int)
-            mets_cost = compute_metrics(y_eval, y_cost, C_FP=C_FP, C_FN=C_FN)
-            mets_acc  = compute_metrics(y_eval, y_acc,  C_FP=C_FP, C_FN=C_FN)
-
-            # append to your dataclass table
-            cost_result = ModelEvaluationResult(
-                model_name    = model_name,
-                split         = split_name,
-                threshold_type= 'cost',
-                threshold     = cost_thr,
-                precision     = mets_cost['precision'],
-                recall        = mets_cost['recall'],
-                accuracy      = mets_cost['accuracy'],
-                cost          = mets_cost['cost'],
-                tp            = mets_cost['tp'],
-                fp            = mets_cost['fp'],
-                tn            = mets_cost['tn'],
-                fn            = mets_cost['fn'],
-            )
-            acc_result = ModelEvaluationResult(
-                model_name    = model_name,
-                split         = split_name,
-                threshold_type= 'accuracy',
-                threshold     = acc_thr,
-                precision     = mets_acc['precision'],
-                recall        = mets_acc['recall'],
-                accuracy      = mets_acc['accuracy'],
-                cost          = mets_acc['cost'],
-                tp            = mets_acc['tp'],
-                fp            = mets_acc['fp'],
-                tn            = mets_acc['tn'],
-                fn            = mets_acc['fn'],
-            )
-
-            # collect into per-model accumulators
-            this_model_results.extend([cost_result, acc_result])
-            this_model_probs[split_name] = proba
-
-        # --- now that all splits are done, create ONE run per model ---
-        run = ModelEvaluationRun(
-            model_name   = model_name,
-            results      = this_model_results,
-            probabilities= this_model_probs
-        )
-        results_total.append(run)
-
-        # (no need to joblib.dump here — already saved in train_and_evaluate_model)
 
     # ========== STRUCTURED BASE MODEL METRICS SECTION ==========
     for base in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']:
         base_results = []
         base_probs   = {}
 
-        for split_name, idx in zip(
-            ['Train', 'Test', 'Full'],
-            [train_idx, test_idx, df.index]
-        ):
+        if config.USE_KFOLD:
+            split_names_and_indices = [('Full', df.index)]
+        else:
+            split_names_and_indices = [
+                ('Train', train_idx),
+                ('Test', test_idx),
+                ('Full', df.index)
+            ]
+
+        for split_name, idx in split_names_and_indices:
             # 1) build y_pred for this base model + split
             if base == 'AD_or_CL_Fail':
                 # fail if either AD or CL says "Bad"
@@ -962,6 +895,59 @@ def main(config):
             C_FN=C_FN,
             output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
         )
+
+        for run in results_total:
+            print(f"\nModel: {run.model_name}")
+
+def Save_Feature_Info(model_path, df, feature_cols, encoded_cols):
+    encoding_info = {}
+        # Identify which columns in df were categorical and one-hot encoded
+    for col in df.columns:
+        if col not in feature_cols and col in df.select_dtypes(include=['object', 'category', 'bool']).columns:
+            encoding_info[col] = {
+                    'type': 'one_hot',
+                    'original_column': col,
+                    'categories': sorted(df[col].unique().tolist())
+                }
+    feature_info = {
+            'feature_cols': feature_cols,  # Original numeric features
+            'encoded_cols': encoded_cols,  # One-hot encoded columns
+            'encoding': encoding_info
+        }
+    joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl"))
+
+def Regular_Split(config, X, y):
+    print("Running single train/test split…")
+    X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.20, random_state=getattr(config,'RANDOM_STATE',42),
+            stratify=y
+        )
+    train_idx = X_train.index
+    test_idx  = X_test.index
+        # Single-split "splits" dict mirrors your old code
+    single_splits = {
+            'Train': (X_train, y_train),
+            'Test':  (X_test,  y_test),
+            'Full':  (X,       y)
+        }
+
+    return X_train,y_train,train_idx,test_idx,single_splits
+
+def CV_Split(config, X, y):
+    print(f"Running {config.N_SPLITS}‑fold cross‑validation…")
+    kf = StratifiedKFold(
+            n_splits = config.N_SPLITS,
+            shuffle  = True,
+            random_state = getattr(config, 'RANDOM_STATE', 42)
+        )
+        # KFold logic does not use train_idx/test_idx here
+    cv_splits = []
+    for fold_idx, (train_idx, test_idx) in enumerate(kf.split(X, y), start=1):
+        print(f"  Fold {fold_idx}/{config.N_SPLITS}")
+        X_tr, y_tr = X.iloc[train_idx], y.iloc[train_idx]
+        X_te, y_te = X.iloc[test_idx],  y.iloc[test_idx]
+        cv_splits.append( (f"Fold{fold_idx}", (X_tr, y_tr), (X_te, y_te)) )
+    return cv_splits
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
