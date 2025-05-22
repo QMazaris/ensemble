@@ -469,7 +469,6 @@ def plot_runs_at_threshold(
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"Saved plot to {output_path}")
     else:
         plt.show()
     plt.close(fig)
@@ -655,16 +654,7 @@ def main(config):
     }
     
     # Collect results for each model and split
-    results = []  # collect per-model, per-split rows
-    results_table = [] # per model, using structs
-    results_total = []  # All raw probabilities for each model
-    
-    best_models = {}
-    
-    # Initialize dictionary to store all probabilities and GT
-    # Prepare wide-format DataFrame indexed by original DataFrame
-    wide_df = pd.DataFrame(index=df.index)
-    wide_df['GT'] = y.values
+    results_total = []  # All raw probabilities for each model}
     
     for model_name, model in MODELS.items():
         print(f"\n{'-'*50}\nTraining & evaluating {model_name}...\n")
@@ -713,18 +703,6 @@ def main(config):
             mets_cost = compute_metrics(y_eval, y_cost, C_FP=C_FP, C_FN=C_FN)
             mets_acc  = compute_metrics(y_eval, y_acc,  C_FP=C_FP, C_FN=C_FN)
 
-            # append to your old results list
-            results.append({
-                'model': model_name, 'split': split_name,
-                'threshold_type': 'cost', 'threshold': cost_thr,
-                **mets_cost
-            })
-            results.append({
-                'model': model_name, 'split': split_name,
-                'threshold_type': 'accuracy', 'threshold': acc_thr,
-                **mets_acc
-            })
-
             # append to your dataclass table
             cost_result = ModelEvaluationResult(
                 model_name    = model_name,
@@ -759,13 +737,6 @@ def main(config):
             this_model_results.extend([cost_result, acc_result])
             this_model_probs[split_name] = proba
 
-            # store into wide_df as before
-            col = f"{model_name}_{split_name}"
-            arr = np.full(len(df), np.nan)
-            idx = y_eval.index if hasattr(y_eval, 'index') else range(len(proba))
-            arr[idx] = proba
-            wide_df[col] = arr
-
         # --- now that all splits are done, create ONE run per model ---
         run = ModelEvaluationRun(
             model_name   = model_name,
@@ -775,9 +746,6 @@ def main(config):
         results_total.append(run)
 
         # (no need to joblib.dump here — already saved in train_and_evaluate_model)
-
-    # after loop, recreate results_df
-    results_df = pd.DataFrame(results)
 
     # ========== STRUCTURED BASE MODEL METRICS SECTION ==========
     for base in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']:
@@ -833,61 +801,16 @@ def main(config):
             )
         )
     # ========== END STRUCTURED BASE MODEL METRICS SECTION ==========
-
-
-
-
-    # Group by model and split, then aggregate metrics
-    # summary = results_df.groupby(['model', 'split']).agg({
-    #     'accuracy': 'mean',
-    #     'precision': 'mean',
-    #     'recall': 'mean'
-    # }).reset_index()
     
-
     if SUMMARY:
         print_performance_summary(
         runs=results_total,
         meta_model_names=set(MODELS.keys())
         )
 
-    # # Print formatted summary with confusion matrix and cost by threshold type for meta-models
-    # for model_name in MODELS.keys():
-    #     print(f"\n{model_name}:")
-    #     model_results = results_df[(results_df['model'] == model_name)]
-    #     for split in ['Train', 'Test', 'Full']:
-    #         for thr_type in ['cost', 'accuracy']:
-    #             row = model_results[(model_results['split'] == split) & (model_results['threshold_type'] == thr_type)]
-    #             if not row.empty:
-    #                 row = row.iloc[0]
-    #                 print(f"  {split} Split ({thr_type}-optimal):")
-    #                 print(f"    Accuracy:  {row['accuracy']:.1f}%  Precision: {row['precision']:.1f}%  Recall: {row['recall']:.1f}%")
-    #                 print(f"    Threshold: {row['threshold']:.3f}")
-    #                 print(f"    Cost:      {row['cost']}")
-    #                 print(f"    Confusion Matrix: [[TN={row['tn']} FP={row['fp']}], [FN={row['fn']} TP={row['tp']}]]")
-
-    # # Print summary for base models (preset confidence threshold, not optimized)
-    # print("\nBASE MODELS PERFORMANCE (preset confidence threshold, not optimized):")
-    # base_model_names = [name for name in results_df['model'].unique() if name not in MODELS.keys()]
-    # for model_name in base_model_names:
-    #     print(f"\n{model_name}:")
-    #     model_results = results_df[(results_df['model'] == model_name) & (results_df['threshold_type'] == 'cost')]
-    #     for split in ['Train', 'Test', 'Full']:
-    #         row = model_results[model_results['split'] == split]
-    #         if not row.empty:
-    #             row = row.iloc[0]
-    #             print(f"  {split} Split (preset confidence threshold):")
-    #             print(f"    Accuracy:  {row['accuracy']:.1f}%  Precision: {row['precision']:.1f}%  Recall: {row['recall']:.1f}%")
-    #             print(f"    Cost:      {row['cost']}")
-    #             print(f"    Confusion Matrix: [[TN={row['tn']} FP={row['fp']}], [FN={row['fn']} TP={row['tp']}]]")
-
-
-
     if SAVE_PREDICTIONS:
         predictions_dir = getattr(config, 'PREDICTIONS_DIR', os.path.dirname(model_path))
         save_all_model_probabilities_from_structure(results_total, predictions_dir, df.index, y_eval)
-
-    print(results_df['split'].unique())
 
     if SAVE_PLOTS:
         plot_runs_at_threshold(
@@ -906,9 +829,6 @@ def main(config):
             C_FN=C_FN,
             output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
         )
-
-    # print("results_table")
-    # print(results_total)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

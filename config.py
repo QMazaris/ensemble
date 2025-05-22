@@ -141,9 +141,9 @@ SMOTE_RATIO = 0.5  # Ratio of minority class to majority class after SMOTE
 
 # ===== Output & Logging =====
 SAVE_MODEL = True  # Save trained models
-SAVE_PLOTS = False  # Save evaluation plots
-SAVE_PREDICTIONS = False  # Save predictions
-SUMMARY = False
+SAVE_PLOTS = True  # Save evaluation plots
+SAVE_PREDICTIONS = True  # Save predictions
+SUMMARY = True
 
 # ===== Create Output Directories =====
 dirs_to_create = [
