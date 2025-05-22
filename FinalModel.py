@@ -50,21 +50,23 @@ import numpy as np
 class ModelEvaluationResult:
     model_name: str
     split: str
-    threshold_type: str       # 'cost' or 'accuracy'
-    threshold: float
-    precision: float
-    recall: float
-    accuracy: float
-    cost: float
-    tp: int
-    fp: int
-    tn: int
-    fn: int
+    threshold_type: str       # 'cost', 'accuracy', or 'base' for base models
+    threshold: float = None   # None for base models
+    precision: float = None
+    recall: float = None
+    accuracy: float = None
+    cost: float = None
+    tp: int = None
+    fp: int = None
+    tn: int = None
+    fn: int = None
+    is_base_model: bool = False  # True for base model results
 
 @dataclass
 class ModelEvaluationRun:
     model_name: str
-    probabilities: Optional[np.ndarray]       # one shared array
+    results: list  # List of ModelEvaluationResult (including base and meta models)
+    probabilities: Optional[dict] = None  # Dict of model_name -> np.ndarray (including base models if available)
 
 
 # ---------- Data Preparation ----------
@@ -514,6 +516,59 @@ def plot_all_models_at_threshold(output_path, results_df, threshold_type, C_FP, 
     # Always close the plot to prevent Tkinter errors in scripts
     plt.close(fig)
 
+def save_all_model_probabilities_from_structure(
+    results_total,
+    predictions_dir,
+    index,
+    y_true
+):
+    """
+    From a list of ModelEvaluationRun, builds a CSV with:
+      • 1st column: ground truth (y_true)
+      • subsequent columns: one probability column per model
+        (using the “Full” split when available)
+
+    Args:
+        results_total: list of ModelEvaluationRun
+        predictions_dir: directory to write the CSV
+        index: full‐dataset index (e.g. df.index)
+        y_true: ground‐truth array or pd.Series aligned to index
+    """
+    os.makedirs(predictions_dir, exist_ok=True)
+
+    # start an empty DF with your index
+    wide_df = pd.DataFrame(index=index)
+
+    if not results_total:
+        raise ValueError("results_total is empty")
+
+    # insert GT as the very first column
+    wide_df['GT'] = y_true
+
+    # helper to pick the "Full" split or fall back to the longest array
+    def pick_full_or_longest(probas):
+        return probas.get(
+            'Full',
+            max(probas.values(), key=lambda arr: arr.shape[0])
+        )
+
+    # now add exactly one column per model
+    for run in results_total:
+        model_col = run.model_name
+        probas = pick_full_or_longest(run.probabilities)
+
+        # align by length/index
+        if len(probas) == len(index):
+            wide_df[model_col] = probas
+        else:
+            # shorter → assume starts at the top
+            wide_df[model_col] = pd.Series(probas, index=index[: len(probas)])
+
+    # save to CSV
+    out_path = os.path.join(predictions_dir, 'all_model_predictions.csv')
+    wide_df.to_csv(out_path, index=False)
+    print(f"Saved GT as first column + one prob‐column per model to {out_path}")
+
 # ---------- Main Function ----------
 def main(config):
     """Main function to run the entire pipeline.
@@ -576,7 +631,7 @@ def main(config):
     # Collect results for each model and split
     results = []  # collect per-model, per-split rows
     results_table = [] # per model, using structs
-    results_probabilities = []  # All raw probabilities for each model
+    results_total = []  # All raw probabilities for each model
     
     best_models = {}
     
@@ -587,6 +642,10 @@ def main(config):
     
     for model_name, model in MODELS.items():
         print(f"\n{'-'*50}\nTraining & evaluating {model_name}...\n")
+
+        # --- prepare per-model accumulators ---
+        this_model_results = []     # List[ModelEvaluationResult]
+        this_model_probs: dict = {} # Dict[split_name -> np.array]
 
         # train once, get all split probs and the trained model back
         split_preds, trained_model = train_and_evaluate_model(
@@ -641,35 +700,54 @@ def main(config):
 
             # append to your dataclass table
             cost_result = ModelEvaluationResult(
-                model_name, split_name, 'cost',
-                cost_thr,
-                mets_cost['precision'], mets_cost['recall'],
-                mets_cost['accuracy'], mets_cost['cost'],
-                mets_cost['tp'], mets_cost['fp'],
-                mets_cost['tn'], mets_cost['fn'],
+                model_name    = model_name,
+                split         = split_name,
+                threshold_type= 'cost',
+                threshold     = cost_thr,
+                precision     = mets_cost['precision'],
+                recall        = mets_cost['recall'],
+                accuracy      = mets_cost['accuracy'],
+                cost          = mets_cost['cost'],
+                tp            = mets_cost['tp'],
+                fp            = mets_cost['fp'],
+                tn            = mets_cost['tn'],
+                fn            = mets_cost['fn'],
             )
             acc_result = ModelEvaluationResult(
-                model_name, split_name, 'accuracy',
-                acc_thr,
-                mets_acc['precision'], mets_acc['recall'],
-                mets_acc['accuracy'], mets_acc['cost'],
-                mets_acc['tp'], mets_acc['fp'],
-                mets_acc['tn'], mets_acc['fn'],
+                model_name    = model_name,
+                split         = split_name,
+                threshold_type= 'accuracy',
+                threshold     = acc_thr,
+                precision     = mets_acc['precision'],
+                recall        = mets_acc['recall'],
+                accuracy      = mets_acc['accuracy'],
+                cost          = mets_acc['cost'],
+                tp            = mets_acc['tp'],
+                fp            = mets_acc['fp'],
+                tn            = mets_acc['tn'],
+                fn            = mets_acc['fn'],
             )
 
-            proba_result = (model_name, proba)
+            # collect into per-model accumulators
+            this_model_results.extend([cost_result, acc_result])
+            this_model_probs[split_name] = proba
 
-            results_probabilities.append(proba_result)
-            results_table.extend([cost_result, acc_result])
-
-            # store into wide_df
+            # store into wide_df as before
             col = f"{model_name}_{split_name}"
             arr = np.full(len(df), np.nan)
             idx = y_eval.index if hasattr(y_eval, 'index') else range(len(proba))
             arr[idx] = proba
             wide_df[col] = arr
 
-        # (no need to joblib.dump here any more — already done in train_and_evaluate_model)
+        # --- now that all splits are done, create ONE run per model ---
+        run = ModelEvaluationRun(
+            model_name   = model_name,
+            results      = this_model_results,
+            probabilities= this_model_probs
+        )
+        results_total.append(run)
+
+        # (no need to joblib.dump here — already saved in train_and_evaluate_model)
 
     # after loop, recreate results_df
     results_df = pd.DataFrame(results)
@@ -703,6 +781,41 @@ def main(config):
     if base_metrics:
         base_metrics_df = pd.DataFrame(base_metrics)
         results_df = pd.concat([results_df, base_metrics_df], ignore_index=True) if not results_df.empty else base_metrics_df
+
+    # ========== Add base models to results_total structure ==========
+    for base in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']:
+        base_results = []
+        base_probs = {}
+        for split_name, idx in zip(['Train', 'Test', 'Full'], [train_idx, test_idx, df.index]):
+            if base == 'AD_or_CL_Fail':
+                y_pred = wide_df.loc[idx, 'AD_or_CL_Fail'].values
+            else:
+                y_pred = wide_df.loc[idx, base].values
+            y_true = y.loc[idx].values
+            metrics = compute_metrics(y_true, y_pred, C_FP=C_FP, C_FN=C_FN)
+            base_result = ModelEvaluationResult(
+                model_name    = base,
+                split         = split_name,
+                threshold_type= 'base',
+                threshold     = None,
+                precision     = metrics['precision'],
+                recall        = metrics['recall'],
+                accuracy      = metrics['accuracy'],
+                cost          = metrics['cost'],
+                tp            = metrics['tp'],
+                fp            = metrics['fp'],
+                tn            = metrics['tn'],
+                fn            = metrics['fn'],
+                is_base_model = True
+            )
+            base_results.append(base_result)
+            base_probs[split_name] = y_pred
+        run = ModelEvaluationRun(
+            model_name   = base,
+            results      = base_results,
+            probabilities= base_probs
+        )
+        results_total.append(run)
     # ========== END BASE MODEL METRICS SECTION ==========
 
    # Print summary table
@@ -748,10 +861,9 @@ def main(config):
                 print(f"    Confusion Matrix: [[TN={row['tn']} FP={row['fp']}], [FN={row['fn']} TP={row['tp']}]]")
 
 
-    # Save all probabilities in wide format to CSV
-    predictions_path = os.path.join(os.path.dirname(model_path), 'all_model_predictions.csv')
-    wide_df.to_csv(predictions_path, index=False)
-    print(f"Saved all model probabilities in wide format to {predictions_path}")
+    if hasattr(config, 'SAVE_PREDICTIONS') and config.SAVE_PREDICTIONS:
+        predictions_dir = getattr(config, 'PREDICTIONS_DIR', os.path.dirname(model_path))
+        save_all_model_probabilities_from_structure(results_total, predictions_dir, df.index, y_eval)
 
     print(results_df['split'].unique())
 
@@ -799,7 +911,7 @@ def main(config):
     )
 
     print("results_table")
-    print(results_table)
+    print(results_total)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

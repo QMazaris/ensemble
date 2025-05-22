@@ -145,6 +145,7 @@ THRESHOLD_RANGE = np.linspace(0, 1, 11)  # start, stop, step
 # ===== Output & Logging =====
 SAVE_MODEL = True  # Save trained models
 SAVE_PLOTS = True  # Save evaluation plots
+SAVE_PREDICTIONS = True  # Save predictions
 VERBOSE = 1  # 0: silent, 1: progress bar, 2: one line per epoch
 
 # ===== Create Output Directories =====
