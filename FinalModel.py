@@ -569,6 +569,17 @@ def print_performance_summary(
 
     # --- Meta‐model summaries ---
     for model in meta_model_names:
+        found_any = False
+        for split in splits:
+            for thr in thr_types:
+                r = _find(model, split, thr)
+                if r:
+                    found_any = True
+                    break
+            if found_any:
+                break
+        if not found_any:
+            continue
         print(f"\n{model}:")
         for split in splits:
             for thr in thr_types:
@@ -586,9 +597,16 @@ def print_performance_summary(
     base_models = all_models - set(meta_model_names)
     print("\nBASE MODELS PERFORMANCE (preset confidence threshold):")
     for model in base_models:
+        found_any = False
+        for split in splits:
+            r = _find(model, split, 'base')
+            if r:
+                found_any = True
+                break
+        if not found_any:
+            continue
         print(f"\n{model}:")
         for split in splits:
-            # base models use threshold_type=='base'
             r = _find(model, split, 'base')
             if not r:
                 continue
@@ -596,6 +614,20 @@ def print_performance_summary(
             print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
             print(f"    Cost:      {r.cost}")
             print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
+
+    # --- K-Fold Averaged Model Summaries ---
+    print("\nK-FOLD AVERAGED MODEL PERFORMANCE:")
+    for run in runs:
+        if run.model_name.startswith("kfold_avg_"):
+            if not run.results:
+                continue
+            print(f"\n{run.model_name}:")
+            for r in run.results:
+                print(f"  {r.split} Split ({r.threshold_type}-optimal):")
+                print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
+                print(f"    Threshold: {r.threshold:.3f}")
+                print(f"    Cost:      {r.cost}")
+                print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
 
 # ---------- Main Function ----------
 def main(config):
@@ -895,9 +927,6 @@ def main(config):
             C_FN=C_FN,
             output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
         )
-
-        for run in results_total:
-            print(f"\nModel: {run.model_name}")
 
 def Save_Feature_Info(model_path, df, feature_cols, encoded_cols):
     encoding_info = {}
