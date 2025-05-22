@@ -139,13 +139,10 @@ N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)
 USE_SMOTE = True  # Apply SMOTE for imbalanced data
 SMOTE_RATIO = 0.5  # Ratio of minority class to majority class after SMOTE
 
-# ===== Threshold Optimization =====
-THRESHOLD_RANGE = np.linspace(0, 1, 11)  # start, stop, step
-
 # ===== Output & Logging =====
 SAVE_MODEL = True  # Save trained models
 SAVE_PLOTS = True  # Save evaluation plots
-SAVE_PREDICTIONS = True  # Save predictions
+SAVE_PREDICTIONS = False  # Save predictions
 VERBOSE = 1  # 0: silent, 1: progress bar, 2: one line per epoch
 
 # ===== Create Output Directories =====

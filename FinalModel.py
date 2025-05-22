@@ -71,75 +71,50 @@ class ModelEvaluationRun:
 
 # ---------- Data Preparation ----------
 def prepare_data(df):
-    """Prepare features and target from dataframe.
-    
-    Args:
-        df: Pandas DataFrame with raw data
-        
-    Returns:
-        X: Feature matrix
-        y: Target vector
-        feature_cols: List of numeric feature names
-        weld_columns: List of one-hot encoded weld type columns
     """
-    # Start with the original feature list
-    feature_cols = [
-        "AnomalyScore",
-        "RegionArea",
-        "MaxVal",
-        "RegionCount",
-        "BurnThru",
-        "Concavity",
-        "Good",
-        "Porosity",
-        "Skip",
-        "RegionRow",
-        "RegionCol",
-        "RegionAreaFrac",
-        "CL_ConfMax",
-        "CL_ConfMargin",
-        "SegThresh",
-        "ClassThresh"
-    ]
+    Prepare features & target from df by:
+      • dropping config.EXCLUDE_COLS + config.TARGET
+      • auto-detecting numeric vs categorical cols
+      • one-hot-encoding all categoricals
 
-    # One-hot encode the Weld column
-    weld_dummies = pd.get_dummies(df['Weld'], prefix='Weld')
-
-    # Combine numeric features with encoded weld types
-    X = pd.concat([df[feature_cols], weld_dummies], axis=1)
-    
-    # Encode target
-    y = df["GT_Label"].map({"Good": 0, "Bad": 1})
-    
-    return X, y, feature_cols, list(weld_dummies.columns)
-
-def train_and_predict(model, X_train, y_train, X_eval):
-    """Train the model with SMOTE balancing and make predictions.
-    
-    Args:
-        model: The model to train
-        X_train: Training features
-        y_train: Training target
-        X_eval: Evaluation features
-
-    
     Returns:
-        tuple: (probabilities, predictions)
+        X: pd.DataFrame of features
+        y: pd.Series of 0/1 target
+        feature_cols: list of numeric feature names
+        encoded_cols: list of new one-hot column names
     """
-    # Apply SMOTE to balance classes
-    print("Applying SMOTE to balance classes...")
-    smote = SMOTE(random_state=42)
-    X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
-    
-    # Train model
-    print("Training model...")
-    model.fit(X_train_balanced, y_train_balanced)
-    
-    # Make predictions
-    print("Making predictions...")
-    proba = model.predict_proba(X_eval)[:, 1]
-    return proba
+    # Copy to avoid side-effects
+    df = df.copy()
 
+    # 1) Extract & encode target
+    target = config.TARGET
+    # adjust mapping if your target labels differ
+    y = df[target].map({"Good": 0, "Bad": 1})
+    if y.isnull().any():
+        raise ValueError(f"Found unmapped values in {target}")
+
+    # 2) Drop excluded cols + target
+    to_drop = set(config.EXCLUDE_COLS) | {target}
+    missing = to_drop - set(df.columns)
+    if missing:
+        raise KeyError(f"Columns not found in DataFrame: {missing}")
+    df_feats = df.drop(columns=list(to_drop))
+
+    # 3) Split numeric vs categorical
+    numeric_cols = df_feats.select_dtypes(include=['number']).columns.tolist()
+    categorical_cols = df_feats.select_dtypes(
+        include=['object', 'category', 'bool']
+    ).columns.tolist()
+
+    # 4) One‑hot encode ALL categoricals
+    df_cat = pd.get_dummies(df_feats[categorical_cols], prefix=categorical_cols, drop_first=False)
+
+    # 5) Reassemble X
+    X = pd.concat([df_feats[numeric_cols], df_cat], axis=1)
+
+    # 6) Return feature lists
+    encoded_cols = df_cat.columns.tolist()
+    return X, y, numeric_cols, encoded_cols
 
 def train_and_evaluate_model(
     model,
@@ -353,6 +328,8 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
     
     plt.close(fig)  # Properly close the figure to avoid Tkinter errors
 
+
+
 def plot_all_models_at_threshold(output_path, results_df, threshold_type, C_FP, C_FN, split_type='test', model_thresholds=None):
     """
     Plot precision, recall, and accuracy for all models using model-specific thresholds.
@@ -516,6 +493,147 @@ def plot_all_models_at_threshold(output_path, results_df, threshold_type, C_FP, 
     # Always close the plot to prevent Tkinter errors in scripts
     plt.close(fig)
 
+def plot_runs_at_threshold(
+    runs: list[ModelEvaluationRun],
+    threshold_type: str,
+    split_name: str = 'Test',
+    C_FP: float = 1.0,
+    C_FN: float = 1.0,
+    output_path: str = None
+):
+    split_name = split_name.capitalize()
+    if threshold_type not in ('cost','accuracy'):
+        raise ValueError("threshold_type must be 'cost' or 'accuracy'")
+
+    labels, precisions, recalls, accuracies, costs, thresholds = [], [], [], [], [], []
+
+    for run in runs:
+        # pick the threshold‐opt result (or base model fallback)
+        match = next((r for r in run.results
+                      if r.split == split_name and r.threshold_type == threshold_type), None)
+        if not match:
+            match = next((r for r in run.results
+                          if r.split == split_name and r.is_base_model), None)
+        if not match:
+            continue
+
+        labels.append(run.model_name)
+        precisions.append(match.precision or 0.0)
+        recalls.append(match.recall or 0.0)
+        accuracies.append(match.accuracy or 0.0)
+        costs.append(match.cost or 0.0)
+        thresholds.append(match.threshold if match.threshold is not None else np.nan)
+
+    if not labels:
+        raise RuntimeError(f"No results for split={split_name}, threshold_type={threshold_type}")
+
+    x = np.arange(len(labels))
+    w = 0.2
+
+    # make the figure a bit less tall
+    fig, ax = plt.subplots(figsize=(14, 6))
+
+    # main bars
+    p_b = ax.bar(x - 1.5*w, precisions, w, label='Precision')
+    r_b = ax.bar(x - 0.5*w, recalls,    w, label='Recall')
+    a_b = ax.bar(x + 0.5*w, accuracies, w, label='Accuracy')
+
+    # twin y‐axis for cost
+    ax2 = ax.twinx()
+    c_b = ax2.bar(x + 1.5*w, costs, w, label='Cost', alpha=0.6)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=30, ha='right')
+    ax.set_ylabel('Percentage')
+    ax2.set_ylabel('Cost')
+
+        # --------------------------------------------------
+    # annotate all four sets of bars on the correct axes
+    # --------------------------------------------------
+
+    # helper that takes a bar‐container, the axis to draw on,
+    # a formatting function, and an absolute offset in data units
+    def _annotate(bars, axis, fmt, offset):
+        for bar in bars:
+            h = bar.get_height()
+            axis.text(
+                bar.get_x() + bar.get_width()/2,
+                h + offset,
+                fmt(h),
+                ha='center',
+                va='bottom',
+                fontsize=8
+            )
+
+    # percentage bars: use ax, offset in percentage‐points (0.5%)
+    _annotate(p_b, ax, lambda h: f"{h:.1f}%", 0.5)
+    _annotate(r_b, ax, lambda h: f"{h:.1f}%", 0.5)
+    _annotate(a_b, ax, lambda h: f"{h:.1f}%", 0.5)
+
+    # cost bars: use ax2, offset in cost‐units (e.g. 1% of max cost)
+    max_cost = max(costs) if costs else 0
+    cost_offset = max_cost * 0.01
+    _annotate(c_b, ax2, lambda h: f"{int(h)}", cost_offset)
+
+
+    # give some extra space at the bottom for threshold labels
+    fig.subplots_adjust(bottom=0.25)
+
+    # now drop threshold labels *just* below the x‐axis, in axes‐fraction coords
+    for i, thr in enumerate(thresholds):
+        if not np.isnan(thr):
+            ax.text(x[i], -0.05, f"Thr: {thr:.2f}",
+                    ha='center', va='top', rotation=45, fontsize=8,
+                    transform=ax.get_xaxis_transform())
+
+    # merge legends
+    h1, l1 = ax.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    
+    # after you've collected h1, l1, h2, l2…
+    combined_handles = h1 + h2
+    combined_labels  = l1 + l2
+
+    # 1) push the legend above the axes and center it
+    ax.legend(
+        combined_handles,
+        combined_labels,
+        loc='upper left',            # anchor “point” is the lower‐center of the legend box
+        ncol=2,                        # spread items in 4 columns (if you like)
+    )
+
+    # 2) give extra room at top so nothing overlaps
+    fig.subplots_adjust(top=0.85)
+
+    # After plotting bars
+    ax.relim()
+    ax.autoscale_view()
+    ylim = ax.get_ylim()
+    ax.set_ylim(ylim[0], ylim[1] * 1.15)
+
+    # Same for ax2
+    ax2.relim()
+    ax2.autoscale_view()
+    ylim2 = ax2.get_ylim()
+    ax2.set_ylim(ylim2[0], ylim2[1] * 1.15)
+
+
+    ratio = C_FN / C_FP if C_FP else float('inf')
+    ax.set_title(
+        f"Model Performance Comparison\n"
+        f"({split_name} Data, {threshold_type.capitalize()}‑opt Thresholds, Cost Ratio {ratio:.1f})"
+    )
+
+    # finalize
+    plt.tight_layout()
+    if output_path:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        print(f"Saved plot to {output_path}")
+    else:
+        plt.show()
+    plt.close(fig)
+
 def save_all_model_probabilities_from_structure(
     results_total,
     predictions_dir,
@@ -597,13 +715,13 @@ def main(config):
     
     # Prepare data
     print("Preparing data...")
-    X, y, feature_cols, weld_columns = prepare_data(df)
+    X, y, feature_cols, encoded_cols = prepare_data(df)
     
     # Save feature columns for later use
     # Update the feature_info dictionary to include encoding details
     feature_info = {
         'feature_cols': feature_cols,  # Original numeric features
-        'weld_columns': weld_columns,  # One-hot encoded Weld columns
+        'encoded_cols': encoded_cols,  # One-hot encoded columns
         'encoding': {
             'Weld': {
                 'type': 'one_hot',
@@ -870,48 +988,66 @@ def main(config):
 
     # Plot all models at each of the three threshold types using model-specific thresholds
     # 1. Cost-optimized thresholds for test data
-    plot_all_models_at_threshold(
-        output_path=os.path.join(image_path, 'all_models_test_cost_threshold.png'),
-        results_df=results_df, 
-        threshold_type='cost',
-        split_type='test',
-        model_thresholds=best_models,
-        C_FP=C_FP,
-        C_FN=C_FN
-    )
-    plot_all_models_at_threshold(
-        output_path=os.path.join(image_path, 'all_models_test_accuracy_threshold.png'),
-        results_df=results_df, 
-        threshold_type='accuracy',
-        split_type='test',
-        model_thresholds=best_models,
-        C_FP=C_FP,
-        C_FN=C_FN
-    )
-    print(f"\nPlotted all models with cost-optimized thresholds (test split)")
+
+    # plot_all_models_at_threshold(
+    #     output_path=os.path.join(image_path, 'all_models_test_cost_threshold.png'),
+    #     results_df=results_df, 
+    #     threshold_type='cost',
+    #     split_type='test',
+    #     model_thresholds=best_models,
+    #     C_FP=C_FP,
+    #     C_FN=C_FN
+    # )
+    # plot_all_models_at_threshold(
+    #     output_path=os.path.join(image_path, 'all_models_test_accuracy_threshold.png'),
+    #     results_df=results_df, 
+    #     threshold_type='accuracy',
+    #     split_type='test',
+    #     model_thresholds=best_models,
+    #     C_FP=C_FP,
+    #     C_FN=C_FN
+    # )
+    # print(f"\nPlotted all models with cost-optimized thresholds (test split)")
     
-    # 2. Cost-optimized thresholds for train data
-    plot_all_models_at_threshold(
-        output_path=os.path.join(image_path, 'all_models_full_cost_threshold.png'),
-        results_df=results_df, 
+    # # 2. Cost-optimized thresholds for train data
+    # plot_all_models_at_threshold(
+    #     output_path=os.path.join(image_path, 'all_models_full_cost_threshold.png'),
+    #     results_df=results_df, 
+    #     threshold_type='cost',
+    #     split_type='all',
+    #     model_thresholds=best_models,
+    #     C_FP=C_FP,
+    #     C_FN=C_FN
+    # )
+    # plot_all_models_at_threshold(
+    #     output_path=os.path.join(image_path, 'all_models_full_accuracy_threshold.png'),
+    #     results_df=results_df, 
+    #     threshold_type='accuracy',
+    #     split_type='all',
+    #     model_thresholds=best_models,
+    #     C_FP=C_FP,
+    #     C_FN=C_FN
+    # )
+
+    plot_runs_at_threshold(
+        runs=results_total,
         threshold_type='cost',
-        split_type='all',
-        model_thresholds=best_models,
+        split_name='Full',
         C_FP=C_FP,
-        C_FN=C_FN
+        C_FN=C_FN,
+        output_path=os.path.join(image_path, 'model_comparison_cost_optimized.png')
     )
-    plot_all_models_at_threshold(
-        output_path=os.path.join(image_path, 'all_models_full_accuracy_threshold.png'),
-        results_df=results_df, 
+    plot_runs_at_threshold(
+        runs=results_total,
         threshold_type='accuracy',
-        split_type='all',
-        model_thresholds=best_models,
+        split_name='Full',
         C_FP=C_FP,
-        C_FN=C_FN
+        C_FN=C_FN,
+        output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
     )
 
-    print("results_table")
-    print(results_total)
+    # print("results_table")
+    # print(results_total)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
