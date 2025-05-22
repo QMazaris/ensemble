@@ -27,6 +27,7 @@ import xgboost as xgb
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -638,28 +639,160 @@ def main(config):
             'encoding': encoding_info
         }
         joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl"))
-    
-    # Split data once
-    print("Splitting data...")
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.20, random_state=42, stratify=y)
-    train_idx = X_train.index
-    test_idx = X_test.index
-    
-    # Define evaluation splits
-    splits = {
-        'Train': (X_train, y_train),
-        'Test': (X_test, y_test),
-        'Full': (X, y)
-    }
+    # ===== Cross‑Validation vs Single‑Split =====
+    if config.USE_KFOLD:
+        print(f"Running {config.N_SPLITS}‑fold cross‑validation…")
+        kf = StratifiedKFold(
+            n_splits = config.N_SPLITS,
+            shuffle  = True,
+            random_state = getattr(config, 'RANDOM_STATE', 42)
+        )
+        # KFold logic does not use train_idx/test_idx here
+        cv_splits = []
+        for fold_idx, (train_idx, test_idx) in enumerate(kf.split(X, y), start=1):
+            print(f"  Fold {fold_idx}/{config.N_SPLITS}")
+            X_tr, y_tr = X.iloc[train_idx], y.iloc[train_idx]
+            X_te, y_te = X.iloc[test_idx],  y.iloc[test_idx]
+            cv_splits.append( (f"Fold{fold_idx}", (X_tr, y_tr), (X_te, y_te)) )
+        DO_KFOLD = True
+    else:
+        print("Running single train/test split…")
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.20, random_state=getattr(config,'RANDOM_STATE',42),
+            stratify=y
+        )
+        train_idx = X_train.index
+        test_idx  = X_test.index
+        # Single-split “splits” dict mirrors your old code
+        single_splits = {
+            'Train': (X_train, y_train),
+            'Test':  (X_test,  y_test),
+            'Full':  (X,       y)
+        }
+        DO_KFOLD = False
+# =============================================
+
     
     # Collect results for each model and split
     results_total = []  # All raw probabilities for each model}
     
     for model_name, model in MODELS.items():
-        print(f"\n{'-'*50}\nTraining & evaluating {model_name}...\n")
+        print(f"\n{'-'*40}\nEvaluating {model_name}\n{'-'*40}")
+        this_model_results = []
+        this_model_probs   = {}
 
-        # --- prepare per-model accumulators ---
+        if DO_KFOLD:
+            # --- K‑Fold branch: one fold at a time ---
+            for fold_name, (X_tr, y_tr), (X_te, y_te) in cv_splits:
+                print(f" Fold: {fold_name}")
+                split_preds, _ = train_and_evaluate_model(
+                    model, X_tr, y_tr,
+                    splits={fold_name: (X_te, y_te)},
+                    model_name=None, model_dir=None, save_model=False
+                )
+                proba, y_eval = split_preds[fold_name]
+                # Run threshold sweep and collect results
+                sweep, best_by_cost, best_by_acc = threshold_sweep_with_cost(
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN
+                )
+                cost_thr = best_by_cost['threshold']
+                acc_thr  = best_by_acc['threshold']
+                y_cost = (proba >= cost_thr).astype(int)
+                y_acc  = (proba >= acc_thr).astype(int)
+                mets_cost = compute_metrics(y_eval, y_cost, C_FP=C_FP, C_FN=C_FN)
+                mets_acc  = compute_metrics(y_eval, y_acc,  C_FP=C_FP, C_FN=C_FN)
+                cost_result = ModelEvaluationResult(
+                    model_name    = model_name,
+                    split         = fold_name,
+                    threshold_type= 'cost',
+                    threshold     = cost_thr,
+                    precision     = mets_cost['precision'],
+                    recall        = mets_cost['recall'],
+                    accuracy      = mets_cost['accuracy'],
+                    cost          = mets_cost['cost'],
+                    tp            = mets_cost['tp'],
+                    fp            = mets_cost['fp'],
+                    tn            = mets_cost['tn'],
+                    fn            = mets_cost['fn'],
+                    is_base_model = False
+                )
+                acc_result = ModelEvaluationResult(
+                    model_name    = model_name,
+                    split         = fold_name,
+                    threshold_type= 'accuracy',
+                    threshold     = acc_thr,
+                    precision     = mets_acc['precision'],
+                    recall        = mets_acc['recall'],
+                    accuracy      = mets_acc['accuracy'],
+                    cost          = mets_acc['cost'],
+                    tp            = mets_acc['tp'],
+                    fp            = mets_acc['fp'],
+                    tn            = mets_acc['tn'],
+                    fn            = mets_acc['fn'],
+                    is_base_model = False
+                )
+                this_model_results.extend([cost_result, acc_result])
+                this_model_probs[fold_name] = proba
+        else:
+            # --- Single‑split branch: exactly your old logic ---
+            split_preds, _ = train_and_evaluate_model(
+                model,
+                X_train, y_train,
+                splits=single_splits,
+                model_name=f"meta_model_v2.1_{model_name}",
+                model_dir=model_path,
+                save_model=SAVE_MODEL
+            )
+            for split_name, (proba, y_eval) in split_preds.items():
+                sweep, best_by_cost, best_by_acc = threshold_sweep_with_cost(
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN
+                )
+                cost_thr = best_by_cost['threshold']
+                acc_thr  = best_by_acc['threshold']
+                y_cost = (proba >= cost_thr).astype(int)
+                y_acc  = (proba >= acc_thr).astype(int)
+                mets_cost = compute_metrics(y_eval, y_cost, C_FP=C_FP, C_FN=C_FN)
+                mets_acc  = compute_metrics(y_eval, y_acc,  C_FP=C_FP, C_FN=C_FN)
+                cost_result = ModelEvaluationResult(
+                    model_name    = model_name,
+                    split         = split_name,
+                    threshold_type= 'cost',
+                    threshold     = cost_thr,
+                    precision     = mets_cost['precision'],
+                    recall        = mets_cost['recall'],
+                    accuracy      = mets_cost['accuracy'],
+                    cost          = mets_cost['cost'],
+                    tp            = mets_cost['tp'],
+                    fp            = mets_cost['fp'],
+                    tn            = mets_cost['tn'],
+                    fn            = mets_cost['fn'],
+                    is_base_model = False
+                )
+                acc_result = ModelEvaluationResult(
+                    model_name    = model_name,
+                    split         = split_name,
+                    threshold_type= 'accuracy',
+                    threshold     = acc_thr,
+                    precision     = mets_acc['precision'],
+                    recall        = mets_acc['recall'],
+                    accuracy      = mets_acc['accuracy'],
+                    cost          = mets_acc['cost'],
+                    tp            = mets_acc['tp'],
+                    fp            = mets_acc['fp'],
+                    tn            = mets_acc['tn'],
+                    fn            = mets_acc['fn'],
+                    is_base_model = False
+                )
+                this_model_results.extend([cost_result, acc_result])
+                this_model_probs[split_name] = proba
+        # finally, one run per model
+        results_total.append(
+            ModelEvaluationRun(
+                model_name   = model_name,
+                results      = this_model_results,
+                probabilities= this_model_probs
+            )
+        )
         this_model_results = []     # List[ModelEvaluationResult]
         this_model_probs: dict = {} # Dict[split_name -> np.array]
 
@@ -667,7 +800,7 @@ def main(config):
         split_preds, trained_model = train_and_evaluate_model(
             model=model,
             X_train=X_train, y_train=y_train,
-            splits=splits,
+            splits=single_splits,
             model_name=f"meta_model_v2.1_{model_name}",
             model_dir=model_path,
             save_model=SAVE_MODEL

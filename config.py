@@ -126,9 +126,8 @@ C_FP = 1  # Cost of false positive
 C_FN = 20  # Cost of false negative (typically higher than C_FP)
 
 # ===== Cross-Validation Settings =====
-USE_KFOLD = False  # Enable/disable k-fold cross-validation
+USE_KFOLD = True  # Enable/disable k-fold cross-validation
 N_SPLITS = 5  # Number of folds for K-fold cross-validation
-STRATIFIED_KFOLD = True  # Use stratified k-fold for classification
 
 # ===== Hyperparameter Optimization =====
 OPTIMIZE_HYPERPARAMS = False  # Enable/disable hyperparameter optimization
