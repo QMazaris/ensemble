@@ -18,6 +18,8 @@ import sys
 
 # Third-party imports
 import joblib
+import matplotlib
+matplotlib.use('Agg')  # Use a non-GUI backend to prevent Tkinter errors
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -58,7 +60,11 @@ class ModelEvaluationResult:
     fp: int
     tn: int
     fn: int
-    probabilities: Optional[np.ndarray] = None
+
+@dataclass
+class ModelEvaluationRun:
+    model_name: str
+    probabilities: Optional[np.ndarray]       # one shared array
 
 
 # ---------- Data Preparation ----------
@@ -131,6 +137,53 @@ def train_and_predict(model, X_train, y_train, X_eval):
     print("Making predictions...")
     proba = model.predict_proba(X_eval)[:, 1]
     return proba
+
+
+def train_and_evaluate_model(
+    model,
+    X_train, y_train,
+    splits: dict,
+    model_name: str = None,
+    model_dir: str = None,
+    save_model: bool = True
+):
+    """
+    Train once with SMOTE, optionally save, then predict on each split.
+
+    Args:
+        model: untrained sklearn‐style estimator
+        X_train, y_train: training data
+        splits: {'Train': (X_train, y_train), 'Test': (X_test, y_test), 'Full': (X, y)}
+        model_name: filename (without .pkl) under which to save
+        model_dir: directory in which to save the model
+        save_model: whether to save the trained model
+
+    Returns:
+        split_preds: dict mapping split_name -> (probabilities, y_true)
+        trained_model: the fitted model instance
+    """
+    # 1) Balance & train once
+    print("Applying SMOTE & training model...")
+    smote = SMOTE(random_state=42)
+    X_bal, y_bal = smote.fit_resample(X_train, y_train)
+    model.fit(X_bal, y_bal)
+
+    # 2) Save if desired
+    if save_model and model_name and model_dir:
+        os.makedirs(model_dir, exist_ok=True)
+        path = os.path.join(model_dir, f"{model_name}.pkl")
+        joblib.dump(model, path)
+        print(f"Saved trained model to {path}")
+
+    # 3) Predict on each split
+    split_preds = {}
+    for split_name, (X_eval, y_eval) in splits.items():
+        print(f"Predicting probabilities on {split_name} split...")
+        proba = model.predict_proba(X_eval)[:, 1]
+        split_preds[split_name] = (proba, y_eval)
+
+    return split_preds, model
+
 
 # ---------- Metrics Computation ----------
 def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
@@ -248,6 +301,10 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
              label='Recall: % of actual bad welds caught')
     # Plot accuracy with a thicker, more prominent line
     ax1.plot(thresholds, accuracy, color='black', linewidth=2.5, label='Accuracy: % of all welds correctly classified')
+
+    # After saving the figure, always close it to free memory and prevent Tkinter errors
+    # (Add this after each plt.savefig(fig, ...))
+
     
     # Set labels and title
     ax1.set_xlabel('Confidence Threshold (higher = stricter)')
@@ -292,7 +349,7 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
         plt.savefig(output_path)
         print(f"Saved threshold sweep plot to {output_path}")
     
-    plt.close()
+    plt.close(fig)  # Properly close the figure to avoid Tkinter errors
 
 def plot_all_models_at_threshold(output_path, results_df, threshold_type, C_FP, C_FN, split_type='test', model_thresholds=None):
     """
@@ -454,7 +511,8 @@ def plot_all_models_at_threshold(output_path, results_df, threshold_type, C_FP, 
     # Always show the plot
     # plt.show()
     
-    # Don't close the plot to keep it visible
+    # Always close the plot to prevent Tkinter errors in scripts
+    plt.close(fig)
 
 # ---------- Main Function ----------
 def main(config):
@@ -517,6 +575,9 @@ def main(config):
     
     # Collect results for each model and split
     results = []  # collect per-model, per-split rows
+    results_table = [] # per model, using structs
+    results_probabilities = []  # All raw probabilities for each model
+    
     best_models = {}
     
     # Initialize dictionary to store all probabilities and GT
@@ -524,107 +585,93 @@ def main(config):
     wide_df = pd.DataFrame(index=df.index)
     wide_df['GT'] = y.values
     
-    # Loop through all models
     for model_name, model in MODELS.items():
-        print(f"\n{'-'*50}")
-        print(f"Training {model_name}...")
-        model_instance = model  # Create a fresh instance
-        
-        # Train on training data
-        print(f"Training {model_name}...")
-        
-        # Loop through all splits for evaluation
-        for split_name, (X_eval, y_eval) in splits.items():
-            print(f"\nEvaluating on {split_name} split...")
-            
-            # For training split, we don't need to predict again
-            if split_name == 'Train':
-                proba = train_and_predict(model_instance, X_train, y_train, X_train)
-            else:
-                # For test and full, we use the trained model to predict
-                proba = train_and_predict(model_instance, X_train, y_train, X_eval)
-            
-            sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                proba,
-                y_eval,
-                thresholds=np.linspace(0,1,21),
-                C_FP=C_FP,
-                C_FN=C_FN
-            )
+        print(f"\n{'-'*50}\nTraining & evaluating {model_name}...\n")
 
-            cost_optimal_thr = best_cost['threshold']
-            accuracy_optimal_thr = best_acc['threshold']
-            
-            # Plot the threshold sweep with cost and accuracy lines
+        # train once, get all split probs and the trained model back
+        split_preds, trained_model = train_and_evaluate_model(
+            model=model,
+            X_train=X_train, y_train=y_train,
+            splits=splits,
+            model_name=f"meta_model_v2.1_{model_name}",
+            model_dir=model_path,
+            save_model=True
+        )
+
+        # now loop splits exactly as before, but WITHOUT retraining
+        for split_name, (proba, y_eval) in split_preds.items():
+            print(f"\nEvaluating on {split_name} split...")
+
+            # threshold sweep
+            sweep, best_cost, best_acc = threshold_sweep_with_cost(
+                proba, y_eval,
+                thresholds=np.linspace(0,1,21),
+                C_FP=C_FP, C_FN=C_FN
+            )
+            cost_thr = best_cost['threshold']
+            acc_thr  = best_acc['threshold']
+
+            # plot
             plot_threshold_sweep(
-                sweep, 
+                sweep,
                 output_path=f"MyPlots/{model_name}_{split_name.lower()}_threshold_sweep.png",
-                cost_optimal_thr=cost_optimal_thr,
-                accuracy_optimal_thr=accuracy_optimal_thr,
-                C_FP=C_FP,
-                C_FN=C_FN
+                cost_optimal_thr=cost_thr,
+                accuracy_optimal_thr=acc_thr,
+                C_FP=C_FP, C_FN=C_FN
             )
             plt.close()
 
+            # compute metrics at both thresholds
+            y_cost = (proba >= cost_thr).astype(int)
+            y_acc  = (proba >= acc_thr).astype(int)
+            mets_cost = compute_metrics(y_eval, y_cost, C_FP=C_FP, C_FN=C_FN)
+            mets_acc  = compute_metrics(y_eval, y_acc,  C_FP=C_FP, C_FN=C_FN)
 
-            # print("Cost‑optimal threshold:    ", cost_optimal_thr)
-            # print("Accuracy‑optimal threshold:", accuracy_optimal_thr)
-
-            # Evaluate cost-optimal threshold
-            y_pred_cost = (proba >= cost_optimal_thr).astype(int)
-            metrics_cost = compute_metrics(y_eval, y_pred_cost, C_FP=C_FP, C_FN=C_FN)
-
-            # Evaluate accuracy-optimal threshold
-            y_pred_acc = (proba >= accuracy_optimal_thr).astype(int)
-            metrics_acc = compute_metrics(y_eval, y_pred_acc, C_FP=C_FP, C_FN=C_FN)
-
-            # print("Cost-optimal metrics:", metrics_cost)
-            # print("Accuracy-optimal metrics:", metrics_acc)
-
-            
+            # append to your old results list
             results.append({
-                'model': model_name,
-                'split': split_name,
-                'threshold_type': 'cost',
-                'threshold': cost_optimal_thr,
-                **metrics_cost
+                'model': model_name, 'split': split_name,
+                'threshold_type': 'cost', 'threshold': cost_thr,
+                **mets_cost
+            })
+            results.append({
+                'model': model_name, 'split': split_name,
+                'threshold_type': 'accuracy', 'threshold': acc_thr,
+                **mets_acc
             })
 
-            results.append({
-                'model': model_name,
-                'split': split_name,
-                'threshold_type': 'accuracy',
-                'threshold': accuracy_optimal_thr,
-                **metrics_acc
-            })
+            # append to your dataclass table
+            cost_result = ModelEvaluationResult(
+                model_name, split_name, 'cost',
+                cost_thr,
+                mets_cost['precision'], mets_cost['recall'],
+                mets_cost['accuracy'], mets_cost['cost'],
+                mets_cost['tp'], mets_cost['fp'],
+                mets_cost['tn'], mets_cost['fn'],
+            )
+            acc_result = ModelEvaluationResult(
+                model_name, split_name, 'accuracy',
+                acc_thr,
+                mets_acc['precision'], mets_acc['recall'],
+                mets_acc['accuracy'], mets_acc['cost'],
+                mets_acc['tp'], mets_acc['fp'],
+                mets_acc['tn'], mets_acc['fn'],
+            )
 
-            # Store probabilities in wide format, aligned to original indices
-            col_name = f"{model_name}_{split_name}"
-            proba_col = np.full(shape=len(df), fill_value=np.nan)
-            # y_eval.index gives the positions in the original DataFrame
-            if proba is not None:
-                # If X_eval is a DataFrame, get its index; else, try to use y_eval.index
-                if hasattr(y_eval, 'index'):
-                    proba_col[y_eval.index] = proba
-                else:
-                    # fallback: assign in order (should not happen)
-                    proba_col[:len(proba)] = proba
-            wide_df[col_name] = proba_col
-            
-            # # Print basic metrics
-            # print(f"Accuracy: {metrics_cost['accuracy']:.1f}%")
-            # print(f"Precision: {metrics_cost['precision']:.1f}%")
-            # print(f"Recall: {metrics_cost['recall']:.1f}%")
+            proba_result = (model_name, proba)
 
-            
+            results_probabilities.append(proba_result)
+            results_table.extend([cost_result, acc_result])
 
+            # store into wide_df
+            col = f"{model_name}_{split_name}"
+            arr = np.full(len(df), np.nan)
+            idx = y_eval.index if hasattr(y_eval, 'index') else range(len(proba))
+            arr[idx] = proba
+            wide_df[col] = arr
 
-        # Save the trained model for this model_name (modular, dynamic)
-        model_output_path = f"{model_path}/meta_model_v2.1_{model_name}.pkl"
-        joblib.dump(model_instance, model_output_path)
-        print(f"Saved {model_name} model as {model_output_path}")
+        # (no need to joblib.dump here any more — already done in train_and_evaluate_model)
 
-    # Create a DataFrame from results
+    # after loop, recreate results_df
     results_df = pd.DataFrame(results)
 
     # ========== BASE MODEL METRICS SECTION ==========
@@ -750,6 +797,9 @@ def main(config):
         C_FP=C_FP,
         C_FN=C_FN
     )
+
+    print("results_table")
+    print(results_table)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
