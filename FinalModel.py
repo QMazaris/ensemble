@@ -47,18 +47,6 @@ from typing import Optional
 import numpy as np
 
 @dataclass
-class SweepEntry:
-    threshold: float
-    precision: float
-    recall: float
-    accuracy: float
-    cost: float
-    tp: int
-    fp: int
-    tn: int
-    fn: int
-
-@dataclass
 class ModelEvaluationResult:
     model_name: str
     split: str
@@ -83,7 +71,7 @@ class ModelEvaluationRun:
 
 
 # ---------- Data Preparation ----------
-def prepare_data(df):
+def prepare_data(df, config):
     """
     Prepare features & target from df by:
       • dropping config.EXCLUDE_COLS + config.TARGET
@@ -107,27 +95,25 @@ def prepare_data(df):
         raise ValueError(f"Found unmapped values in {target}")
 
     # 2) Drop excluded cols + target
-    to_drop = set(config.EXCLUDE_COLS) | {target}
-    missing = to_drop - set(df.columns)
-    if missing:
-        raise KeyError(f"Columns not found in DataFrame: {missing}")
-    df_feats = df.drop(columns=list(to_drop))
+    exclude_cols = config.EXCLUDE_COLS + [config.TARGET]
+    X = df.drop(columns=exclude_cols)
+    # Map target to 0/1 if needed
+    y_raw = df[config.TARGET]
+    if y_raw.dtype == object or y_raw.dtype.name == 'category':
+        y = y_raw.map({'Good': 0, 'Bad': 1})
+    else:
+        y = y_raw
+    y = y.astype(int)
 
-    # 3) Split numeric vs categorical
-    numeric_cols = df_feats.select_dtypes(include=['number']).columns.tolist()
-    categorical_cols = df_feats.select_dtypes(
-        include=['object', 'category', 'bool']
-    ).columns.tolist()
+    # Identify numeric and categorical columns
+    numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = X.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
 
-    # 4) One‑hot encode ALL categoricals
-    df_cat = pd.get_dummies(df_feats[categorical_cols], prefix=categorical_cols, drop_first=False)
+    # One-hot encode categoricals
+    X_encoded = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
+    encoded_cols = [col for col in X_encoded.columns if col not in numeric_cols]
 
-    # 5) Reassemble X
-    X = pd.concat([df_feats[numeric_cols], df_cat], axis=1)
-
-    # 6) Return feature lists
-    encoded_cols = df_cat.columns.tolist()
-    return X, y, numeric_cols, encoded_cols
+    return X_encoded, y, numeric_cols, encoded_cols
 
 def train_and_evaluate_model(
     model,
@@ -347,170 +333,6 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
     plt.close(fig)  # Properly close the figure to avoid Tkinter errors
 
 
-
-def plot_all_models_at_threshold(output_path, results_df, threshold_type, C_FP, C_FN, split_type='test', model_thresholds=None):
-    """
-    Plot precision, recall, and accuracy for all models using model-specific thresholds.
-    
-    This function visualizes model performance metrics across different models. It can show:
-    - Precision: Percentage of positive predictions that were correct
-    - Recall: Percentage of actual positives that were identified
-    - Accuracy: Percentage of all predictions that were correct
-    - Cost: Calculated cost based on false positives and false negatives
-    
-    The function can filter results by data split (train, test, or all) and threshold type (cost or accuracy).
-    
-    Args:
-        output_path: Path to save the plot as an image file (use None to not save)
-        results_df: DataFrame containing model evaluation metrics
-        threshold_type: Type of threshold to use ('cost' or 'accuracy')
-        split_type: Which data split to visualize ('train', 'test', or 'all')
-        model_thresholds: Dictionary mapping model names to their thresholds (kept for backward compatibility)
-        
-    Returns:
-        None (displays or saves the plot)
-        
-    Example:
-        plot_all_models_at_threshold(
-            output_path='model_comparison.png',
-            results_df=my_results,
-            threshold_type='cost',
-            split_type='test'
-        )
-    """
-    # Convert split_type to lowercase for case-insensitive comparison
-    split_type = split_type.lower()
-    if split_type not in ['train', 'test', 'all']:
-        raise ValueError("split_type must be 'train', 'test', or 'all'")
-    
-    # Filter results_df based on split_type and threshold_type
-    if split_type == 'all':
-        # Use only the 'Full' split for the full dataset stats
-        metrics_df = results_df[(results_df['split'].str.lower() == 'full') & 
-                              (results_df['threshold_type'] == threshold_type)]
-        base_models_df = results_df[(results_df['split'].str.lower() == 'full') &
-                                 (results_df['model'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))]
-    else:
-        split_name = split_type.capitalize()
-        metrics_df = results_df[(results_df['split'] == split_name) & 
-                              (results_df['threshold_type'] == threshold_type)]
-        # Get base models for the specified split
-        base_models_df = results_df[
-            (results_df['split'] == split_name) &
-            (results_df['model'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
-        ]
-    
-    # Combine both DataFrames
-    metrics_df = pd.concat([metrics_df, base_models_df]).drop_duplicates()
-    
-    # Prepare data for plotting
-    models = metrics_df['model'].unique()
-    metrics = {
-        'Model': [],
-        'Precision': [],
-        'Recall': [],
-        'Accuracy': [],
-        'Cost': [],
-        'Threshold': []
-    }
-    
-    for model in models:
-        model_data = metrics_df[metrics_df['model'] == model].iloc[0]  # Get first row for this model
-        metrics['Model'].append(model)
-        metrics['Precision'].append(model_data.get('precision', 0))
-        metrics['Recall'].append(model_data.get('recall', 0))
-        metrics['Accuracy'].append(model_data.get('accuracy', 0))
-        metrics['Cost'].append(model_data.get('cost', 0))
-        metrics['Threshold'].append(model_data.get('threshold', None))
-    
-    # Create the plot
-    x = np.arange(len(metrics['Model']))
-    width = 0.2
-    
-    fig, ax = plt.subplots(figsize=(14, 10))
-    
-    # Plot metrics
-    precision_bars = ax.bar(x - 1.5*width, metrics['Precision'], width, label='Precision', color='#4F81BD')
-    recall_bars = ax.bar(x - 0.5*width, metrics['Recall'], width, label='Recall', color='#C0504D')
-    accuracy_bars = ax.bar(x + 0.5*width, metrics['Accuracy'], width, label='Accuracy', color='#9BBB59')
-    
-    # Add cost on secondary y-axis
-    ax2 = ax.twinx()
-    cost_bars = ax2.bar(x + 1.5*width, metrics['Cost'], width, label='Cost', color='gray', alpha=0.6)
-    
-    # Add cost ratio annotation to the title
-    cost_ratio = C_FN / C_FP
-    split_display = split_type.capitalize()
-    if split_type == 'all':
-        split_display = 'Full Dataset'
-    
-    # Function to add value labels on top of bars
-    def add_value_labels(bars, ax, is_cost=False, decimals=1):
-        for bar in bars:
-            height = bar.get_height()
-            if is_cost:
-                # For cost, use integers since it's a count
-                label = f'{int(height)}'
-                va = 'bottom' if height >= 0 else 'top'
-                y = height + (5 if height >= 0 else -5)
-            else:
-                # For percentages, show 1 decimal place
-                label = f'{height:.{decimals}f}%'
-                va = 'bottom' if height >= 0 else 'top'
-                y = height + 0.5  # Small offset for percentages
-                
-            ax.text(bar.get_x() + bar.get_width()/2., y,
-                    label,
-                    ha='center', va=va, rotation=0, fontsize=8)
-    
-    # Add value labels to all bars
-    add_value_labels(precision_bars, ax)
-    add_value_labels(recall_bars, ax)
-    add_value_labels(accuracy_bars, ax)
-    add_value_labels(cost_bars, ax2, is_cost=True)
-    
-    # Customize the plot
-    ax.set_xticks(x)
-    ax.set_xticklabels(metrics['Model'], rotation=45, ha='right')
-    ax.set_ylabel('Percentage')
-    ax2.set_ylabel('Cost', color='gray')
-    ax2.tick_params(axis='y', labelcolor='gray')
-    
-    # Add threshold annotations
-    for i, (model, threshold) in enumerate(zip(metrics['Model'], metrics['Threshold'])):
-        if threshold is not None and not np.isnan(threshold):
-            ax.text(i, -5, f'Thr: {threshold:.2f}', ha='center', va='top', rotation=45, fontsize=8)
-    
-    # Add legend and title
-    lines1, labels1 = ax.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
-    
-    # Set the title with cost ratio information
-    plt.title(f'Model Performance Comparison\n({split_display} Data, {threshold_type.capitalize()}-optimized Thresholds, Cost Ratio: {cost_ratio:.1f})')
-    plt.subplots_adjust(top=0.9)  # Add more space for the title
-    plt.tight_layout()
-    
-    # Ensure the MyPlots directory exists
-    plots_dir = 'MyPlots'
-    os.makedirs(plots_dir, exist_ok=True)
-    
-    # Create default filename if none provided
-    if output_path is None:
-        output_path = os.path.join(plots_dir, f'model_comparison_{split_type}_{threshold_type}_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.png')
-    
-    # Save the plot if output_path is provided
-    if output_path:
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
-        print(f"Saved plot to {os.path.abspath(output_path)}")
-    
-    # Always show the plot
-    # plt.show()
-    
-    # Always close the plot to prevent Tkinter errors in scripts
-    plt.close(fig)
-
 def plot_runs_at_threshold(
     runs: list[ModelEvaluationRun],
     threshold_type: str,
@@ -705,6 +527,68 @@ def save_all_model_probabilities_from_structure(
     wide_df.to_csv(out_path, index=False)
     print(f"Saved GT as first column + one prob‐column per model to {out_path}")
 
+def print_performance_summary(
+    runs: list[ModelEvaluationRun],
+    meta_model_names: set[str],
+    splits=('Train', 'Test', 'Full'),
+    thr_types=('cost', 'accuracy')
+):
+    """
+    Print a summary of model performance for:
+      • meta‐models (cost/accuracy‐optimized)
+      • base models (preset threshold)
+    
+    Args:
+      runs             : List of ModelEvaluationRun
+      meta_model_names : Names of your meta‐models (e.g. MODELS.keys())
+      splits           : Which splits to include
+      thr_types        : Which optimized thresholds to print for meta‐models
+    """
+    # Header
+    print("\n" + "="*80)
+    print("SUMMARY OF MODEL PERFORMANCE")
+    print("="*80)
+
+    # Helper to fetch a result or None
+    def _find(model, split, thr):
+        for run in runs:
+            if run.model_name != model:
+                continue
+            for r in run.results:
+                if r.split == split and r.threshold_type == thr:
+                    return r
+        return None
+
+    # --- Meta‐model summaries ---
+    for model in meta_model_names:
+        print(f"\n{model}:")
+        for split in splits:
+            for thr in thr_types:
+                r = _find(model, split, thr)
+                if not r:
+                    continue
+                print(f"  {split} Split ({thr}-optimal):")
+                print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
+                print(f"    Threshold: {r.threshold:.3f}")
+                print(f"    Cost:      {r.cost}")
+                print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
+
+    # --- Base‐model summaries ---
+    all_models = {run.model_name for run in runs}
+    base_models = all_models - set(meta_model_names)
+    print("\nBASE MODELS PERFORMANCE (preset confidence threshold):")
+    for model in base_models:
+        print(f"\n{model}:")
+        for split in splits:
+            # base models use threshold_type=='base'
+            r = _find(model, split, 'base')
+            if not r:
+                continue
+            print(f"  {split} Split:")
+            print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
+            print(f"    Cost:      {r.cost}")
+            print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
+
 # ---------- Main Function ----------
 def main(config):
     """Main function to run the entire pipeline.
@@ -720,12 +604,14 @@ def main(config):
 
     C_FP = config.C_FP
     C_FN = config.C_FN
-    
+
+    SAVE_PLOTS = getattr(config, 'SAVE_PLOTS', True)
+    SAVE_PREDICTIONS = getattr(config, 'SAVE_PREDICTIONS', True)
+    SAVE_MODEL = getattr(config, 'SAVE_MODEL', True)
+    SUMMARY = getattr(config, 'SUMMARY', True)
+
     # Define model zoo
     MODELS = config.MODELS
-    
-    # Ensure output directories exist
-    os.makedirs(os.path.dirname(model_path), exist_ok=True)
     
     # Load data
     print(f"Loading data from {csv_path}...")
@@ -733,22 +619,26 @@ def main(config):
     
     # Prepare data
     print("Preparing data...")
-    X, y, feature_cols, encoded_cols = prepare_data(df)
+    X, y, feature_cols, encoded_cols = prepare_data(df, config)
     
-    # Save feature columns for later use
-    # Update the feature_info dictionary to include encoding details
-    feature_info = {
-        'feature_cols': feature_cols,  # Original numeric features
-        'encoded_cols': encoded_cols,  # One-hot encoded columns
-        'encoding': {
-            'Weld': {
-                'type': 'one_hot',
-                'original_column': 'Weld',
-                'categories': sorted(df['Weld'].unique().tolist())  # All unique Weld values seen during training
-            }
+    # Save feature columns for later use only if SAVE_MODEL is True
+    if SAVE_MODEL:
+        # Dynamically build encoding info for all one-hot encoded categoricals
+        encoding_info = {}
+        # Identify which columns in df were categorical and one-hot encoded
+        for col in df.columns:
+            if col not in feature_cols and col in df.select_dtypes(include=['object', 'category', 'bool']).columns:
+                encoding_info[col] = {
+                    'type': 'one_hot',
+                    'original_column': col,
+                    'categories': sorted(df[col].unique().tolist())
+                }
+        feature_info = {
+            'feature_cols': feature_cols,  # Original numeric features
+            'encoded_cols': encoded_cols,  # One-hot encoded columns
+            'encoding': encoding_info
         }
-    }
-    joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl"))
+        joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl"))
     
     # Split data once
     print("Splitting data...")
@@ -790,7 +680,7 @@ def main(config):
             splits=splits,
             model_name=f"meta_model_v2.1_{model_name}",
             model_dir=model_path,
-            save_model=True
+            save_model=SAVE_MODEL
         )
 
         # now loop splits exactly as before, but WITHOUT retraining
@@ -807,14 +697,15 @@ def main(config):
             acc_thr  = best_acc['threshold']
 
             # plot
-            plot_threshold_sweep(
-                sweep,
-                output_path=f"{image_path}/{model_name}_{split_name.lower()}_threshold_sweep.png",
-                cost_optimal_thr=cost_thr,
-                accuracy_optimal_thr=acc_thr,
-                C_FP=C_FP, C_FN=C_FN
-            )
-            plt.close()
+            if SAVE_PLOTS:
+                plot_threshold_sweep(
+                    sweep,
+                    output_path=f"{image_path}/{model_name}_{split_name.lower()}_threshold_sweep.png",
+                    cost_optimal_thr=cost_thr,
+                    accuracy_optimal_thr=acc_thr,
+                    C_FP=C_FP, C_FN=C_FN
+                )
+                plt.close()
 
             # compute metrics at both thresholds
             y_cost = (proba >= cost_thr).astype(int)
@@ -888,181 +779,133 @@ def main(config):
     # after loop, recreate results_df
     results_df = pd.DataFrame(results)
 
-    # ========== BASE MODEL METRICS SECTION ==========
-    # Add base model predictions to wide_df
-    for base in ['AD_Decision', 'CL_Decision']:
-        wide_df[base] = (df[base] == 'Bad').astype(float)
-    # Combined index: fails if either base model is "Bad"
-    wide_df['AD_or_CL_Fail'] = ((df['AD_Decision'] == 'Bad') | (df['CL_Decision'] == 'Bad')).astype(float)
-
-    # Compute and append metrics for base models for each split
-    base_metrics = []
-    for base in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']:
-        for split_name, idx in zip(['Train', 'Test', 'Full'], [train_idx, test_idx, df.index]):
-            if base == 'AD_or_CL_Fail':
-                y_pred = wide_df.loc[idx, 'AD_or_CL_Fail'].values
-            else:
-                y_pred = wide_df.loc[idx, base].values
-            y_true = y.loc[idx].values
-            metrics = compute_metrics(y_true, y_pred, C_FP=C_FP, C_FN=C_FN)
-            base_metrics.append({
-                'model': base,
-                'split': split_name,
-                'threshold_type': 'cost',
-                'threshold': None,
-                **metrics
-            })
-    
-    # Concatenate all base metrics at once
-    if base_metrics:
-        base_metrics_df = pd.DataFrame(base_metrics)
-        results_df = pd.concat([results_df, base_metrics_df], ignore_index=True) if not results_df.empty else base_metrics_df
-
-    # ========== Add base models to results_total structure ==========
+    # ========== STRUCTURED BASE MODEL METRICS SECTION ==========
     for base in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']:
         base_results = []
-        base_probs = {}
-        for split_name, idx in zip(['Train', 'Test', 'Full'], [train_idx, test_idx, df.index]):
-            if base == 'AD_or_CL_Fail':
-                y_pred = wide_df.loc[idx, 'AD_or_CL_Fail'].values
-            else:
-                y_pred = wide_df.loc[idx, base].values
-            y_true = y.loc[idx].values
-            metrics = compute_metrics(y_true, y_pred, C_FP=C_FP, C_FN=C_FN)
-            base_result = ModelEvaluationResult(
-                model_name    = base,
-                split         = split_name,
-                threshold_type= 'base',
-                threshold     = None,
-                precision     = metrics['precision'],
-                recall        = metrics['recall'],
-                accuracy      = metrics['accuracy'],
-                cost          = metrics['cost'],
-                tp            = metrics['tp'],
-                fp            = metrics['fp'],
-                tn            = metrics['tn'],
-                fn            = metrics['fn'],
-                is_base_model = True
-            )
-            base_results.append(base_result)
-            base_probs[split_name] = y_pred
-        run = ModelEvaluationRun(
-            model_name   = base,
-            results      = base_results,
-            probabilities= base_probs
-        )
-        results_total.append(run)
-    # ========== END BASE MODEL METRICS SECTION ==========
+        base_probs   = {}
 
-   # Print summary table
-    print("\n" + "="*80)
-    print("SUMMARY OF MODEL PERFORMANCE")
-    print("="*80)
+        for split_name, idx in zip(
+            ['Train', 'Test', 'Full'],
+            [train_idx, test_idx, df.index]
+        ):
+            # 1) build y_pred for this base model + split
+            if base == 'AD_or_CL_Fail':
+                # fail if either AD or CL says "Bad"
+                y_pred = (
+                    (df.loc[idx, 'AD_Decision'] == 'Bad')
+                  | (df.loc[idx, 'CL_Decision'] == 'Bad')
+                ).astype(int).values
+            else:
+                y_pred = (df.loc[idx, base] == 'Bad').astype(int).values
+
+            # 2) ground truth
+            y_true = y.loc[idx].values
+
+            # 3) compute metrics
+            mets = compute_metrics(y_true, y_pred, C_FP=C_FP, C_FN=C_FN)
+
+            # 4) stash probabilities & results
+            base_probs[split_name] = y_pred
+            base_results.append(
+                ModelEvaluationResult(
+                    model_name     = base,
+                    split          = split_name,
+                    threshold_type = 'base',
+                    threshold      = None,
+                    precision      = mets['precision'],
+                    recall         = mets['recall'],
+                    accuracy       = mets['accuracy'],
+                    cost           = mets['cost'],
+                    tp             = mets['tp'],
+                    fp             = mets['fp'],
+                    tn             = mets['tn'],
+                    fn             = mets['fn'],
+                    is_base_model  = True
+                )
+            )
+
+        # 5) add one run per base model
+        results_total.append(
+            ModelEvaluationRun(
+                model_name   = base,
+                results      = base_results,
+                probabilities= base_probs
+            )
+        )
+    # ========== END STRUCTURED BASE MODEL METRICS SECTION ==========
+
+
+
 
     # Group by model and split, then aggregate metrics
-    summary = results_df.groupby(['model', 'split']).agg({
-        'accuracy': 'mean',
-        'precision': 'mean',
-        'recall': 'mean'
-    }).reset_index()
+    # summary = results_df.groupby(['model', 'split']).agg({
+    #     'accuracy': 'mean',
+    #     'precision': 'mean',
+    #     'recall': 'mean'
+    # }).reset_index()
     
-    # Print formatted summary with confusion matrix and cost by threshold type for meta-models
-    for model_name in MODELS.keys():
-        print(f"\n{model_name}:")
-        model_results = results_df[(results_df['model'] == model_name)]
-        for split in ['Train', 'Test', 'Full']:
-            for thr_type in ['cost', 'accuracy']:
-                row = model_results[(model_results['split'] == split) & (model_results['threshold_type'] == thr_type)]
-                if not row.empty:
-                    row = row.iloc[0]
-                    print(f"  {split} Split ({thr_type}-optimal):")
-                    print(f"    Accuracy:  {row['accuracy']:.1f}%  Precision: {row['precision']:.1f}%  Recall: {row['recall']:.1f}%")
-                    print(f"    Threshold: {row['threshold']:.3f}")
-                    print(f"    Cost:      {row['cost']}")
-                    print(f"    Confusion Matrix: [[TN={row['tn']} FP={row['fp']}], [FN={row['fn']} TP={row['tp']}]]")
 
-    # Print summary for base models (preset confidence threshold, not optimized)
-    print("\nBASE MODELS PERFORMANCE (preset confidence threshold, not optimized):")
-    base_model_names = [name for name in results_df['model'].unique() if name not in MODELS.keys()]
-    for model_name in base_model_names:
-        print(f"\n{model_name}:")
-        model_results = results_df[(results_df['model'] == model_name) & (results_df['threshold_type'] == 'cost')]
-        for split in ['Train', 'Test', 'Full']:
-            row = model_results[model_results['split'] == split]
-            if not row.empty:
-                row = row.iloc[0]
-                print(f"  {split} Split (preset confidence threshold):")
-                print(f"    Accuracy:  {row['accuracy']:.1f}%  Precision: {row['precision']:.1f}%  Recall: {row['recall']:.1f}%")
-                print(f"    Cost:      {row['cost']}")
-                print(f"    Confusion Matrix: [[TN={row['tn']} FP={row['fp']}], [FN={row['fn']} TP={row['tp']}]]")
+    if SUMMARY:
+        print_performance_summary(
+        runs=results_total,
+        meta_model_names=set(MODELS.keys())
+        )
+
+    # # Print formatted summary with confusion matrix and cost by threshold type for meta-models
+    # for model_name in MODELS.keys():
+    #     print(f"\n{model_name}:")
+    #     model_results = results_df[(results_df['model'] == model_name)]
+    #     for split in ['Train', 'Test', 'Full']:
+    #         for thr_type in ['cost', 'accuracy']:
+    #             row = model_results[(model_results['split'] == split) & (model_results['threshold_type'] == thr_type)]
+    #             if not row.empty:
+    #                 row = row.iloc[0]
+    #                 print(f"  {split} Split ({thr_type}-optimal):")
+    #                 print(f"    Accuracy:  {row['accuracy']:.1f}%  Precision: {row['precision']:.1f}%  Recall: {row['recall']:.1f}%")
+    #                 print(f"    Threshold: {row['threshold']:.3f}")
+    #                 print(f"    Cost:      {row['cost']}")
+    #                 print(f"    Confusion Matrix: [[TN={row['tn']} FP={row['fp']}], [FN={row['fn']} TP={row['tp']}]]")
+
+    # # Print summary for base models (preset confidence threshold, not optimized)
+    # print("\nBASE MODELS PERFORMANCE (preset confidence threshold, not optimized):")
+    # base_model_names = [name for name in results_df['model'].unique() if name not in MODELS.keys()]
+    # for model_name in base_model_names:
+    #     print(f"\n{model_name}:")
+    #     model_results = results_df[(results_df['model'] == model_name) & (results_df['threshold_type'] == 'cost')]
+    #     for split in ['Train', 'Test', 'Full']:
+    #         row = model_results[model_results['split'] == split]
+    #         if not row.empty:
+    #             row = row.iloc[0]
+    #             print(f"  {split} Split (preset confidence threshold):")
+    #             print(f"    Accuracy:  {row['accuracy']:.1f}%  Precision: {row['precision']:.1f}%  Recall: {row['recall']:.1f}%")
+    #             print(f"    Cost:      {row['cost']}")
+    #             print(f"    Confusion Matrix: [[TN={row['tn']} FP={row['fp']}], [FN={row['fn']} TP={row['tp']}]]")
 
 
-    if hasattr(config, 'SAVE_PREDICTIONS') and config.SAVE_PREDICTIONS:
+
+    if SAVE_PREDICTIONS:
         predictions_dir = getattr(config, 'PREDICTIONS_DIR', os.path.dirname(model_path))
         save_all_model_probabilities_from_structure(results_total, predictions_dir, df.index, y_eval)
 
     print(results_df['split'].unique())
 
-
-    # Plot all models at each of the three threshold types using model-specific thresholds
-    # 1. Cost-optimized thresholds for test data
-
-    # plot_all_models_at_threshold(
-    #     output_path=os.path.join(image_path, 'all_models_test_cost_threshold.png'),
-    #     results_df=results_df, 
-    #     threshold_type='cost',
-    #     split_type='test',
-    #     model_thresholds=best_models,
-    #     C_FP=C_FP,
-    #     C_FN=C_FN
-    # )
-    # plot_all_models_at_threshold(
-    #     output_path=os.path.join(image_path, 'all_models_test_accuracy_threshold.png'),
-    #     results_df=results_df, 
-    #     threshold_type='accuracy',
-    #     split_type='test',
-    #     model_thresholds=best_models,
-    #     C_FP=C_FP,
-    #     C_FN=C_FN
-    # )
-    # print(f"\nPlotted all models with cost-optimized thresholds (test split)")
-    
-    # # 2. Cost-optimized thresholds for train data
-    # plot_all_models_at_threshold(
-    #     output_path=os.path.join(image_path, 'all_models_full_cost_threshold.png'),
-    #     results_df=results_df, 
-    #     threshold_type='cost',
-    #     split_type='all',
-    #     model_thresholds=best_models,
-    #     C_FP=C_FP,
-    #     C_FN=C_FN
-    # )
-    # plot_all_models_at_threshold(
-    #     output_path=os.path.join(image_path, 'all_models_full_accuracy_threshold.png'),
-    #     results_df=results_df, 
-    #     threshold_type='accuracy',
-    #     split_type='all',
-    #     model_thresholds=best_models,
-    #     C_FP=C_FP,
-    #     C_FN=C_FN
-    # )
-
-    plot_runs_at_threshold(
-        runs=results_total,
-        threshold_type='cost',
-        split_name='Full',
-        C_FP=C_FP,
-        C_FN=C_FN,
-        output_path=os.path.join(image_path, 'model_comparison_cost_optimized.png')
-    )
-    plot_runs_at_threshold(
-        runs=results_total,
-        threshold_type='accuracy',
-        split_name='Full',
-        C_FP=C_FP,
-        C_FN=C_FN,
-        output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
-    )
+    if SAVE_PLOTS:
+        plot_runs_at_threshold(
+            runs=results_total,
+            threshold_type='cost',
+            split_name='Full',
+            C_FP=C_FP,
+            C_FN=C_FN,
+            output_path=os.path.join(image_path, 'model_comparison_cost_optimized.png')
+        )
+        plot_runs_at_threshold(
+            runs=results_total,
+            threshold_type='accuracy',
+            split_name='Full',
+            C_FP=C_FP,
+            C_FN=C_FN,
+            output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
+        )
 
     # print("results_table")
     # print(results_total)
