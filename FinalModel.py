@@ -47,6 +47,18 @@ from typing import Optional
 import numpy as np
 
 @dataclass
+class SweepEntry:
+    threshold: float
+    precision: float
+    recall: float
+    accuracy: float
+    cost: float
+    tp: int
+    fp: int
+    tn: int
+    fn: int
+
+@dataclass
 class ModelEvaluationResult:
     model_name: str
     split: str
@@ -61,6 +73,7 @@ class ModelEvaluationResult:
     tn: int = None
     fn: int = None
     is_base_model: bool = False  # True for base model results
+
 
 @dataclass
 class ModelEvaluationRun:
@@ -160,7 +173,6 @@ def train_and_evaluate_model(
         split_preds[split_name] = (proba, y_eval)
 
     return split_preds, model
-
 
 # ---------- Metrics Computation ----------
 def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
@@ -298,32 +310,38 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
     
     # Plot vertical lines for optimal thresholds if provided
     if cost_optimal_thr is not None:
-        ax1.axvline(cost_optimal_thr, color='limegreen', linestyle='--', linewidth=2, label=f'Cost-optimal Threshold ({cost_optimal_thr:.2f})')
+        ax1.axvline(x=cost_optimal_thr, color='red', linestyle='--', alpha=0.7, label='Cost-Optimal Threshold')
     if accuracy_optimal_thr is not None:
-        ax1.axvline(accuracy_optimal_thr, color='orange', linestyle=':', linewidth=2, label=f'Accuracy-optimal Threshold ({accuracy_optimal_thr:.2f})')
-        # Add a marker at the accuracy-optimal threshold on the accuracy curve
         try:
-            acc_idx = thresholds.index(accuracy_optimal_thr)
-            acc_val = accuracy[acc_idx]
-            ax1.plot(accuracy_optimal_thr, acc_val, marker='o', markersize=10, color='orange', label='Accuracy Peak')
+            acc_val = accuracy[thresholds.index(accuracy_optimal_thr)]
+            ax1.axvline(x=accuracy_optimal_thr, color='orange', linestyle='--', alpha=0.7, label='Accuracy-Optimal Threshold')
         except ValueError:
             # In case the threshold is not exactly in the list due to float precision
-            closest_idx = min(range(len(thresholds)), key=lambda i: abs(thresholds[i] - accuracy_optimal_thr))
-            ax1.plot(thresholds[closest_idx], accuracy[closest_idx], marker='o', markersize=10, color='orange', label='Accuracy Peak')
+            pass  # Just skip if we can't find the exact threshold
 
     # Combine legends from both axes
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, loc='best')
+    
+    # Create a single legend and position it outside the plot
+    fig.legend(lines1 + lines2, labels1 + labels2, 
+              loc='upper center', 
+              bbox_to_anchor=(0.5, 0.96),  # Position above the plot
+              ncol=2,  # Two columns for better layout
+              frameon=False)  # No frame around the legend
     
     # Add title with cost information
-    plt.title('Effect of Confidence Threshold on Model Performance and Cost')
+    plt.suptitle('Effect of Confidence Threshold on Model Performance and Cost', y=0.99)
+    
+    # Adjust layout to make room for the legend and title
+    plt.subplots_adjust(top=0.85)  # Add more space at the top
     
     # Adjust layout and save if needed
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0, 1, 0.9])  # Make room for the legend
+    
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        plt.savefig(output_path)
+        plt.savefig(output_path, bbox_inches='tight', dpi=300)
         print(f"Saved threshold sweep plot to {output_path}")
     
     plt.close(fig)  # Properly close the figure to avoid Tkinter errors
@@ -791,7 +809,7 @@ def main(config):
             # plot
             plot_threshold_sweep(
                 sweep,
-                output_path=f"MyPlots/{model_name}_{split_name.lower()}_threshold_sweep.png",
+                output_path=f"{image_path}/{model_name}_{split_name.lower()}_threshold_sweep.png",
                 cost_optimal_thr=cost_thr,
                 accuracy_optimal_thr=acc_thr,
                 C_FP=C_FP, C_FN=C_FN
