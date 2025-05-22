@@ -6,6 +6,13 @@ import os
 from pathlib import Path
 import numpy as np
 
+# Model imports for config
+import xgboost as xgb
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+
 # ===== File System Configuration =====
 # Paths
 DATA_PATH = 'C:/Users/QuinnMazaris/Desktop/Stacking/Results/ensemble_resultsV3.csv'

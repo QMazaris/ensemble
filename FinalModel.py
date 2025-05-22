@@ -37,18 +37,29 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-from config import *  # Import all constants and variables
-create_directories()  # Ensure output folders exist
+import config  # Import the config module
+config.create_directories()  # Ensure output folders exist
 
-# ---------- PATHS (edit these as needed) ----------
+from dataclasses import dataclass, asdict
+from typing import Optional
+import numpy as np
 
-# Output plot files
-THRESHOLD_SWEEP_PLOT = "MyPlots/ai_threshold_sweep3.0.png"
-OUTPUT_IMAGE_PATH = "MyPlots/"
+@dataclass
+class ModelEvaluationResult:
+    model_name: str
+    split: str
+    threshold_type: str       # 'cost' or 'accuracy'
+    threshold: float
+    precision: float
+    recall: float
+    accuracy: float
+    cost: float
+    tp: int
+    fp: int
+    tn: int
+    fn: int
+    probabilities: Optional[np.ndarray] = None
 
-# Constants for deployment
-C_FP = 1    # Cost of scrapping a good weld
-C_FN = 30   # Cost of shipping a bad weld
 
 # ---------- Data Preparation ----------
 def prepare_data(df):
@@ -122,16 +133,18 @@ def train_and_predict(model, X_train, y_train, X_eval):
     return proba
 
 # ---------- Metrics Computation ----------
-def compute_metrics(y_true, y_pred, as_dict=True):
+def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
     """Compute classification metrics and cost.
     
     Args:
         y_true: True labels
         y_pred: Predicted labels
+        C_FP: Cost of false positive
+        C_FN: Cost of false negative
         as_dict: If True, return metrics as a dictionary
     
     Returns:
-        tuple or dict: (precision, recall, accuracy) or dictionary of metrics
+        tuple or dict: (precision, recall, accuracy, cost) or dictionary of metrics
     """
     # Compute confusion matrix
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
@@ -156,20 +169,21 @@ def compute_metrics(y_true, y_pred, as_dict=True):
     else:
         return precision, recall, accuracy, cost
 
-def threshold_sweep_with_cost(proba, y_true, thresholds=None, C_FP=None, C_FN=None):
+def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None):
     """Perform threshold sweep analysis with cost calculation.
     
     Args:
         proba: array-like, predicted probabilities
         y_true: array-like, ground truth labels (0 or 1)
-        thresholds: list or array of thresholds to evaluate
         C_FP: cost of false positive
         C_FN: cost of false negative
+        thresholds: list or array of thresholds to evaluate (default: np.linspace(0, 1, 11))
     
     Returns:
-        sweep_results: dict mapping threshold -> metrics (including cost)
-        best_by_cost: dict with metrics for threshold with lowest cost
-        best_by_accuracy: dict with metrics for threshold with highest accuracy (minimum mistakes)
+        tuple: (sweep_results, best_by_cost, best_by_accuracy)
+            - sweep_results: dict mapping threshold -> metrics (including cost)
+            - best_by_cost: dict with metrics for threshold with lowest cost
+            - best_by_accuracy: dict with metrics for threshold with highest accuracy
     """
     from sklearn.metrics import confusion_matrix
     if thresholds is None:
@@ -184,7 +198,7 @@ def threshold_sweep_with_cost(proba, y_true, thresholds=None, C_FP=None, C_FN=No
         cost = C_FP * fp + C_FN * fn
         total_mistakes = fp + fn
         
-        metrics = compute_metrics(y_true, y_pred)
+        metrics = compute_metrics(y_true, y_pred, C_FP, C_FN)
         metrics.update({
             'threshold': thr, 
             'tp': tp, 
@@ -280,7 +294,7 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
     
     plt.close()
 
-def plot_all_models_at_threshold(output_path, results_df, threshold_type, split_type='test', model_thresholds=None):
+def plot_all_models_at_threshold(output_path, results_df, threshold_type, C_FP, C_FN, split_type='test', model_thresholds=None):
     """
     Plot precision, recall, and accuracy for all models using model-specific thresholds.
     
@@ -452,7 +466,11 @@ def main(config):
 
     # Unpack config
     csv_path = config.DATA_PATH
-    model_path = config.MODEL_OUTPUT_PATH
+    model_path = config.MODEL_DIR
+    image_path = config.PLOT_DIR
+
+    C_FP = config.C_FP
+    C_FN = config.C_FN
     
     # Define model zoo
     MODELS = config.MODELS
@@ -481,7 +499,7 @@ def main(config):
             }
         }
     }
-    joblib.dump(feature_info, os.path.join(os.path.dirname(model_path), "feature_info.pkl"))
+    joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl"))
     
     # Split data once
     print("Splitting data...")
@@ -526,7 +544,6 @@ def main(config):
                 # For test and full, we use the trained model to predict
                 proba = train_and_predict(model_instance, X_train, y_train, X_eval)
             
-            
             sweep, best_cost, best_acc = threshold_sweep_with_cost(
                 proba,
                 y_eval,
@@ -555,11 +572,11 @@ def main(config):
 
             # Evaluate cost-optimal threshold
             y_pred_cost = (proba >= cost_optimal_thr).astype(int)
-            metrics_cost = compute_metrics(y_eval, y_pred_cost)
+            metrics_cost = compute_metrics(y_eval, y_pred_cost, C_FP=C_FP, C_FN=C_FN)
 
             # Evaluate accuracy-optimal threshold
             y_pred_acc = (proba >= accuracy_optimal_thr).astype(int)
-            metrics_acc = compute_metrics(y_eval, y_pred_acc)
+            metrics_acc = compute_metrics(y_eval, y_pred_acc, C_FP=C_FP, C_FN=C_FN)
 
             # print("Cost-optimal metrics:", metrics_cost)
             # print("Accuracy-optimal metrics:", metrics_acc)
@@ -626,7 +643,7 @@ def main(config):
             else:
                 y_pred = wide_df.loc[idx, base].values
             y_true = y.loc[idx].values
-            metrics = compute_metrics(y_true, y_pred)
+            metrics = compute_metrics(y_true, y_pred, C_FP=C_FP, C_FN=C_FN)
             base_metrics.append({
                 'model': base,
                 'split': split_name,
@@ -695,39 +712,47 @@ def main(config):
     # Plot all models at each of the three threshold types using model-specific thresholds
     # 1. Cost-optimized thresholds for test data
     plot_all_models_at_threshold(
-        output_path=os.path.join(OUTPUT_IMAGE_PATH, 'all_models_test_cost_threshold.png'),
+        output_path=os.path.join(image_path, 'all_models_test_cost_threshold.png'),
         results_df=results_df, 
         threshold_type='cost',
         split_type='test',
-        model_thresholds=best_models
+        model_thresholds=best_models,
+        C_FP=C_FP,
+        C_FN=C_FN
     )
     plot_all_models_at_threshold(
-        output_path=os.path.join(OUTPUT_IMAGE_PATH, 'all_models_test_accuracy_threshold.png'),
+        output_path=os.path.join(image_path, 'all_models_test_accuracy_threshold.png'),
         results_df=results_df, 
         threshold_type='accuracy',
         split_type='test',
-        model_thresholds=best_models
+        model_thresholds=best_models,
+        C_FP=C_FP,
+        C_FN=C_FN
     )
     print(f"\nPlotted all models with cost-optimized thresholds (test split)")
     
     # 2. Cost-optimized thresholds for train data
     plot_all_models_at_threshold(
-        output_path=os.path.join(OUTPUT_IMAGE_PATH, 'all_models_full_cost_threshold.png'),
+        output_path=os.path.join(image_path, 'all_models_full_cost_threshold.png'),
         results_df=results_df, 
         threshold_type='cost',
         split_type='all',
-        model_thresholds=best_models
+        model_thresholds=best_models,
+        C_FP=C_FP,
+        C_FN=C_FN
     )
     plot_all_models_at_threshold(
-        output_path=os.path.join(OUTPUT_IMAGE_PATH, 'all_models_full_accuracy_threshold.png'),
+        output_path=os.path.join(image_path, 'all_models_full_accuracy_threshold.png'),
         results_df=results_df, 
         threshold_type='accuracy',
         split_type='all',
-        model_thresholds=best_models
+        model_thresholds=best_models,
+        C_FP=C_FP,
+        C_FN=C_FN
     )
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        main(sys.argv[1])
+        main(config)
     else:
-        main()
+        main(config)
