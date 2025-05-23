@@ -136,14 +136,14 @@ def main(config):
     # ===== Cross‑Validation vs Single‑Split =====
     if config.USE_KFOLD:
         cv_splits = CV_Split(config, X, y)
-        tuning_X, tuning_y = X, y  # use full dataset for tuning
+        # Remove tuning_X, tuning_y assignment since we don't need it for K-fold
     else:
         X_train, y_train, train_idx, test_idx, single_splits = Regular_Split(config, X, y)
         tuning_X, tuning_y = X_train, y_train  # use only training split for tuning
 
-    # ===== Hyperparameter Tuning (Always) =====
-    if config.OPTIMIZE_HYPERPARAMS:
-        print("🔍 Optimizing hyperparameters…")
+    # ===== Hyperparameter Tuning (Only for Single-Split) =====
+    if not config.USE_KFOLD and config.OPTIMIZE_HYPERPARAMS:
+        print("🔍 Optimizing hyperparameters for single-split evaluation…")
         for name, mdl in MODELS.items():
             MODELS[name] = optimize_hyperparams(name, mdl, tuning_X, tuning_y, config)
 
@@ -153,94 +153,117 @@ def main(config):
     # Collect averaged-fold or single-split results for every model
     results_total = []
 
-    for model_name, model in MODELS.items():
-        if config.SUMMARY:
-            print(f"\n{'-'*40}\nEvaluating {model_name}\n{'-'*40}")
+    if config.USE_KFOLD:
+        outer_cv = StratifiedKFold(
+            n_splits     = config.N_SPLITS,
+            shuffle      = True,
+            random_state = config.RANDOM_STATE
+        )
 
-        # ------------------------------------------------------------------
-        # ❶ K-FOLD PATH  ─ gather per-fold results, keep *only* the average
-        # ------------------------------------------------------------------
-        if config.USE_KFOLD:
-            fold_cost_results = []          # one cost-opt ModelEvaluationResult / fold
-            fold_acc_results  = []          # one acc-opt  ModelEvaluationResult / fold
-            fold_prob_arrays  = []          # raw probability array / fold
+        for model_name, prototype in MODELS.items():
+            if config.SUMMARY:
+                print(f"\n{'='*40}\nNested‑CV → {model_name}\n{'='*40}")
 
-            for fold_name, (X_tr, y_tr), (X_te, y_te) in cv_splits:
+            fold_cost, fold_acc, fold_probs = [], [], []
+
+            # ── Outer folds ──
+            for fold_idx, (tr_idx, te_idx) in enumerate(outer_cv.split(X, y), start=1):
                 if config.SUMMARY:
-                    print(f"  Fold {fold_name}")
+                    print(f"  ➤ Fold {fold_idx}")
 
+                X_tr, y_tr = X.iloc[tr_idx], y.iloc[tr_idx]
+                X_te, y_te = X.iloc[te_idx], y.iloc[te_idx]
+
+                # ── Inner tuning ──
+                tuned = optimize_hyperparams(
+                    model_name,
+                    clone(prototype),
+                    X_tr, y_tr,
+                    config
+                )
+
+                # ── Train & predict this fold ──
                 split_preds, _ = train_and_evaluate_model(
-                    model, X_tr, y_tr,
-                    splits={fold_name: (X_te, y_te)},
-                    model_name=None, model_dir=None, save_model=False, SUMMARY = config.SUMMARY
+                    tuned,
+                    X_tr, y_tr,
+                    splits={f"Fold{fold_idx}": (X_te, y_te)},
+                    model_name=None,
+                    model_dir=None,
+                    save_model=False,
+                    SUMMARY=config.SUMMARY
                 )
-                proba, y_eval = split_preds[fold_name]
+                proba, y_eval = split_preds[f"Fold{fold_idx}"]
 
-                sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY, split_name=fold_name
+                # ── Threshold sweep ──
+                sweep, bc, ba = threshold_sweep_with_cost(
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN,
+                    SUMMARY=config.SUMMARY, split_name=f"Fold{fold_idx}"
                 )
 
-                # optional per-fold sweep plot
+                # ── Collect fold results ──
+                fold_cost.append(_mk_result(model_name, f"Fold{fold_idx}", bc, 'cost'))
+                fold_acc.append(_mk_result(model_name, f"Fold{fold_idx}", ba, 'accuracy'))
+                fold_probs.append(proba)
+
+                # Optional per-fold sweep plot
                 if SAVE_PLOTS:
                     plot_threshold_sweep(
                         sweep, C_FP, C_FN,
-                        cost_optimal_thr=best_cost['threshold'],
-                        accuracy_optimal_thr=best_acc['threshold'],
+                        cost_optimal_thr=bc['threshold'],
+                        accuracy_optimal_thr=ba['threshold'],
                         output_path=os.path.join(
                             image_path,
-                            f"{model_name}_{fold_name.lower()}_threshold_sweep.png"),
-                        SUMMARY = config.SUMMARY
+                            f"{model_name}_fold{fold_idx}_threshold_sweep.png"),
+                        SUMMARY=config.SUMMARY
                     )
 
-                # build result objects for this fold
-                fold_cost_results.append(_mk_result(model_name, fold_name, best_cost, 'cost'))
-                fold_acc_results.append(_mk_result(model_name, fold_name, best_acc, 'accuracy'))
-                fold_prob_arrays.append(proba)
-
-            # ----- average helper functions -----
-            avg_cost_res = _average_results(fold_cost_results, model_name)
-            avg_acc_res  = _average_results(fold_acc_results, model_name)
-            avg_probs    = _average_probabilities(fold_prob_arrays)
-
-            # store *only* the averaged K-fold run
+            # ── Average & store ──
+            avg_c = _average_results(fold_cost, model_name)
+            avg_a = _average_results(fold_acc, model_name)
+            avg_p = _average_probabilities(fold_probs)
             results_total.append(
                 ModelEvaluationRun(
                     model_name=f'kfold_avg_{model_name}',
-                    results=[avg_cost_res, avg_acc_res],
-                    probabilities={'Full': avg_probs} if avg_probs is not None else {}
+                    results=[avg_c, avg_a],
+                    probabilities={'Full': avg_p} if avg_p is not None else {}
                 )
             )
 
-            # still train a production model on all data, but **do not**
-            # push its metrics into results_total
+            # ── Final production model on all data ──
             train_and_evaluate_model(
-                model, X, y,
+                tuned, X, y,
                 splits={'Full': (X, y)},
                 model_name=f'kfold_final_{model_name}',
                 model_dir=model_path,
                 save_model=True,
-                SUMMARY = config.SUMMARY
+                SUMMARY=config.SUMMARY
             )
+    else:
+        # Single-split path remains unchanged
+        X_train, y_train, train_idx, test_idx, single_splits = Regular_Split(config, X, y)
+        
+        # Only optimize hyperparameters for single-split if requested
+        if config.OPTIMIZE_HYPERPARAMS:
+            for name, mdl in MODELS.items():
+                MODELS[name] = optimize_hyperparams(name, mdl, X_train, y_train, config)
 
-        # ------------------------------------------------------------------
-        # ❷ SINGLE-SPLIT PATH  ─ original logic unchanged
-        # ------------------------------------------------------------------
-        else:
+        for model_name, model in MODELS.items():
             split_preds, _ = train_and_evaluate_model(
                 model, X_train, y_train,
                 splits=single_splits,
                 model_name=f"meta_model_v2.1_{model_name}",
                 model_dir=model_path,
                 save_model=SAVE_MODEL,
-                SUMMARY = config.SUMMARY
+                SUMMARY=config.SUMMARY
             )
 
             single_results = []
-            single_probs   = {}
+            single_probs = {}
 
             for split_name, (proba, y_eval) in split_preds.items():
                 sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY, split_name=split_name
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, 
+                    SUMMARY=config.SUMMARY, split_name=split_name
                 )
 
                 if SAVE_PLOTS:
@@ -251,7 +274,7 @@ def main(config):
                         output_path=os.path.join(
                             image_path,
                             f"{model_name}_{split_name.lower()}_threshold_sweep.png"),
-                        SUMMARY = config.SUMMARY
+                        SUMMARY=config.SUMMARY
                     )
 
                 single_results.extend([
@@ -267,8 +290,6 @@ def main(config):
                     probabilities=single_probs
                 )
             )
-    # ─────────────────────── END OF CORE LOOP REPLACEMENT ───────────────────────
-
 
     # ========== STRUCTURED BASE MODEL METRICS SECTION ==========
     for base in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']:
