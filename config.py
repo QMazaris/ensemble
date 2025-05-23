@@ -13,6 +13,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 
+
 # ===== File System Configuration =====
 # Paths
 DATA_PATH = 'C:/Users/QuinnMazaris/Desktop/Stacking/Results/ensemble_resultsV3.csv'
@@ -38,8 +39,14 @@ EXCLUDE_COLS = [
 TEST_SIZE = 0.2  # Proportion of data to use for testing
 RANDOM_STATE = 42  # Random seed for reproducibility
 
+# Very conservative, minor gains
+FilterData = True
+VARIANCE_THRESH = 1e-8
+CORRELATION_THRESH = 0.995
+
 # ===== Model Configuration =====
 # Define model zoo
+# For tree models, more features is almost always better
 MODELS = {
     'XGBoost': xgb.XGBClassifier(
         objective='binary:logistic',
@@ -122,27 +129,50 @@ MODELS = {
 }
 
 # Cost weights for evaluation
-C_FP = 1  # Cost of false positive
-C_FN = 20  # Cost of false negative (typically higher than C_FP)
+# Cost of false positive
+C_FP = 1  
+#Cost of false negative (typically higher than C_FP)
+C_FN = 30
 
 # ===== Cross-Validation Settings =====
-USE_KFOLD = True  # Enable/disable k-fold cross-validation
+USE_KFOLD = True
 N_SPLITS = 5  # Number of folds for K-fold cross-validation
 
 # ===== Hyperparameter Optimization =====
-OPTIMIZE_HYPERPARAMS = False  # Enable/disable hyperparameter optimization
+OPTIMIZE_HYPERPARAMS = True
 HYPERPARAM_ITER = 50  # Number of iterations for randomized search
+# Final full-data tuning
+OPTIMIZE_FINAL_MODEL = True
 N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)
+
+# Parameter grids for RandomizedSearchCV
+HYPERPARAM_SPACE = {
+    'XGBoost': {
+        'max_depth':        [3,4,5,6],
+        'learning_rate':    [0.01,0.05,0.1],
+        'subsample':        [0.6,0.8,1.0],
+        'colsample_bytree': [0.6,0.8,1.0],
+        'n_estimators':     [100,200,400],
+        'gamma':            [0,0.1,0.2],
+    },
+    'RandomForest': {
+        'n_estimators':      [100,200,300],
+        'max_depth':         [None,5,10],
+        'min_samples_split': [2,5,10],
+        'min_samples_leaf':  [1,2,5],
+    },
+    # add other models if you like…
+}
 
 # ===== Training Configuration =====
 USE_SMOTE = True  # Apply SMOTE for imbalanced data
 SMOTE_RATIO = 0.5  # Ratio of minority class to majority class after SMOTE
 
 # ===== Output & Logging =====
-SAVE_MODEL = True  # Save trained models
+SAVE_MODEL = True
 SAVE_PLOTS = True  # Save evaluation plots
-SAVE_PREDICTIONS = True  # Save predictions
-SUMMARY = False
+SAVE_PREDICTIONS = False  # Save predictions
+SUMMARY = True
 
 # ===== Create Output Directories =====
 dirs_to_create = [

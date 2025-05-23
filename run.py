@@ -6,10 +6,8 @@
 #   python train_weld_meta_model_v2.1.py "C:/.../ensemble_resultsV2.1.csv"
 
 # Additions that could be made to improve the models:
-# 1. use k-fold cross validation
 # 2. use grid search to find the best hyperparameters
-# 3. use a feature selection method to select the best features
-# 4. add more encapsulation
+# 4. Make the comparison to the other models more fair
 
 
 # Standard library imports
@@ -46,13 +44,17 @@ config.create_directories()  # Ensure output folders exist
 from dataclasses import dataclass, asdict
 from typing import Optional
 import numpy as np
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.base import clone
+
 
 from helpers import (
     ModelEvaluationResult, ModelEvaluationRun,
     prepare_data, train_and_evaluate_model, compute_metrics, threshold_sweep_with_cost,
     plot_threshold_sweep, plot_runs_at_threshold, save_all_model_probabilities_from_structure,
     print_performance_summary, Save_Feature_Info, Regular_Split, CV_Split,
-    _mk_result, _average_results, _average_probabilities
+    _mk_result, _average_results, _average_probabilities, apply_variance_filter, apply_correlation_filter,
+    optimize_hyperparams
 )
 
 @dataclass
@@ -112,6 +114,19 @@ def main(config):
     if config.SUMMARY:
         print("Preparing data...")
     X, y, feature_cols, encoded_cols = prepare_data(df, config)
+
+    if config.FilterData:
+        # Apply 1.1: Variance Filter
+        X = apply_variance_filter(X, threshold=config.VARIANCE_THRESH, SUMMARY=config.SUMMARY)
+
+        # Apply 1.2: Correlation Filter
+        X = apply_correlation_filter(X, threshold=config.CORRELATION_THRESH, SUMMARY=config.SUMMARY)
+
+        print("📋 Feature Names:")
+        for i, col in enumerate(X.columns, 1):
+            print(f"  {i:2d}. {col}")
+
+
     
     # Save feature columns for later use only if SAVE_MODEL is True
     if SAVE_MODEL:
@@ -121,8 +136,17 @@ def main(config):
     # ===== Cross‑Validation vs Single‑Split =====
     if config.USE_KFOLD:
         cv_splits = CV_Split(config, X, y)
+        tuning_X, tuning_y = X, y  # use full dataset for tuning
     else:
         X_train, y_train, train_idx, test_idx, single_splits = Regular_Split(config, X, y)
+        tuning_X, tuning_y = X_train, y_train  # use only training split for tuning
+
+    # ===== Hyperparameter Tuning (Always) =====
+    if config.OPTIMIZE_HYPERPARAMS:
+        print("🔍 Optimizing hyperparameters…")
+        for name, mdl in MODELS.items():
+            MODELS[name] = optimize_hyperparams(name, mdl, tuning_X, tuning_y, config)
+
 # =============================================
 
     # ──────────────────────────── CORE LOOP ────────────────────────────
@@ -153,7 +177,7 @@ def main(config):
                 proba, y_eval = split_preds[fold_name]
 
                 sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY, split_name=fold_name
                 )
 
                 # optional per-fold sweep plot
@@ -216,7 +240,7 @@ def main(config):
 
             for split_name, (proba, y_eval) in split_preds.items():
                 sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY, split_name=split_name
                 )
 
                 if SAVE_PLOTS:
@@ -334,6 +358,17 @@ def main(config):
             C_FN=C_FN,
             output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
         )
+
+        # Save the final model
+        if config.OPTIMIZE_FINAL_MODEL and config.SAVE_MODEL:
+            print("🏭 Final hyperparameter tuning on the full dataset…")
+            for name, prototype in config.MODELS.items():
+                base = clone(prototype)              # fresh instance
+                best = optimize_hyperparams(name, base, X, y, config)
+                out_path = os.path.join(model_path, f"{name}_production.pkl")
+                joblib.dump(best, out_path)
+                print(f"✅ Saved production model: {out_path}")
+
         
         print("Pipeline complete")
 

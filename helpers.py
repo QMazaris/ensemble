@@ -10,6 +10,9 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.metrics import confusion_matrix
 from dataclasses import dataclass, asdict
 from typing import Optional
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.base import clone
 
 @dataclass
 class ModelEvaluationResult:
@@ -64,6 +67,43 @@ def prepare_data(df, config):
     encoded_cols = [col for col in X_encoded.columns if col not in numeric_cols]
     return X_encoded, y, numeric_cols, encoded_cols
 
+def apply_variance_filter(X, threshold=0.01, SUMMARY = None):
+    selector = VarianceThreshold(threshold=threshold)
+    X_reduced = selector.fit_transform(X)
+    kept_cols = X.columns[selector.get_support()]
+    if SUMMARY:
+        print(f"🔍 Variance Filter: Kept {len(kept_cols)}/{X.shape[1]} features (threshold = {threshold})")
+    return pd.DataFrame(X_reduced, columns=kept_cols, index=X.index)
+
+def apply_correlation_filter(X, threshold=0.9, SUMMARY=None):
+    corr_matrix = X.corr().abs()
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] > threshold)]
+    X_reduced = X.drop(columns=to_drop)
+    if SUMMARY:
+        print(f"🔍 Correlation Filter: Dropped {len(to_drop)} features (threshold = {threshold})")
+    return X_reduced
+
+def optimize_hyperparams(model_name, model, X_train, y_train, config):
+    """Random‑search CV on a single train split."""
+    space = config.HYPERPARAM_SPACE.get(model_name, {})
+    if not space:
+        return model
+    search = RandomizedSearchCV(
+        estimator          = clone(model),
+        param_distributions= space,
+        n_iter             = config.HYPERPARAM_ITER,
+        cv                 = 3,
+        scoring            = 'neg_log_loss',
+        n_jobs             = config.N_JOBS,
+        random_state       = config.RANDOM_STATE,
+        verbose            = 1
+    )
+    search.fit(X_train, y_train)
+    if config.SUMMARY:
+        print(f"🔧 {model_name} best params → {search.best_params_}")
+    return search.best_estimator_
+
 def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: str = None, model_dir: str = None, save_model: bool = True, SUMMARY = None):
     # ... function body unchanged ...
     smote = SMOTE(random_state=42)
@@ -104,10 +144,9 @@ def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
     else:
         return precision, recall, accuracy, cost
 
-def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None, SUMMARY = None):
-    # ... function body unchanged ...
+def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None, SUMMARY=None, split_name=None):
     if thresholds is None:
-        thresholds = np.linspace(0, 1, 11)
+        thresholds = np.linspace(0, 1, 21)
     best_by_cost = {'threshold': None, 'cost': float('inf')}
     best_by_accuracy = {'threshold': None, 'accuracy': -1}
     sweep_results = {}
@@ -118,11 +157,11 @@ def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None, SUMMAR
         total_mistakes = fp + fn
         metrics = compute_metrics(y_true, y_pred, C_FP, C_FN)
         metrics.update({
-            'threshold': thr, 
-            'tp': tp, 
-            'fp': fp, 
-            'tn': tn, 
-            'fn': fn, 
+            'threshold': thr,
+            'tp': tp,
+            'fp': fp,
+            'tn': tn,
+            'fn': fn,
             'cost': cost,
             'total_mistakes': total_mistakes
         })
@@ -131,9 +170,13 @@ def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None, SUMMAR
             best_by_cost = {'threshold': thr, 'cost': cost, **metrics}
         if metrics['accuracy'] > best_by_accuracy['accuracy']:
             best_by_accuracy = {'threshold': thr, 'accuracy': metrics['accuracy'], **metrics}
-        if SUMMARY:
-            print(f"Best threshold by cost: {best_by_cost['threshold']} with expected cost {best_by_cost['cost']}")
-            print(f"Best threshold by accuracy: {best_by_accuracy['threshold']} with accuracy {best_by_accuracy['accuracy']:.2f}%")
+    if SUMMARY:
+        if split_name:
+            print(f"\n=== {split_name.upper()} SPLIT ===")
+        print(f"Best threshold by cost: {best_by_cost['threshold']} with expected cost {best_by_cost['cost']}")
+        print(f"  Confusion Matrix (cost-opt): [[TN={best_by_cost['tn']} FP={best_by_cost['fp']}], [FN={best_by_cost['fn']} TP={best_by_cost['tp']}]]")
+        print(f"Best threshold by accuracy: {best_by_accuracy['threshold']} with accuracy {best_by_accuracy['accuracy']:.2f}%")
+        print(f"  Confusion Matrix (acc-opt):  [[TN={best_by_accuracy['tn']} FP={best_by_accuracy['fp']}], [FN={best_by_accuracy['fn']} TP={best_by_accuracy['tp']}]]\n")
     return sweep_results, best_by_cost, best_by_accuracy
 
 def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optimal_thr=None, accuracy_optimal_thr=None, SUMMARY = None):
@@ -278,7 +321,6 @@ def save_all_model_probabilities_from_structure(results_total, predictions_dir, 
         print(f"Saved GT as first column + one prob‐column per model to {out_path}")
 
 def print_performance_summary(runs, meta_model_names, splits=('Train', 'Test', 'Full'), thr_types=('cost', 'accuracy')):
-    # ... function body unchanged ...
     print("\n" + "="*80)
     print("SUMMARY OF MODEL PERFORMANCE")
     print("="*80)
@@ -334,18 +376,20 @@ def print_performance_summary(runs, meta_model_names, splits=('Train', 'Test', '
             print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
             print(f"    Cost:      {r.cost}")
             print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
-    print("\nK-FOLD AVERAGED MODEL PERFORMANCE:")
-    for run in runs:
-        if run.model_name.startswith("kfold_avg_"):
-            if not run.results:
-                continue
-            print(f"\n{run.model_name}:")
-            for r in run.results:
-                print(f"  {r.split} Split ({r.threshold_type}-optimal):")
-                print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
-                print(f"    Threshold: {r.threshold:.3f}")
-                print(f"    Cost:      {r.cost}")
-                print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
+    # Only print K-FOLD AVERAGED MODEL PERFORMANCE if any kfold_avg_ models exist
+    if any(run.model_name.startswith("kfold_avg_") for run in runs):
+        print("\nK-FOLD AVERAGED MODEL PERFORMANCE:")
+        for run in runs:
+            if run.model_name.startswith("kfold_avg_"):
+                if not run.results:
+                    continue
+                print(f"\n{run.model_name}:")
+                for r in run.results:
+                    print(f"  {r.split} Split ({r.threshold_type}-optimal):")
+                    print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
+                    print(f"    Threshold: {r.threshold:.3f}")
+                    print(f"    Cost:      {r.cost}")
+                    print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
 
 def Save_Feature_Info(model_path, df, feature_cols, encoded_cols):
     # ... function body unchanged ...
@@ -425,3 +469,17 @@ def _average_probabilities(prob_arrays):
         return None
     min_len = min(map(len, prob_arrays))
     return np.mean([p[:min_len] for p in prob_arrays], axis=0)
+
+def save_final_kfold_model(model, X, y, model_name, model_dir, SUMMARY=True):
+    """Train and save the final K-Fold model on the full dataset."""
+    # Use train_and_evaluate_model to fit and save the model on the full data
+    _ = train_and_evaluate_model(
+        model, X, y,
+        splits={'Full': (X, y)},
+        model_name=model_name,
+        model_dir=model_dir,
+        save_model=True,
+        SUMMARY=SUMMARY
+    )
+    if SUMMARY:
+        print(f"Final K-Fold model '{model_name}' trained and saved on the full dataset.")
