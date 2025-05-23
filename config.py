@@ -13,7 +13,6 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 
-
 # ===== File System Configuration =====
 # Paths
 DATA_PATH = 'C:/Users/QuinnMazaris/Desktop/Stacking/Results/ensemble_resultsV3.csv'
@@ -22,6 +21,15 @@ MODEL_DIR = os.path.join(OUTPUT_DIR, 'models')
 PLOT_DIR = os.path.join(OUTPUT_DIR, 'plots')
 PREDICTIONS_DIR = os.path.join(OUTPUT_DIR, 'predictions')
 LOG_DIR = os.path.join(OUTPUT_DIR, 'logs')
+
+# List of directories to create
+dirs_to_create = [
+    OUTPUT_DIR, 
+    MODEL_DIR, 
+    PLOT_DIR, 
+    PREDICTIONS_DIR, 
+    LOG_DIR
+]
 
 # ===== Data Configuration =====
 # Target variable
@@ -142,7 +150,7 @@ N_SPLITS = 5  # Number of folds for K-fold cross-validation
 OPTIMIZE_HYPERPARAMS = False
 HYPERPARAM_ITER = 50  # Number of iterations for randomized search
 # Final full-data tuning
-OPTIMIZE_FINAL_MODEL = False
+OPTIMIZE_FINAL_MODEL = True
 N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)
 
 # Parameter grids for RandomizedSearchCV
@@ -170,27 +178,7 @@ SMOTE_RATIO = 0.5  # Ratio of minority class to majority class after SMOTE
 
 # ===== Output & Logging =====
 SAVE_MODEL = True
-SAVE_PLOTS = True  # Save evaluation plots
-SAVE_PREDICTIONS = False  # Save predictions
-SUMMARY = False
-
-# ===== Create Output Directories =====
-dirs_to_create = [
-    OUTPUT_DIR, 
-    MODEL_DIR, 
-    PLOT_DIR, 
-    PREDICTIONS_DIR, 
-    LOG_DIR
-]
-
-def create_directories():
-    """Create all necessary output directories if they don't exist."""
-    for directory in dirs_to_create:
-        try:
-            os.makedirs(directory, exist_ok=True)
-            if SUMMARY:
-                print(f"✓ Created or found: {directory}")
-        except Exception as e:
-            if SUMMARY:
-                print(f"❌ Error creating {directory}: {str(e)}")
+SAVE_PLOTS = True
+SAVE_PREDICTIONS = True
+SUMMARY = True
 

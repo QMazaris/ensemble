@@ -6,8 +6,6 @@
 #   python train_weld_meta_model_v2.1.py "C:/.../ensemble_resultsV2.1.csv"
 
 # Additions that could be made to improve the models:
-# 2. use grid search to find the best hyperparameters
-# 4. Make the comparison to the other models more fair
 
 
 # Standard library imports
@@ -23,6 +21,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from imblearn.over_sampling import SMOTE
+from sklearn.base import clone
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
@@ -39,47 +38,44 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 import config  # Import the config module
-config.create_directories()  # Ensure output folders exist
 
-from dataclasses import dataclass, asdict
-from typing import Optional
-import numpy as np
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.base import clone
-
-
+# Import from helpers package
 from helpers import (
-    ModelEvaluationResult, ModelEvaluationRun,
-    prepare_data, train_and_evaluate_model, compute_metrics, threshold_sweep_with_cost,
-    plot_threshold_sweep, plot_runs_at_threshold, save_all_model_probabilities_from_structure,
-    print_performance_summary, Save_Feature_Info, Regular_Split, CV_Split,
-    _mk_result, _average_results, _average_probabilities, apply_variance_filter, apply_correlation_filter,
-    optimize_hyperparams
+    # Data preparation
+    prepare_data,
+    apply_variance_filter,
+    apply_correlation_filter,
+    Regular_Split,
+    CV_Split,
+    Save_Feature_Info,
+    
+    # Modeling
+    optimize_hyperparams,
+    train_and_evaluate_model,
+    
+    # Metrics and evaluation
+    ModelEvaluationResult,
+    ModelEvaluationRun,
+    compute_metrics,
+    threshold_sweep_with_cost,
+    _mk_result,
+    _average_results,
+    _average_probabilities,
+    
+    # Plotting
+    plot_threshold_sweep,
+    plot_runs_at_threshold,
+    
+    # Reporting
+    print_performance_summary,
+    save_all_model_probabilities_from_structure,
+    
+    # Utils
+    create_directories
 )
 
-@dataclass
-class ModelEvaluationResult:
-    model_name: str
-    split: str
-    threshold_type: str       # 'cost', 'accuracy', or 'base' for base models
-    threshold: float = None   # None for base models
-    precision: float = None
-    recall: float = None
-    accuracy: float = None
-    cost: float = None
-    tp: int = None
-    fp: int = None
-    tn: int = None
-    fn: int = None
-    is_base_model: bool = False  # True for base model results
-
-
-@dataclass
-class ModelEvaluationRun:
-    model_name: str
-    results: list  # List of ModelEvaluationResult (including base and meta models)
-    probabilities: Optional[dict] = None  # Dict of model_name -> np.ndarray (including base models if available)
-
+# Explicit import for FinalModelCreateAndAnalyize
+from helpers.modeling import FinalModelCreateAndAnalyize
 
 # ---------- Main Function ----------
 def main(config):
@@ -88,6 +84,8 @@ def main(config):
     Args:
         config: Configuration object containing paths and parameters
     """
+    # Create output directories
+    create_directories(config.dirs_to_create, summary=config.SUMMARY)
 
     # Unpack config
     csv_path = config.DATA_PATH
@@ -126,7 +124,6 @@ def main(config):
             print("📋 Feature Names:")
             for i, col in enumerate(X.columns, 1):
                 print(f"  {i:2d}. {col}")
-
 
     
     # Save feature columns for later use only if SAVE_MODEL is True
@@ -224,16 +221,6 @@ def main(config):
                     results=[avg_c, avg_a],
                     probabilities={'Full': avg_p} if avg_p is not None else {}
                 )
-            )
-
-            # ── Final production model on all data ──
-            train_and_evaluate_model(
-                tuned, X, y,
-                splits={'Full': (X, y)},
-                model_name=f'kfold_final_{model_name}',
-                model_dir=model_path,
-                save_model=True,
-                SUMMARY=config.SUMMARY
             )
     else:
         # Single-split path: use the already split data and tuned models
@@ -370,20 +357,10 @@ def main(config):
             output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
         )
 
-        # Save the final model
-        if config.OPTIMIZE_FINAL_MODEL and config.SAVE_MODEL:
-            if config.SUMMARY:
-                print("🏭 Final hyperparameter tuning on the full dataset…")
-            for name, prototype in config.MODELS.items():
-                base = clone(prototype)              # fresh instance
-                best = optimize_hyperparams(name, base, X, y, config)
-                out_path = os.path.join(model_path, f"{name}_production.pkl")
-                joblib.dump(best, out_path)
-                if config.SUMMARY:
-                    print(f"✅ Saved production model: {out_path}")
+    # ========== FINAL PRODUCTION MODELS SECTION ==========
+    FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE_PLOTS, X, y)
 
-        
-        print("Pipeline complete")
+    print("\nPipeline complete")
 
 
 if __name__ == "__main__":
