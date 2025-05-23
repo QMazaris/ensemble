@@ -13,6 +13,12 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 
+# which DataFrame columns hold the raw scores for base models
+BASE_MODEL_OUTPUT_COLUMNS = {
+    "AD": "AnomalyScore",    # raw continuous score from your anomaly detector
+    "CL": "CL_ConfMax"       # "good %" column from your classifier
+}
+
 # ===== File System Configuration =====
 # Paths
 DATA_PATH = 'C:/Users/QuinnMazaris/Desktop/Stacking/Results/ensemble_resultsV3.csv'
@@ -143,14 +149,14 @@ C_FP = 1
 C_FN = 30
 
 # ===== Cross-Validation Settings =====
-USE_KFOLD = True
+USE_KFOLD = False
 N_SPLITS = 5  # Number of folds for K-fold cross-validation
 
 # ===== Hyperparameter Optimization =====
 OPTIMIZE_HYPERPARAMS = False
 HYPERPARAM_ITER = 50  # Number of iterations for randomized search
 # Final full-data tuning
-OPTIMIZE_FINAL_MODEL = True
+OPTIMIZE_FINAL_MODEL = False
 N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)
 
 # Parameter grids for RandomizedSearchCV
