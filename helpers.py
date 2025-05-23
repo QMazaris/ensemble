@@ -43,6 +43,15 @@ def prepare_data(df, config):
         raise ValueError(f"Found unmapped values in {target}")
     exclude_cols = config.EXCLUDE_COLS + [config.TARGET]
     X = df.drop(columns=exclude_cols)
+
+    if config.SUMMARY:
+        # ─── New print ───────────────────────────────────────────────────────────────
+        features_before_encoding = X.columns.tolist()
+        print(f"Features before encoding ({len(features_before_encoding)}):")
+        for feat in features_before_encoding:
+            print(f"  • {feat}")
+        # ──────────────────────────────────────────────────────────────────────────────
+
     y_raw = df[config.TARGET]
     if y_raw.dtype == object or y_raw.dtype.name == 'category':
         y = y_raw.map({'Good': 0, 'Bad': 1})
@@ -55,7 +64,7 @@ def prepare_data(df, config):
     encoded_cols = [col for col in X_encoded.columns if col not in numeric_cols]
     return X_encoded, y, numeric_cols, encoded_cols
 
-def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: str = None, model_dir: str = None, save_model: bool = True):
+def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: str = None, model_dir: str = None, save_model: bool = True, SUMMARY = None):
     # ... function body unchanged ...
     smote = SMOTE(random_state=42)
     X_bal, y_bal = smote.fit_resample(X_train, y_train)
@@ -64,10 +73,12 @@ def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: 
         os.makedirs(model_dir, exist_ok=True)
         path = os.path.join(model_dir, f"{model_name}.pkl")
         joblib.dump(model, path)
-        print(f"Saved trained model to {path}")
+        if SUMMARY:
+            print(f"Saved trained model to {path}")
     split_preds = {}
     for split_name, (X_eval, y_eval) in splits.items():
-        print(f"Predicting probabilities on {split_name} split...")
+        if SUMMARY:
+            print(f"Predicting probabilities on {split_name} split...")
         proba = model.predict_proba(X_eval)[:, 1]
         split_preds[split_name] = (proba, y_eval)
     return split_preds, model
@@ -93,7 +104,7 @@ def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
     else:
         return precision, recall, accuracy, cost
 
-def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None):
+def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None, SUMMARY = None):
     # ... function body unchanged ...
     if thresholds is None:
         thresholds = np.linspace(0, 1, 11)
@@ -120,11 +131,12 @@ def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None):
             best_by_cost = {'threshold': thr, 'cost': cost, **metrics}
         if metrics['accuracy'] > best_by_accuracy['accuracy']:
             best_by_accuracy = {'threshold': thr, 'accuracy': metrics['accuracy'], **metrics}
-    print(f"Best threshold by cost: {best_by_cost['threshold']} with expected cost {best_by_cost['cost']}")
-    print(f"Best threshold by accuracy: {best_by_accuracy['threshold']} with accuracy {best_by_accuracy['accuracy']:.2f}%")
+        if SUMMARY:
+            print(f"Best threshold by cost: {best_by_cost['threshold']} with expected cost {best_by_cost['cost']}")
+            print(f"Best threshold by accuracy: {best_by_accuracy['threshold']} with accuracy {best_by_accuracy['accuracy']:.2f}%")
     return sweep_results, best_by_cost, best_by_accuracy
 
-def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optimal_thr=None, accuracy_optimal_thr=None):
+def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optimal_thr=None, accuracy_optimal_thr=None, SUMMARY = None):
     # ... function body unchanged ...
     thresholds = list(sweep_results.keys())
     precision = [sweep_results[t]['precision'] for t in thresholds]
@@ -160,7 +172,8 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
     if output_path:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         plt.savefig(output_path, bbox_inches='tight', dpi=300)
-        print(f"Saved threshold sweep plot to {output_path}")
+        if SUMMARY:
+            print(f"Saved threshold sweep plot to {output_path}")
     plt.close(fig)
 
 def plot_runs_at_threshold(runs, threshold_type, split_name='Test', C_FP=1.0, C_FN=1.0, output_path=None):
@@ -233,7 +246,7 @@ def plot_runs_at_threshold(runs, threshold_type, split_name='Test', C_FP=1.0, C_
         plt.show()
     plt.close(fig)
 
-def save_all_model_probabilities_from_structure(results_total, predictions_dir, index, y_true):
+def save_all_model_probabilities_from_structure(results_total, predictions_dir, index, y_true, SUMMARY = None):
     # ... function body unchanged ...
     os.makedirs(predictions_dir, exist_ok=True)
     wide_df = pd.DataFrame(index=index)
@@ -261,7 +274,8 @@ def save_all_model_probabilities_from_structure(results_total, predictions_dir, 
             wide_df[model_col] = pd.Series(probas, index=index[: len(probas)])
     out_path = os.path.join(predictions_dir, 'all_model_predictions.csv')
     wide_df.to_csv(out_path, index=False)
-    print(f"Saved GT as first column + one prob‐column per model to {out_path}")
+    if SUMMARY:
+        print(f"Saved GT as first column + one prob‐column per model to {out_path}")
 
 def print_performance_summary(runs, meta_model_names, splits=('Train', 'Test', 'Full'), thr_types=('cost', 'accuracy')):
     # ... function body unchanged ...

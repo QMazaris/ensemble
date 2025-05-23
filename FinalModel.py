@@ -104,11 +104,13 @@ def main(config):
     MODELS = config.MODELS
     
     # Load data
-    print(f"Loading data from {csv_path}...")
+    if config.SUMMARY:
+        print(f"Loading data from {csv_path}...")
     df = pd.read_csv(csv_path)
     
     # Prepare data
-    print("Preparing data...")
+    if config.SUMMARY:
+        print("Preparing data...")
     X, y, feature_cols, encoded_cols = prepare_data(df, config)
     
     # Save feature columns for later use only if SAVE_MODEL is True
@@ -128,7 +130,8 @@ def main(config):
     results_total = []
 
     for model_name, model in MODELS.items():
-        print(f"\n{'-'*40}\nEvaluating {model_name}\n{'-'*40}")
+        if config.SUMMARY:
+            print(f"\n{'-'*40}\nEvaluating {model_name}\n{'-'*40}")
 
         # ------------------------------------------------------------------
         # ❶ K-FOLD PATH  ─ gather per-fold results, keep *only* the average
@@ -139,17 +142,18 @@ def main(config):
             fold_prob_arrays  = []          # raw probability array / fold
 
             for fold_name, (X_tr, y_tr), (X_te, y_te) in cv_splits:
-                print(f"  Fold {fold_name}")
+                if config.SUMMARY:
+                    print(f"  Fold {fold_name}")
 
                 split_preds, _ = train_and_evaluate_model(
                     model, X_tr, y_tr,
                     splits={fold_name: (X_te, y_te)},
-                    model_name=None, model_dir=None, save_model=False
+                    model_name=None, model_dir=None, save_model=False, SUMMARY = config.SUMMARY
                 )
                 proba, y_eval = split_preds[fold_name]
 
                 sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y_eval, C_FP=C_FP, C_FN=C_FN
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY
                 )
 
                 # optional per-fold sweep plot
@@ -160,7 +164,8 @@ def main(config):
                         accuracy_optimal_thr=best_acc['threshold'],
                         output_path=os.path.join(
                             image_path,
-                            f"{model_name}_{fold_name.lower()}_threshold_sweep.png")
+                            f"{model_name}_{fold_name.lower()}_threshold_sweep.png"),
+                        SUMMARY = config.SUMMARY
                     )
 
                 # build result objects for this fold
@@ -189,7 +194,8 @@ def main(config):
                 splits={'Full': (X, y)},
                 model_name=f'kfold_final_{model_name}',
                 model_dir=model_path,
-                save_model=True
+                save_model=True,
+                SUMMARY = config.SUMMARY
             )
 
         # ------------------------------------------------------------------
@@ -201,7 +207,8 @@ def main(config):
                 splits=single_splits,
                 model_name=f"meta_model_v2.1_{model_name}",
                 model_dir=model_path,
-                save_model=SAVE_MODEL
+                save_model=SAVE_MODEL,
+                SUMMARY = config.SUMMARY
             )
 
             single_results = []
@@ -209,7 +216,7 @@ def main(config):
 
             for split_name, (proba, y_eval) in split_preds.items():
                 sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y_eval, C_FP=C_FP, C_FN=C_FN
+                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, SUMMARY = config.SUMMARY
                 )
 
                 if SAVE_PLOTS:
@@ -219,7 +226,8 @@ def main(config):
                         accuracy_optimal_thr=best_acc['threshold'],
                         output_path=os.path.join(
                             image_path,
-                            f"{model_name}_{split_name.lower()}_threshold_sweep.png")
+                            f"{model_name}_{split_name.lower()}_threshold_sweep.png"),
+                        SUMMARY = config.SUMMARY
                     )
 
                 single_results.extend([
@@ -299,7 +307,7 @@ def main(config):
         )
     # ========== END STRUCTURED BASE MODEL METRICS SECTION ==========
     
-    if SUMMARY:
+    if config.SUMMARY:
         print_performance_summary(
         runs=results_total,
         meta_model_names=set(MODELS.keys())
@@ -307,7 +315,7 @@ def main(config):
 
     if SAVE_PREDICTIONS:
         predictions_dir = getattr(config, 'PREDICTIONS_DIR', os.path.dirname(model_path))
-        save_all_model_probabilities_from_structure(results_total, predictions_dir, df.index, y_eval)
+        save_all_model_probabilities_from_structure(results_total, predictions_dir, df.index, y_eval, SUMMARY = config.SUMMARY)
 
     if SAVE_PLOTS:
         plot_runs_at_threshold(
@@ -326,6 +334,8 @@ def main(config):
             C_FN=C_FN,
             output_path=os.path.join(image_path, 'model_comparison_accuracy_optimized.png')
         )
+        
+        print("Pipeline complete")
 
 
 if __name__ == "__main__":

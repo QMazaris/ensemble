@@ -142,7 +142,7 @@ SMOTE_RATIO = 0.5  # Ratio of minority class to majority class after SMOTE
 SAVE_MODEL = True  # Save trained models
 SAVE_PLOTS = True  # Save evaluation plots
 SAVE_PREDICTIONS = True  # Save predictions
-SUMMARY = True
+SUMMARY = False
 
 # ===== Create Output Directories =====
 dirs_to_create = [
@@ -155,11 +155,12 @@ dirs_to_create = [
 
 def create_directories():
     """Create all necessary output directories if they don't exist."""
-    print("📁 Ensuring output directories exist...")
     for directory in dirs_to_create:
         try:
             os.makedirs(directory, exist_ok=True)
-            print(f"✓ Created or found: {directory}")
+            if SUMMARY:
+                print(f"✓ Created or found: {directory}")
         except Exception as e:
-            print(f"❌ Error creating {directory}: {str(e)}")
+            if SUMMARY:
+                print(f"❌ Error creating {directory}: {str(e)}")
 
