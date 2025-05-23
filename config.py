@@ -142,7 +142,7 @@ N_SPLITS = 5  # Number of folds for K-fold cross-validation
 OPTIMIZE_HYPERPARAMS = False
 HYPERPARAM_ITER = 50  # Number of iterations for randomized search
 # Final full-data tuning
-OPTIMIZE_FINAL_MODEL = True
+OPTIMIZE_FINAL_MODEL = False
 N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)
 
 # Parameter grids for RandomizedSearchCV

@@ -169,12 +169,15 @@ def main(config):
                 X_te, y_te = X.iloc[te_idx], y.iloc[te_idx]
 
                 # ── Inner tuning ──
-                tuned = optimize_hyperparams(
-                    model_name,
-                    clone(prototype),
-                    X_tr, y_tr,
-                    config
-                )
+                if config.OPTIMIZE_HYPERPARAMS:
+                    tuned = optimize_hyperparams(
+                        model_name,
+                        clone(prototype),
+                        X_tr, y_tr,
+                        config
+                    )
+                else:
+                    tuned = clone(prototype)  # Use untuned model if optimization is disabled
 
                 # ── Train & predict this fold ──
                 split_preds, _ = train_and_evaluate_model(
