@@ -5,3 +5,5 @@ matplotlib
 numpy
 xgboost
 imbalanced-learn
+streamlit>=1.0
+plotly
