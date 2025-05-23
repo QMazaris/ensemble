@@ -139,7 +139,7 @@ USE_KFOLD = True
 N_SPLITS = 5  # Number of folds for K-fold cross-validation
 
 # ===== Hyperparameter Optimization =====
-OPTIMIZE_HYPERPARAMS = True
+OPTIMIZE_HYPERPARAMS = False
 HYPERPARAM_ITER = 50  # Number of iterations for randomized search
 # Final full-data tuning
 OPTIMIZE_FINAL_MODEL = True
@@ -172,7 +172,7 @@ SMOTE_RATIO = 0.5  # Ratio of minority class to majority class after SMOTE
 SAVE_MODEL = True
 SAVE_PLOTS = True  # Save evaluation plots
 SAVE_PREDICTIONS = False  # Save predictions
-SUMMARY = True
+SUMMARY = False
 
 # ===== Create Output Directories =====
 dirs_to_create = [

@@ -122,32 +122,26 @@ def main(config):
         # Apply 1.2: Correlation Filter
         X = apply_correlation_filter(X, threshold=config.CORRELATION_THRESH, SUMMARY=config.SUMMARY)
 
-        print("📋 Feature Names:")
-        for i, col in enumerate(X.columns, 1):
-            print(f"  {i:2d}. {col}")
+        if config.SUMMARY:
+            print("📋 Feature Names:")
+            for i, col in enumerate(X.columns, 1):
+                print(f"  {i:2d}. {col}")
 
 
     
     # Save feature columns for later use only if SAVE_MODEL is True
     if SAVE_MODEL:
-        # Dynamically build encoding info for all one-hot encoded categoricals
         Save_Feature_Info(model_path, df, feature_cols, encoded_cols)
 
-    # ===== Cross‑Validation vs Single‑Split =====
-    if config.USE_KFOLD:
-        cv_splits = CV_Split(config, X, y)
-        # Remove tuning_X, tuning_y assignment since we don't need it for K-fold
-    else:
+    # 1) Only one split for single-split path
+    if not config.USE_KFOLD:
         X_train, y_train, train_idx, test_idx, single_splits = Regular_Split(config, X, y)
-        tuning_X, tuning_y = X_train, y_train  # use only training split for tuning
-
-    # ===== Hyperparameter Tuning (Only for Single-Split) =====
-    if not config.USE_KFOLD and config.OPTIMIZE_HYPERPARAMS:
-        print("🔍 Optimizing hyperparameters for single-split evaluation…")
-        for name, mdl in MODELS.items():
-            MODELS[name] = optimize_hyperparams(name, mdl, tuning_X, tuning_y, config)
-
-# =============================================
+        # Do single-split tuning here if requested
+        if config.OPTIMIZE_HYPERPARAMS and config.SUMMARY:
+            print("🔍 Optimizing hyperparameters for single-split evaluation…")
+        if config.OPTIMIZE_HYPERPARAMS:
+            for name, mdl in MODELS.items():
+                MODELS[name] = optimize_hyperparams(name, mdl, X_train, y_train, config)
 
     # ──────────────────────────── CORE LOOP ────────────────────────────
     # Collect averaged-fold or single-split results for every model
@@ -239,14 +233,7 @@ def main(config):
                 SUMMARY=config.SUMMARY
             )
     else:
-        # Single-split path remains unchanged
-        X_train, y_train, train_idx, test_idx, single_splits = Regular_Split(config, X, y)
-        
-        # Only optimize hyperparameters for single-split if requested
-        if config.OPTIMIZE_HYPERPARAMS:
-            for name, mdl in MODELS.items():
-                MODELS[name] = optimize_hyperparams(name, mdl, X_train, y_train, config)
-
+        # Single-split path: use the already split data and tuned models
         for model_name, model in MODELS.items():
             split_preds, _ = train_and_evaluate_model(
                 model, X_train, y_train,
@@ -382,13 +369,15 @@ def main(config):
 
         # Save the final model
         if config.OPTIMIZE_FINAL_MODEL and config.SAVE_MODEL:
-            print("🏭 Final hyperparameter tuning on the full dataset…")
+            if config.SUMMARY:
+                print("🏭 Final hyperparameter tuning on the full dataset…")
             for name, prototype in config.MODELS.items():
                 base = clone(prototype)              # fresh instance
                 best = optimize_hyperparams(name, base, X, y, config)
                 out_path = os.path.join(model_path, f"{name}_production.pkl")
                 joblib.dump(best, out_path)
-                print(f"✅ Saved production model: {out_path}")
+                if config.SUMMARY:
+                    print(f"✅ Saved production model: {out_path}")
 
         
         print("Pipeline complete")
