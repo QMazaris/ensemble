@@ -7,3 +7,4 @@ xgboost
 imbalanced-learn
 streamlit>=1.0
 plotly
+optuna>=3.0.0

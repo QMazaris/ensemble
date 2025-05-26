@@ -41,6 +41,11 @@ def render_sidebar():
     # Optimization Settings
     st.sidebar.subheader("Optimization Settings")
     OPTIMIZE_HYPERPARAMS = st.sidebar.checkbox("Optimize Hyperparameters", value=getattr(config, 'OPTIMIZE_HYPERPARAMS', False))
+    HYPERPARAM_ITER = None
+    if OPTIMIZE_HYPERPARAMS:
+        HYPERPARAM_ITER = st.sidebar.number_input("Number of Optimization Iterations", 
+                                                value=getattr(config, 'HYPERPARAM_ITER', 50),
+                                                min_value=10, max_value=500, step=10)
     OPTIMIZE_FINAL_MODEL = st.sidebar.checkbox("Optimize Final Model", value=getattr(config, 'OPTIMIZE_FINAL_MODEL', False))
 
     return {
@@ -52,6 +57,7 @@ def render_sidebar():
         'VARIANCE_THRESH': VARIANCE_THRESH if FilterData else 0.01,
         'CORRELATION_THRESH': CORRELATION_THRESH if FilterData else 0.95,
         'OPTIMIZE_HYPERPARAMS': OPTIMIZE_HYPERPARAMS,
+        'HYPERPARAM_ITER': HYPERPARAM_ITER if OPTIMIZE_HYPERPARAMS else 50,
         'OPTIMIZE_FINAL_MODEL': OPTIMIZE_FINAL_MODEL
     }
 

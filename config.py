@@ -146,15 +146,15 @@ MODELS = {
 # Cost of false positive
 C_FP = 1
 #Cost of false negative (typically higher than C_FP)
-C_FN = 100
+C_FN = 30
 
 # ===== Cross-Validation Settings =====
-USE_KFOLD = False
+USE_KFOLD = True
 N_SPLITS = 5
 
 # ===== Hyperparameter Optimization =====
-OPTIMIZE_HYPERPARAMS = False
-HYPERPARAM_ITER = 50  # Number of iterations for randomized search
+OPTIMIZE_HYPERPARAMS = True
+HYPERPARAM_ITER = 20
 # Final full-data tuning
 OPTIMIZE_FINAL_MODEL = False
 N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)

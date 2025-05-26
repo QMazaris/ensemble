@@ -1,33 +1,94 @@
+# Standard library imports
 import os
+
+# Third-party imports
 import joblib
 import numpy as np
+import optuna
 from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import RandomizedSearchCV
 from sklearn.base import clone
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import log_loss
 
-# Import necessary functions from other helpers
+# Local imports
 from .metrics import threshold_sweep_with_cost
 from .plotting import plot_threshold_sweep
 
 def optimize_hyperparams(model_name, model, X_train, y_train, config):
-    """Random-search CV on a single train split."""
+    """Bayesian optimization using Optuna to find optimal hyperparameters.
+    
+    The hyperparameter space is defined in config.HYPERPARAM_SPACE.
+    If no space is defined for a model, returns the model unchanged.
+    """
     space = config.HYPERPARAM_SPACE.get(model_name, {})
     if not space:
+        if config.SUMMARY:
+            print(f"⚠️ No hyperparameter space defined for {model_name}, using default parameters")
         return model
-    search = RandomizedSearchCV(
-        estimator          = clone(model),
-        param_distributions= space,
-        n_iter             = config.HYPERPARAM_ITER,
-        cv                 = 3,
-        scoring            = 'neg_log_loss',
-        n_jobs             = config.N_JOBS,
-        random_state       = config.RANDOM_STATE,
-        verbose            = 1
+
+    def objective(trial):
+        # Create a fresh model instance
+        model_clone = clone(model)
+        
+        # Build parameters from the config space
+        params = {}
+        for param_name, param_space in space.items():
+            if isinstance(param_space, list):
+                # Categorical parameter
+                params[param_name] = trial.suggest_categorical(param_name, param_space)
+            elif isinstance(param_space, tuple):
+                if len(param_space) != 2:
+                    raise ValueError(f"Parameter space for {param_name} must be a tuple of (min, max)")
+                if isinstance(param_space[0], int):
+                    # Integer parameter
+                    params[param_name] = trial.suggest_int(param_name, param_space[0], param_space[1])
+                else:
+                    # Float parameter
+                    params[param_name] = trial.suggest_float(param_name, param_space[0], param_space[1])
+            else:
+                raise ValueError(f"Invalid parameter space type for {param_name}. Must be list or tuple.")
+
+        # Set the parameters
+        model_clone.set_params(**params)
+        
+        # Use cross-validation to evaluate the model
+        scores = cross_val_score(
+            model_clone, X_train, y_train,
+            cv=3,
+            scoring='neg_log_loss',
+            n_jobs=config.N_JOBS
+        )
+        
+        # Return the mean score (Optuna minimizes, so we negate the score)
+        return -scores.mean()
+
+    # Create and run the study
+    study = optuna.create_study(
+        direction='minimize',
+        sampler=optuna.samplers.TPESampler(seed=config.RANDOM_STATE)
     )
-    search.fit(X_train, y_train)
+    
     if config.SUMMARY:
-        print(f"🔧 {model_name} best params → {search.best_params_}")
-    return search.best_estimator_
+        print(f"\n🔍 Optimizing hyperparameters for {model_name}...")
+        print(f"   Parameter space: {space}")
+    
+    study.optimize(
+        objective,
+        n_trials=config.HYPERPARAM_ITER,
+        show_progress_bar=config.SUMMARY
+    )
+
+    # Get the best parameters and create a new model with them
+    best_params = study.best_params
+    best_model = clone(model)
+    best_model.set_params(**best_params)
+    
+    if config.SUMMARY:
+        print(f"✅ {model_name} optimization complete:")
+        print(f"   Best parameters: {best_params}")
+        print(f"   Best CV score: {-study.best_value:.4f}")
+    
+    return best_model
 
 def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: str = None, model_dir: str = None, save_model: bool = True, SUMMARY = None):
     """Train a model and evaluate it on multiple splits."""

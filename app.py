@@ -1,5 +1,6 @@
 import streamlit as st
 import subprocess
+import os
 from utils import ensure_directories
 from tabs import (
     render_overview_tab, render_model_analysis_tab,
@@ -18,10 +19,16 @@ st.set_page_config(
 ensure_directories()
 
 def run_pipeline():
-    """Run the main pipeline."""
+    """Run the main pipeline using the virtual environment's Python."""
     with st.spinner("Running pipeline..."):
         try:
-            subprocess.run(["python", "run.py"], check=True)
+            # Get the path to the virtual environment's Python
+            venv_python = os.path.join("venv", "Scripts", "python.exe")
+            if not os.path.exists(venv_python):
+                st.error("Virtual environment Python not found. Please ensure venv is set up correctly.")
+                return
+                
+            subprocess.run([venv_python, "run.py"], check=True)
             st.success("Pipeline complete and metrics exported!")
         except subprocess.CalledProcessError as e:
             st.error(f"Pipeline failed with error: {str(e)}")
