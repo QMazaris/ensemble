@@ -27,7 +27,8 @@ from .metrics import (
 
 from .plotting import (
     plot_threshold_sweep,
-    plot_runs_at_threshold
+    plot_runs_at_threshold,
+    plot_class_balance
 )
 
 from .reporting import (

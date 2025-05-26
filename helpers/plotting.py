@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pandas as pd
+from collections import Counter
 
 def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optimal_thr=None, accuracy_optimal_thr=None, SUMMARY = None):
     # ... function body unchanged ...
@@ -110,4 +112,62 @@ def plot_runs_at_threshold(runs, threshold_type, split_name='Test', C_FP=1.0, C_
         plt.savefig(output_path, dpi=300, bbox_inches='tight')
     else:
         plt.show()
+    plt.close(fig)
+
+def plot_class_balance(y, output_path=None, SUMMARY=None):
+    """Plot class distribution as a bar chart with polished styling.
+    
+    Args:
+        y: Target vector (0/1 or True/False)
+        output_path: Path to save the plot
+        SUMMARY: Whether to print status messages
+    """
+    # Count classes
+    counts = Counter(np.array(y))
+    labels = ['Good (0)', 'Bad (1)']
+    values = [counts.get(0, 0), counts.get(1, 0)]
+    total = sum(values)
+    percents = [v / total * 100 for v in values]
+
+    # Set up figure
+    fig, ax = plt.subplots(figsize=(8, 6))
+    fig.patch.set_facecolor('#f5f5f5')
+    ax.set_facecolor('#ffffff')
+
+    # Plot bars
+    bars = ax.bar(labels, values, 
+                  width=0.6, 
+                  edgecolor='gray', 
+                  linewidth=1.2, 
+                  alpha=0.85)
+
+    # Remove top/right spines
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    # Grid lines
+    ax.yaxis.grid(True, linestyle='--', alpha=0.6)
+    ax.xaxis.grid(False)
+
+    # Title & axis labels
+    ax.set_title('Class Distribution in Dataset', pad=15, fontsize=16, weight='bold')
+    ax.set_ylabel('Number of Samples', fontsize=14)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+
+    # Annotate counts & percentages
+    for bar, pct in zip(bars, percents):
+        h = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2, h + total*0.01,
+                f'{int(h):,}\n({pct:.1f}%)',
+                ha='center', va='bottom',
+                fontsize=12, fontweight='semibold',
+                color='#333333')
+
+    # Tight layout & save
+    plt.tight_layout()
+    if output_path:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        if SUMMARY:
+            print(f"Saved class balance plot to {output_path}")
     plt.close(fig)

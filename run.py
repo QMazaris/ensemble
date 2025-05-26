@@ -61,6 +61,7 @@ from helpers import (
     # Plotting
     plot_threshold_sweep,
     plot_runs_at_threshold,
+    plot_class_balance,
     
     # Reporting
     print_performance_summary,
@@ -100,6 +101,14 @@ def main(config):
     
     
     df, X, y = Initalize(config, SAVE_MODEL)
+
+    # Plot class balance if SAVE_PLOTS is enabled
+    if SAVE_PLOTS:
+        plot_class_balance(
+            y,
+            output_path=os.path.join(config.PLOT_DIR, 'class_balance.png'),
+            SUMMARY=SUMMARY
+        )
 
     # 1) Only one split for single-split path
     X_train, y_train, train_idx, test_idx, single_splits = Split_No_KFold(config, MODELS, X, y)
@@ -146,10 +155,13 @@ def main(config):
       
 
     if SAVE_PLOTS:
+        # Use Test split for single split mode, Full split for k-fold mode
+        comparison_split = 'Full' if config.USE_KFOLD else 'Test'
+        
         plot_runs_at_threshold(
             runs=results_total,
             threshold_type='cost',
-            split_name='Full',
+            split_name=comparison_split,
             C_FP=C_FP,
             C_FN=C_FN,
             output_path=os.path.join(config.PLOT_DIR, 'model_comparison_cost_optimized.png')
@@ -157,7 +169,7 @@ def main(config):
         plot_runs_at_threshold(
             runs=results_total,
             threshold_type='accuracy',
-            split_name='Full',
+            split_name=comparison_split,
             C_FP=C_FP,
             C_FN=C_FN,
             output_path=os.path.join(config.PLOT_DIR, 'model_comparison_accuracy_optimized.png')
@@ -178,66 +190,135 @@ def main(config):
     export_metrics_for_streamlit(results_total, streamlit_output_dir, meta_model_names=set(MODELS.keys()))
 
 def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_model_runs, base_models_to_process):
+    """Process legacy base models (AD_Decision, CL_Decision, AD_or_CL_Fail) with consistent cost calculation.
+    
+    When k-fold is off:
+        - Calculate costs on train and test splits separately
+        - Full split cost is the sum of train and test costs
+    When k-fold is on:
+        - Calculate cost on full dataset
+        - Divide by N_SPLITS to make it comparable to k-fold averaged costs
+    """
     for base in base_models_to_process:
         base_results = []
-        base_probs   = {}
-
-        if config.USE_KFOLD:
-            # When in k-fold mode, use the full data for structured base models
-            split_names_and_indices = [('Full', df.index)]
+        base_probs = {}
+        
+        # Get the raw decisions for this base model and convert to binary (1/0)
+        if base == 'AD_or_CL_Fail':
+            # fail if either AD or CL says "Bad"
+            decisions = (
+                (df['AD_Decision'] == 'Bad') | 
+                (df['CL_Decision'] == 'Bad')
+            ).astype(int).values
         else:
-            # When in single-split mode, use train, test, and full data
-            split_names_and_indices = [
-                ('Train', train_idx),
-                ('Test', test_idx),
-                ('Full', df.index)
-            ]
-
-        for split_name, idx in split_names_and_indices:
-            # 1) build y_pred for this base model + split
-            if base == 'AD_or_CL_Fail':
-                # fail if either AD or CL says "Bad"
-                y_pred = (
-                    (df.loc[idx, 'AD_Decision'] == 'Bad')
-                  | (df.loc[idx, 'CL_Decision'] == 'Bad')
-                ).astype(int).values
-            else:
-                y_pred = (df.loc[idx, base] == 'Bad').astype(int).values
-
-            # 2) ground truth
-            # Need to get the corresponding y values for the current split index
-            y_true = y.loc[idx].values
-
-            # 3) compute metrics
-            mets = compute_metrics(y_true, y_pred, C_FP=C_FP, C_FN=C_FN)
-
-            # 4) stash probabilities & results
-            # For base models based on decisions ('Bad'/'Good'), probability is just the prediction itself (0 or 1)
-            base_probs[split_name] = y_pred
+            # Convert 'Bad'/'Good' to 1/0
+            decisions = (df[base] == 'Bad').astype(int).values
+            
+        y_true = y.values
+        
+        if config.USE_KFOLD:
+            # For k-fold, calculate on full dataset but divide cost by N_SPLITS
+            # to make it comparable to k-fold averaged costs
+            tn, fp, fn, tp = confusion_matrix(y_true, decisions).ravel()
+            cost = (C_FP * fp + C_FN * fn) / config.N_SPLITS  # Divide by number of folds
+            metrics = compute_metrics(y_true, decisions, C_FP, C_FN)
+            metrics.update({
+                'cost': cost,
+                'tp': tp,
+                'fp': fp,
+                'tn': tn,
+                'fn': fn
+            })
+            
             base_results.append(
                 ModelEvaluationResult(
-                    model_name     = base,
-                    split          = split_name,
-                    threshold_type = 'base',
-                    threshold      = None, # No threshold concept for decision-based base models
-                    precision      = mets['precision'],
-                    recall         = mets['recall'],
-                    accuracy       = mets['accuracy'],
-                    cost           = mets['cost'],
-                    tp             = mets['tp'],
-                    fp             = mets['fp'],
-                    tn             = mets['tn'],
-                    fn             = mets['fn'],
-                    is_base_model  = True
+                    model_name=base,
+                    split='Full',  # Only use Full split for k-fold
+                    threshold_type='base',
+                    threshold=None,  # No threshold concept for decision-based base models
+                    precision=metrics['precision'],
+                    recall=metrics['recall'],
+                    accuracy=metrics['accuracy'],
+                    cost=cost,
+                    tp=tp,
+                    fp=fp,
+                    tn=tn,
+                    fn=fn,
+                    is_base_model=True
                 )
             )
+            base_probs['Full'] = decisions
+            
+        else:
+            # For single split, calculate costs separately for train and test
+            for split_name, idx in [('Train', train_idx), ('Test', test_idx)]:
+                split_decisions = decisions[idx]
+                split_y = y_true[idx]
+                
+                tn, fp, fn, tp = confusion_matrix(split_y, split_decisions).ravel()
+                cost = C_FP * fp + C_FN * fn
+                metrics = compute_metrics(split_y, split_decisions, C_FP, C_FN)
+                metrics.update({
+                    'cost': cost,
+                    'tp': tp,
+                    'fp': fp,
+                    'tn': tn,
+                    'fn': fn
+                })
+                
+                base_results.append(
+                    ModelEvaluationResult(
+                        model_name=base,
+                        split=split_name,
+                        threshold_type='base',
+                        threshold=None,  # No threshold concept for decision-based base models
+                        precision=metrics['precision'],
+                        recall=metrics['recall'],
+                        accuracy=metrics['accuracy'],
+                        cost=cost,
+                        tp=tp,
+                        fp=fp,
+                        tn=tn,
+                        fn=fn,
+                        is_base_model=True
+                    )
+                )
+                base_probs[split_name] = split_decisions
+            
+            # Calculate Full split as sum of train and test costs
+            full_cost = sum(r.cost for r in base_results)
+            full_tp = sum(r.tp for r in base_results)
+            full_fp = sum(r.fp for r in base_results)
+            full_tn = sum(r.tn for r in base_results)
+            full_fn = sum(r.fn for r in base_results)
+            
+            # Calculate metrics for full dataset
+            full_metrics = compute_metrics(y_true, decisions, C_FP, C_FN)
+            base_results.append(
+                ModelEvaluationResult(
+                    model_name=base,
+                    split='Full',
+                    threshold_type='base',
+                    threshold=None,
+                    precision=full_metrics['precision'],
+                    recall=full_metrics['recall'],
+                    accuracy=full_metrics['accuracy'],
+                    cost=full_cost,
+                    tp=full_tp,
+                    fp=full_fp,
+                    tn=full_tn,
+                    fn=full_fn,
+                    is_base_model=True
+                )
+            )
+            base_probs['Full'] = decisions
 
-        # Add the structured base model run to a temporary list
+        # Add the structured base model run
         structured_base_model_runs.append(
             ModelEvaluationRun(
-                model_name   = base,
-                results      = base_results,
-                probabilities= base_probs
+                model_name=base,
+                results=base_results,
+                probabilities=base_probs
             )
         )
 
