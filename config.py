@@ -54,9 +54,9 @@ TEST_SIZE = 0.2  # Proportion of data to use for testing
 RANDOM_STATE = 42  # Random seed for reproducibility
 
 # Very conservative, minor gains
-FilterData = True
-VARIANCE_THRESH = 1e-8
-CORRELATION_THRESH = 0.995
+FilterData = False
+VARIANCE_THRESH = 0.01
+CORRELATION_THRESH = 0.95
 
 # ===== Model Configuration =====
 # Define model zoo
@@ -144,13 +144,13 @@ MODELS = {
 
 # Cost weights for evaluation
 # Cost of false positive
-C_FP = 1  
+C_FP = 1
 #Cost of false negative (typically higher than C_FP)
-C_FN = 30
+C_FN = 100
 
 # ===== Cross-Validation Settings =====
 USE_KFOLD = False
-N_SPLITS = 5  # Number of folds for K-fold cross-validation
+N_SPLITS = 5
 
 # ===== Hyperparameter Optimization =====
 OPTIMIZE_HYPERPARAMS = False
@@ -187,4 +187,3 @@ SAVE_MODEL = True
 SAVE_PLOTS = True
 SAVE_PREDICTIONS = True
 SUMMARY = True
-
