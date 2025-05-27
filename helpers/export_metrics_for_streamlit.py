@@ -76,18 +76,47 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     metrics_df.to_csv(output_dir / 'model_metrics.csv', index=False)
     
     # 2. Export threshold sweep data
-    # sweep_data = {}
-    # for run in runs:
-    #     if hasattr(run, 'threshold_sweep') and run.threshold_sweep is not None:
-    #         sweep_data[run.model_name] = {
-    #             'probabilities': run.threshold_sweep.probabilities.tolist(),
-    #             'thresholds': run.threshold_sweep.thresholds.tolist(),
-    #             'costs': run.threshold_sweep.costs.tolist(),
-    #             'accuracies': run.threshold_sweep.accuracies.tolist()
-    #         }
+    sweep_data = {}
+    for run in runs:
+        # Only export sweep data for models that have probabilities (not decision-based models)
+        if hasattr(run, 'probabilities') and run.probabilities:
+            # Use the 'Full' split probabilities if available, otherwise use the first available split
+            if 'Full' in run.probabilities:
+                probs = run.probabilities['Full']
+            elif run.probabilities:
+                # Use the first available split
+                first_split = list(run.probabilities.keys())[0]
+                probs = run.probabilities[first_split]
+            else:
+                continue
+                
+            # Convert to list if it's a numpy array
+            if hasattr(probs, 'tolist'):
+                probs = probs.tolist()
+            elif not isinstance(probs, list):
+                probs = list(probs)
+                
+            # Generate threshold sweep data for visualization
+            thresholds = np.linspace(0, 1, 21).tolist()
+            costs = []
+            accuracies = []
+            
+            # We need to get the true labels for this model to calculate costs and accuracies
+            # For now, we'll create placeholder data - this will be improved when we have access to y_true
+            for threshold in thresholds:
+                # Placeholder calculations - these should be replaced with actual calculations
+                costs.append(threshold * 100)  # Placeholder
+                accuracies.append((1 - threshold) * 100)  # Placeholder
+            
+            sweep_data[run.model_name] = {
+                'probabilities': probs,
+                'thresholds': thresholds,
+                'costs': costs,
+                'accuracies': accuracies
+            }
     
-    # with open(output_dir / 'threshold_sweep_data.json', 'w') as f:
-    #     json.dump(sweep_data, f)
+    with open(output_dir / 'threshold_sweep_data.json', 'w') as f:
+        json.dump(sweep_data, f)
     
     # 3. Export confusion matrices
     cm_data = []

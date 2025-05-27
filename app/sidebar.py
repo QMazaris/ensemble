@@ -44,7 +44,6 @@ def render_sidebar():
         with col4:
             CORRELATION_THRESH = st.number_input("Correlation Threshold Value", value=CORRELATION_THRESH_slider, min_value=0.0, max_value=1.0, step=0.001, key='correlation_number', label_visibility="hidden")
 
-
     # Optimization Settings
     st.sidebar.subheader("Optimization Settings")
     OPTIMIZE_HYPERPARAMS = st.sidebar.checkbox("Optimize Hyperparameters", value=getattr(config, 'OPTIMIZE_HYPERPARAMS', False))
@@ -54,6 +53,23 @@ def render_sidebar():
                                                 value=getattr(config, 'HYPERPARAM_ITER', 50),
                                                 min_value=10, max_value=500, step=10)
     OPTIMIZE_FINAL_MODEL = st.sidebar.checkbox("Optimize Final Model", value=getattr(config, 'OPTIMIZE_FINAL_MODEL', False))
+
+    # Export Settings
+    st.sidebar.subheader("Export Settings")
+    EXPORT_ONNX = st.sidebar.checkbox(
+        "Export Models as ONNX",
+        value=getattr(config, 'EXPORT_ONNX', False),
+        help="When enabled, models will be exported in ONNX format instead of pickle"
+    )
+    ONNX_OPSET_VERSION = None
+    if EXPORT_ONNX:
+        ONNX_OPSET_VERSION = st.sidebar.number_input(
+            "ONNX Opset Version",
+            min_value=9,
+            max_value=15,
+            value=getattr(config, 'ONNX_OPSET_VERSION', 12),
+            help="ONNX opset version to use for model export"
+        )
 
     return {
         'C_FP': C_FP,
@@ -65,7 +81,9 @@ def render_sidebar():
         'CORRELATION_THRESH': CORRELATION_THRESH if FilterData else 0.95,
         'OPTIMIZE_HYPERPARAMS': OPTIMIZE_HYPERPARAMS,
         'HYPERPARAM_ITER': HYPERPARAM_ITER if OPTIMIZE_HYPERPARAMS else 50,
-        'OPTIMIZE_FINAL_MODEL': OPTIMIZE_FINAL_MODEL
+        'OPTIMIZE_FINAL_MODEL': OPTIMIZE_FINAL_MODEL,
+        'EXPORT_ONNX': EXPORT_ONNX,
+        'ONNX_OPSET_VERSION': int(ONNX_OPSET_VERSION) if EXPORT_ONNX and ONNX_OPSET_VERSION is not None else getattr(config, 'ONNX_OPSET_VERSION', 12)
     }
 
 def save_config(config_updates):

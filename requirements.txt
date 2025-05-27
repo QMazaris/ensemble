@@ -8,3 +8,6 @@ imbalanced-learn
 streamlit>=1.0
 plotly
 optuna>=3.0.0
+onnx==1.170
+onnxconverter-common==1.13.0 
+skl2onnx==1.14.0

@@ -72,6 +72,9 @@ from helpers import (
     export_metrics_for_streamlit
 )
 
+# Import model export functionality
+from helpers.model_export import export_model
+
 # Explicit import for FinalModelCreateAndAnalyize
 from helpers.modeling import FinalModelCreateAndAnalyize
 
@@ -331,7 +334,8 @@ def Core_Standard(config, C_FP, C_FN, base_cols, SAVE_PLOTS, SAVE_MODEL, MODELS,
                 model_name=f"meta_model_v2.1_{model_name}",
                 model_dir=config.MODEL_DIR,
                 save_model=SAVE_MODEL,
-                SUMMARY=config.SUMMARY
+                SUMMARY=config.SUMMARY,
+                config=config
             )
 
         single_results = []
@@ -504,7 +508,8 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
                     model_name=None,
                     model_dir=None,
                     save_model=False,
-                    SUMMARY=config.SUMMARY
+                    SUMMARY=config.SUMMARY,
+                    config=config
                 )
             proba, y_eval = split_preds[f"Fold{fold_idx}"]
 

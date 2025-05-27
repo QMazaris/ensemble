@@ -181,3 +181,7 @@ SAVE_MODEL = True
 SAVE_PLOTS = True
 SAVE_PREDICTIONS = True
 SUMMARY = True
+
+# ===== Model Export Configuration =====
+EXPORT_ONNX = True
+ONNX_OPSET_VERSION = 12

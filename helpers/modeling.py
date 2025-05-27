@@ -13,6 +13,7 @@ from sklearn.metrics import log_loss
 # Local imports
 from .metrics import threshold_sweep_with_cost
 from .plotting import plot_threshold_sweep
+from .model_export import export_model
 
 def optimize_hyperparams(model_name, model, X_train, y_train, config):
     """Bayesian optimization using Optuna to find optimal hyperparameters.
@@ -121,7 +122,7 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
     
     return best_model
 
-def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: str = None, model_dir: str = None, save_model: bool = True, SUMMARY = None):
+def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: str = None, model_dir: str = None, save_model: bool = True, SUMMARY = None, config=None, feature_names=None):
     """Train a model and evaluate it on multiple splits."""
     # Apply SMOTE if configured
     if getattr(model, 'use_smote', True):  # Default to True if not specified
@@ -135,11 +136,12 @@ def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: 
 
     # Save if requested
     if save_model and model_name and model_dir:
-        os.makedirs(model_dir, exist_ok=True)
-        path = os.path.join(model_dir, f"{model_name}.pkl")
-        joblib.dump(model, path)
+        # Use feature_names if provided, else use X_train columns
+        if feature_names is None:
+            feature_names = X_train.columns.tolist()
+        model_path = export_model(model, model_name, model_dir, config, feature_names=feature_names)
         if SUMMARY:
-            print(f"Saved trained model to {path}")
+            print(f"Saved trained model to {model_path}")
 
     # Generate predictions for each split
     split_preds = {}
@@ -151,7 +153,7 @@ def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: 
 
     return split_preds, model
 
-def save_final_kfold_model(model, X, y, model_name, model_dir, SUMMARY=None):
+def save_final_kfold_model(model, X, y, model_name, model_dir, SUMMARY=None, config=None, feature_names=None):
     """Train and save the final K-Fold model on the full dataset."""
     trained_model, _ = train_and_evaluate_model(
         model, X, y,
@@ -159,7 +161,9 @@ def save_final_kfold_model(model, X, y, model_name, model_dir, SUMMARY=None):
         model_name=f'{model_name}_final',
         model_dir=model_dir,
         save_model=True,
-        SUMMARY=SUMMARY
+        SUMMARY=SUMMARY,
+        config=config,
+        feature_names=feature_names if feature_names is not None else X.columns.tolist()
     )
     if SUMMARY:
         print(f"Final K-Fold model '{model_name}_final' trained and saved to {model_dir}")
@@ -219,8 +223,7 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
                     )
                 
                 # Save the optimized model
-                out_path = os.path.join(model_path, f"{name}_production.pkl")
-                joblib.dump(best, out_path)
+                out_path = export_model(best, f"{name}_production", model_path, config, feature_names=X.columns.tolist())
                 if config.SUMMARY:
                     print(f"✅ Saved optimized production model: {out_path}")
                     print(f"   • Cost-optimal threshold: {best_cost['threshold']:.3f}")
@@ -231,7 +234,6 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
                     print(f"\n🏭 Training final production model: {name}")
                 model = clone(prototype)
                 model.fit(X, y)
-                out_path = os.path.join(model_path, f"{name}_production.pkl")
-                joblib.dump(model, out_path)
+                out_path = export_model(model, f"{name}_production", model_path, config, feature_names=X.columns.tolist())
                 if config.SUMMARY:
                     print(f"✅ Saved production model: {out_path}")

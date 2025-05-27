@@ -216,14 +216,31 @@ def render_downloads_tab():
     
     # Download models
     st.write("#### Download Models")
-    for model_file in MODEL_DIR.glob("*.pkl"):
-        with open(model_file, 'rb') as f:
-            st.download_button(
-                f"Download {model_file.name}",
-                f.read(),
-                file_name=model_file.name,
-                mime="application/octet-stream"
-            )
+    
+    # Get all model files and sort them
+    model_files = sorted(MODEL_DIR.glob("*.*"))
+    
+    # Group files by model name (without extension)
+    model_groups = {}
+    for file in model_files:
+        if file.suffix in ['.pkl', '.onnx']:
+            base_name = file.stem
+            if base_name not in model_groups:
+                model_groups[base_name] = []
+            model_groups[base_name].append(file)
+    
+    # Display models in sorted order
+    for model_name in sorted(model_groups.keys()):
+        st.write(f"##### {model_name}")
+        for model_file in sorted(model_groups[model_name]):
+            with open(model_file, 'rb') as f:
+                file_type = "ONNX" if model_file.suffix == '.onnx' else "Pickle"
+                st.download_button(
+                    f"Download {file_type} Model",
+                    f.read(),
+                    file_name=model_file.name,
+                    mime="application/octet-stream"
+                )
 
 def render_data_management_tab():
     """Render the data management tab content."""
