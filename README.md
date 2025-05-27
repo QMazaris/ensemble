@@ -1,215 +1,221 @@
-# AI Pipeline Dashboard
+# Ensemble Pipeline V2
 
-A comprehensive machine learning pipeline with an interactive Streamlit dashboard for model evaluation, comparison, and optimization. The pipeline supports both k-fold cross-validation and single split evaluation modes, with consistent cost calculations across all model types.
+A comprehensive machine learning pipeline for ensemble modeling with ONNX export capabilities and optimization features.
 
-## Features
+## Overview
 
-- **Interactive Dashboard**: Streamlit-based interface for configuring and monitoring the pipeline
-- **Flexible Training Modes**:
-  - K-Fold Cross Validation (default: 5 folds)
-  - Single Split (80/20 train/test)
-- **Advanced Model Optimization**:
-  - Bayesian optimization using Optuna for hyperparameter tuning
-  - Configurable number of optimization iterations (default: 50)
-  - Parameter spaces defined in config.py for easy modification
-- **Consistent Cost Calculation**:
-  - K-Fold Mode: Costs calculated on full dataset and divided by N_SPLITS
-  - Single Split Mode: Separate costs for train/test splits, with full cost as sum
-  - Fair comparison across all model types
-- **Feature Engineering**:
-  - Variance filtering
-  - Correlation filtering
-  - Automatic feature encoding
-- **Comprehensive Evaluation**:
-  - Cost-optimized and accuracy-optimized thresholds
-  - Performance metrics (precision, recall, accuracy)
-  - Confusion matrices
-  - Class balance visualization
-- **Model Management**:
-  - Support for multiple model types (XGBoost, RandomForest, etc.)
-  - Base model integration (AD_Decision, CL_Decision, AD_or_CL_Fail)
-  - Model persistence and loading
-- **Visualization**:
-  - Threshold sweep plots
-  - Model comparison plots
-  - Class distribution plots
-  - Performance summary plots
+This pipeline provides a robust framework for training, evaluating, and deploying ensemble machine learning models. It includes features for:
+- Model training and evaluation with cost-sensitive optimization
+- Hyperparameter tuning using Bayesian optimization
+- ONNX model export for deployment
+- Interactive configuration through Streamlit UI
+- Comprehensive model evaluation and visualization
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
-cd [repository-name]
+git clone <repository-url>
+cd ensemble_pipelineV2
 ```
 
-2. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
-
-### Starting the Dashboard
-
-1. Activate your virtual environment
-2. Run the Streamlit app:
-```bash
-streamlit run app.py
-```
-
-### Configuring Settings
-
-The dashboard sidebar allows you to configure:
-
-1. **Model Settings**:
-   - Select models to evaluate
-   - Enable/disable hyperparameter optimization
-   - Set number of optimization iterations (10-500)
-   - Choose evaluation mode (K-Fold or Single Split)
-   - Set number of folds (when K-Fold is enabled)
-
-2. **Feature Settings**:
-   - Enable/disable variance filtering
-   - Set variance threshold
-   - Enable/disable correlation filtering
-   - Set correlation threshold
-
-3. **Cost Settings**:
-   - Set false positive cost (C_FP)
-   - Set false negative cost (C_FN)
-
-### Pipeline Components
-
-1. **Data Preparation**:
-   - Load and preprocess data
-   - Apply feature filters
-   - Encode categorical variables
-
-2. **Model Training**:
-   - K-Fold Mode:
-     * Split data into N folds
-     * For each fold: optimize hyperparameters, train model, evaluate on test fold
-     * Average results across folds
-   - Single Split Mode:
-     * Split data into train/test (80/20)
-     * Optimize hyperparameters on training set
-     * Train and evaluate on respective splits
-
-3. **Cost Calculation**:
-   - K-Fold Mode:
-     * Base Models: Full dataset cost divided by N_SPLITS
-     * Meta Models: Average cost across folds
-     * AD/CL Models: Average cost across folds
-   - Single Split Mode:
-     * Base Models: Separate costs for train/test, full cost as sum
-     * Meta Models: Costs on train/test splits, full cost as sum
-     * AD/CL Models: Costs on train/test splits, full cost as sum
-
-4. **Model Evaluation**:
-   - Calculate performance metrics
-   - Generate threshold sweep plots
-   - Create model comparison plots
-   - Export metrics for dashboard visualization
-
-### Dashboard Tabs
-
-1. **Overview**:
-   - Class distribution visualization
-   - Dataset statistics
-   - Feature information
-
-2. **Model Performance**:
-   - Cost-optimized and accuracy-optimized results
-   - Performance metrics by model and split
-   - Threshold sweep visualizations
-
-3. **Model Comparison**:
-   - Side-by-side model comparisons
-   - Cost and accuracy trade-offs
-   - Performance across different splits
+3. Optional ONNX dependencies (for model export):
+   - For most systems (Python 3.8-3.12):
+     ```bash
+     pip install onnx skl2onnx
+     ```
+   - For Python 3.13 or if you encounter issues:
+     ```bash
+     # Try installing specific versions
+     pip install onnx==1.17.0 skl2onnx
+     
+     # Or use conda if available
+     conda install -c conda-forge onnx skl2onnx
+     ```
+   - If installation fails:
+     - The application will automatically fall back to pickle export
+     - You'll see a warning message: "ONNX dependencies not available. ONNX export will be disabled."
+     - All functionality will work normally, just without ONNX export capability
 
 ## Project Structure
 
 ```
-├── app/                    # Streamlit application directory
-│   ├── __init__.py        # Package initialization
-│   ├── app.py             # Main Streamlit application
-│   ├── sidebar.py         # Sidebar configuration and controls
-│   ├── tabs.py            # Dashboard tab implementations
-│   └── utils.py           # Application utilities
-├── helpers/               # Helper modules for the pipeline
-│   ├── __init__.py       # Package initialization and exports
-│   ├── data.py           # Data preparation functions
-│   ├── modeling.py       # Model training and evaluation
-│   ├── metrics.py        # Performance metrics calculation
-│   ├── plotting.py       # Visualization functions
-│   ├── reporting.py      # Results reporting and export
-│   ├── utils.py          # General utilities
-│   ├── io_utils.py       # Input/output utilities
-│   └── export_metrics_for_streamlit.py  # Streamlit metrics export
-├── run.py                # Main pipeline execution script
-├── config.py             # Configuration settings
-├── requirements.txt      # Project dependencies
-├── output/              # Output directories
-│   ├── models/          # Saved models
-│   ├── plots/           # Generated plots
-│   ├── predictions/     # Model predictions
-│   └── streamlit_data/  # Data exported for Streamlit visualization
-└── venv/                # Virtual environment (not tracked in git)
+ensemble_pipelineV2/
+├── app/                    # Streamlit application
+│   ├── sidebar.py         # Configuration sidebar
+│   └── tabs.py            # Interactive model configuration
+├── helpers/               # Core functionality
+│   ├── modeling.py        # Model training and optimization
+│   ├── metrics.py         # Evaluation metrics
+│   ├── model_export.py    # ONNX export functionality
+│   └── plotting.py        # Visualization utilities
+├── config.py              # Configuration settings
+├── run.py                 # Main pipeline execution
+└── requirements.txt       # Project dependencies
 ```
 
-## Adding New Models
+## Configuration
 
-To add a new model to the pipeline:
+The pipeline is highly configurable through `config.py` and the Streamlit UI. Key settings include:
 
-1. Add the model definition to `config.py` in the `MODELS` dictionary
-2. Ensure the model follows scikit-learn's estimator interface
-3. Define appropriate hyperparameter space in `config.py`
-4. The pipeline will automatically include the new model in evaluation
+### Model Settings
+- **Cost Weights**: Configure false positive (C_FP) and false negative (C_FN) costs
+- **Cross-Validation**: Enable/disable k-fold cross-validation (N_SPLITS=5 by default)
+- **Feature Filtering**: Optional variance and correlation-based feature selection
+  - Variance Threshold: 0.01 (default)
+  - Correlation Threshold: 0.95 (default)
 
-## Best Practices
+### Optimization Settings
+- **Hyperparameter Optimization**: Bayesian optimization using Optuna
+  - Number of iterations: 50 (default)
+  - Supported models: XGBoost, RandomForest
+- **Final Model Optimization**: Optional optimization of production models
+- **SMOTE**: Class imbalance handling (ratio=0.5)
 
-1. **Cost Settings**:
-   - Set appropriate C_FP and C_FN values based on business requirements
-   - Consider the impact of cost ratios on model selection
+### Model Export
+- **ONNX Export**: Convert models to ONNX format
+  - Opset Version: 12 (default)
+  - Automatic fallback to pickle if ONNX unavailable
+  - Supported Models:
+    - LogisticRegression
+    - RandomForestClassifier
+    - MLPClassifier
+    - KNeighborsClassifier
+    - XGBoost models (with additional setup)
+  - File Extensions:
+    - ONNX enabled: Models saved as `.onnx` files
+    - ONNX disabled: Models saved as `.pkl` files
+    - Downloads tab shows appropriate file types based on configuration
 
-2. **Evaluation Mode**:
-   - Use K-Fold for more robust performance estimates
-   - Use Single Split for faster iteration and when data is limited
+## Usage
 
-3. **Hyperparameter Optimization**:
-   - Start with 50 iterations for quick results
-   - Increase iterations for more thorough optimization
-   - Monitor optimization progress in the dashboard
+### Running the Pipeline
 
-4. **Feature Selection**:
-   - Use variance filtering to remove low-variance features
-   - Apply correlation filtering to reduce feature redundancy
-   - Monitor feature importance in model outputs
+1. Start the Streamlit interface:
+```bash
+streamlit run app/main.py
+```
+
+2. Configure settings through the UI:
+   - Adjust cost weights
+   - Enable/disable k-fold cross-validation
+   - Configure feature filtering
+   - Set optimization parameters
+   - Choose export format
+
+3. Run the pipeline:
+```bash
+python run.py
+```
+
+### Model Training and Evaluation
+
+The pipeline supports two training modes:
+
+1. **Single Split** (default):
+   - 80/20 train-test split
+   - Optional hyperparameter optimization
+   - Cost-sensitive threshold optimization
+
+2. **K-Fold Cross-Validation**:
+   - 5-fold stratified cross-validation
+   - Nested cross-validation for hyperparameter tuning
+   - Averaged performance metrics
+
+### Model Export and Deployment
+
+#### ONNX Export
+The pipeline automatically handles model conversion to ONNX format:
+
+1. **Export Process**:
+   - Models are converted using `skl2onnx`
+   - Feature names are preserved for input mapping
+   - Opset version 12 is used by default
+   - Automatic fallback to pickle if ONNX unavailable
+
+2. **ONNX to Halcon**:
+   - ONNX models can be imported into Halcon
+   - Input/output tensor names are preserved
+   - Model metadata includes feature names and thresholds
+
+#### Export Settings
+- Enable ONNX export in the UI or `config.py`
+- Adjust opset version if needed (9-15 supported)
+- Models are saved in `output/models/`
+
+## Optimization Details
+
+### Hyperparameter Optimization
+The pipeline uses Optuna for Bayesian optimization:
+
+1. **XGBoost Parameters**:
+   - max_depth: [3,4,5,6]
+   - learning_rate: [0.01,0.05,0.1]
+   - subsample: [0.6,0.8,1.0]
+   - colsample_bytree: [0.6,0.8,1.0]
+   - n_estimators: [100,200,400]
+   - gamma: [0,0.1,0.2]
+
+2. **RandomForest Parameters**:
+   - n_estimators: [100,200,300]
+   - max_depth: [None,5,10]
+   - min_samples_split: [2,5,10]
+   - min_samples_leaf: [1,2,5]
+
+### Cost-Sensitive Optimization
+- False Positive Cost (C_FP): 1
+- False Negative Cost (C_FN): 30
+- Thresholds optimized for both cost and accuracy
+- Results visualized in threshold sweep plots
+
+## Model Evaluation
+
+The pipeline provides comprehensive evaluation metrics:
+
+1. **Performance Metrics**:
+   - Precision, Recall, Accuracy
+   - Cost-weighted performance
+   - Confusion matrix
+   - ROC and PR curves
+
+2. **Visualization**:
+   - Threshold sweep plots
+   - Model comparison plots
+   - Class balance visualization
+   - Feature importance plots
 
 ## Troubleshooting
 
-1. **Memory Issues**:
-   - Reduce number of optimization iterations
-   - Decrease number of folds
-   - Use feature filtering to reduce dimensionality
+### Common Issues
 
-2. **Long Training Times**:
-   - Disable hyperparameter optimization
-   - Use single split mode
-   - Reduce number of models in evaluation
+1. **ONNX Export**:
+   - Ensure correct Python version (3.8-3.12 recommended)
+   - Check ONNX and skl2onnx installation
+   - Verify feature names are provided
+   - Windows Path Length Error:
+     - Enable long path support in Windows
+     - Or use conda instead of pip
+   - Python 3.13 Compatibility:
+     - ONNX may not have pre-built wheels for the latest Python versions
+     - Consider using Python 3.11 or 3.12 for better compatibility
+   - Import Errors:
+     - The application will automatically detect missing dependencies
+     - Check the console output for warning messages
 
-3. **Model Performance**:
-   - Check class balance
-   - Adjust cost settings
-   - Review feature selection thresholds
+2. **Model Training**:
+   - Check class imbalance (SMOTE enabled by default)
+   - Verify feature filtering thresholds
+   - Monitor optimization progress
+
+3. **Performance**:
+   - Adjust cost weights if needed
+   - Try different hyperparameter ranges
+   - Consider feature selection
 
 ## Contributing
 
@@ -221,8 +227,4 @@ To add a new model to the pipeline:
 
 ## License
 
-[Your License Here]
-
-## Contact
-
-[Your Contact Information] 
+[Your License Here] 
