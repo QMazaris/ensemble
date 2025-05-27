@@ -138,23 +138,31 @@ The dashboard sidebar allows you to configure:
 ## Project Structure
 
 ```
-├── app.py                 # Streamlit dashboard application
-├── run.py                 # Main pipeline execution script
+├── app/                    # Streamlit application directory
+│   ├── __init__.py        # Package initialization
+│   ├── app.py             # Main Streamlit application
+│   ├── sidebar.py         # Sidebar configuration and controls
+│   ├── tabs.py            # Dashboard tab implementations
+│   └── utils.py           # Application utilities
+├── helpers/               # Helper modules for the pipeline
+│   ├── __init__.py       # Package initialization and exports
+│   ├── data.py           # Data preparation functions
+│   ├── modeling.py       # Model training and evaluation
+│   ├── metrics.py        # Performance metrics calculation
+│   ├── plotting.py       # Visualization functions
+│   ├── reporting.py      # Results reporting and export
+│   ├── utils.py          # General utilities
+│   ├── io_utils.py       # Input/output utilities
+│   └── export_metrics_for_streamlit.py  # Streamlit metrics export
+├── run.py                # Main pipeline execution script
 ├── config.py             # Configuration settings
 ├── requirements.txt      # Project dependencies
-├── helpers/             # Helper modules
-│   ├── __init__.py
-│   ├── data.py          # Data preparation functions
-│   ├── modeling.py      # Model training and evaluation
-│   └── plotting.py      # Visualization functions
-├── tabs/                # Dashboard tab modules
-│   ├── __init__.py
-│   ├── overview.py      # Overview tab
-│   └── performance.py   # Performance tab
-└── output/             # Output directories
-    ├── models/         # Saved models
-    ├── plots/          # Generated plots
-    └── predictions/    # Model predictions
+├── output/              # Output directories
+│   ├── models/          # Saved models
+│   ├── plots/           # Generated plots
+│   ├── predictions/     # Model predictions
+│   └── streamlit_data/  # Data exported for Streamlit visualization
+└── venv/                # Virtual environment (not tracked in git)
 ```
 
 ## Adding New Models

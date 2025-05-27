@@ -1,8 +1,8 @@
 model_name,split,threshold_type,tp,fp,tn,fn
-kfold_avg_XGBoost,Full,cost,6.4,9.0,465.8,1.2
-kfold_avg_XGBoost,Full,accuracy,4.8,2.2,472.6,2.8
-kfold_avg_RandomForest,Full,cost,6.6,8.4,466.4,1.0
-kfold_avg_RandomForest,Full,accuracy,5.6,1.4,473.4,2.0
+kfold_avg_XGBoost,Full,cost,6.4,8.2,466.6,1.2
+kfold_avg_XGBoost,Full,accuracy,5.0,1.6,473.2,2.6
+kfold_avg_RandomForest,Full,cost,6.6,9.6,465.2,1.0
+kfold_avg_RandomForest,Full,accuracy,5.6,1.8,473.0,2.0
 kfold_avg_AD,Full,cost,5.8,78.0,396.8,1.8
 kfold_avg_AD,Full,accuracy,0.8,34.4,440.4,6.8
 kfold_avg_CL,Full,cost,0.8,2.4,472.4,6.8

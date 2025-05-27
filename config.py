@@ -21,7 +21,7 @@ BASE_MODEL_OUTPUT_COLUMNS = {
 
 # ===== File System Configuration =====
 # Paths
-DATA_PATH = 'C:/Users/QuinnMazaris/Desktop/Stacking/Results/ensemble_resultsV3.csv'
+DATA_PATH = 'data/training_data.csv'
 OUTPUT_DIR = 'output/'
 MODEL_DIR = os.path.join(OUTPUT_DIR, 'models')
 PLOT_DIR = os.path.join(OUTPUT_DIR, 'plots')
@@ -39,15 +39,9 @@ dirs_to_create = [
 
 # ===== Data Configuration =====
 # Target variable
-TARGET = 'GT_Label'  # Update with your target variable name
-EXCLUDE_COLS = [    
-    "Image",       # File reference, not useful for model
-    "AD_Decision", # Base model predictions (used separately)
-    "CL_Decision",
-    "AD_ClassID",  # Internal IDs
-    "CL_ClassID",
-    "GT_Label_Num" # Duplicate of GT_Label (encoded)
-]
+TARGET = 'GT_Label'
+EXCLUDE_COLS = ['Image', 'AD_Decision', 'CL_Decision', 'AD_ClassID', 'CL_ClassID', 'GT_Label_Num', 'ClassThresh', 'SegThresh']
+
 
 # Data splitting
 TEST_SIZE = 0.2  # Proportion of data to use for testing

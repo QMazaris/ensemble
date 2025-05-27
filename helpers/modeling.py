@@ -17,11 +17,12 @@ from .plotting import plot_threshold_sweep
 def optimize_hyperparams(model_name, model, X_train, y_train, config):
     """Bayesian optimization using Optuna to find optimal hyperparameters.
     
-    The hyperparameter space is defined in config.HYPERPARAM_SPACE.
-    If no space is defined for a model, returns the model unchanged.
+    The hyperparameter space is defined in config.HYPERPARAM_SPACE with a nested structure:
+    - 'shared': Parameters shared across all models
+    - model_name: Model-specific parameters
     """
-    space = config.HYPERPARAM_SPACE.get(model_name, {})
-    if not space:
+    space = config.HYPERPARAM_SPACE
+    if not space or 'shared' not in space:
         if config.SUMMARY:
             print(f"⚠️ No hyperparameter space defined for {model_name}, using default parameters")
         return model
@@ -32,21 +33,41 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
         
         # Build parameters from the config space
         params = {}
-        for param_name, param_space in space.items():
+        
+        # Add shared parameters
+        for param_name, param_space in space['shared'].items():
             if isinstance(param_space, list):
                 # Categorical parameter
-                params[param_name] = trial.suggest_categorical(param_name, param_space)
+                params[param_name] = trial.suggest_categorical(f"shared_{param_name}", param_space)
             elif isinstance(param_space, tuple):
                 if len(param_space) != 2:
                     raise ValueError(f"Parameter space for {param_name} must be a tuple of (min, max)")
                 if isinstance(param_space[0], int):
                     # Integer parameter
-                    params[param_name] = trial.suggest_int(param_name, param_space[0], param_space[1])
+                    params[param_name] = trial.suggest_int(f"shared_{param_name}", param_space[0], param_space[1])
                 else:
                     # Float parameter
-                    params[param_name] = trial.suggest_float(param_name, param_space[0], param_space[1])
+                    params[param_name] = trial.suggest_float(f"shared_{param_name}", param_space[0], param_space[1])
             else:
                 raise ValueError(f"Invalid parameter space type for {param_name}. Must be list or tuple.")
+        
+        # Add model-specific parameters if they exist
+        if model_name in space:
+            for param_name, param_space in space[model_name].items():
+                if isinstance(param_space, list):
+                    # Categorical parameter
+                    params[param_name] = trial.suggest_categorical(f"{model_name}_{param_name}", param_space)
+                elif isinstance(param_space, tuple):
+                    if len(param_space) != 2:
+                        raise ValueError(f"Parameter space for {param_name} must be a tuple of (min, max)")
+                    if isinstance(param_space[0], int):
+                        # Integer parameter
+                        params[param_name] = trial.suggest_int(f"{model_name}_{param_name}", param_space[0], param_space[1])
+                    else:
+                        # Float parameter
+                        params[param_name] = trial.suggest_float(f"{model_name}_{param_name}", param_space[0], param_space[1])
+                else:
+                    raise ValueError(f"Invalid parameter space type for {param_name}. Must be list or tuple.")
 
         # Set the parameters
         model_clone.set_params(**params)
@@ -70,7 +91,9 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
     
     if config.SUMMARY:
         print(f"\n🔍 Optimizing hyperparameters for {model_name}...")
-        print(f"   Parameter space: {space}")
+        print(f"   Shared parameters: {space['shared']}")
+        if model_name in space:
+            print(f"   Model-specific parameters: {space[model_name]}")
     
     study.optimize(
         objective,
@@ -80,12 +103,20 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
 
     # Get the best parameters and create a new model with them
     best_params = study.best_params
+    # Remove the prefixes from parameter names
+    cleaned_params = {}
+    for param_name, value in best_params.items():
+        if param_name.startswith('shared_'):
+            cleaned_params[param_name[7:]] = value  # Remove 'shared_' prefix
+        elif param_name.startswith(f'{model_name}_'):
+            cleaned_params[param_name[len(model_name)+1:]] = value  # Remove 'model_name_' prefix
+    
     best_model = clone(model)
-    best_model.set_params(**best_params)
+    best_model.set_params(**cleaned_params)
     
     if config.SUMMARY:
         print(f"✅ {model_name} optimization complete:")
-        print(f"   Best parameters: {best_params}")
+        print(f"   Best parameters: {cleaned_params}")
         print(f"   Best CV score: {-study.best_value:.4f}")
     
     return best_model
