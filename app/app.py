@@ -1,6 +1,15 @@
 import streamlit as st
 import subprocess
 import os
+import sys
+from pathlib import Path
+
+# Add the root directory to Python path
+root_dir = str(Path(__file__).parent.parent)
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
+# Import from the same directory
 from utils import ensure_directories
 from tabs import (
     render_overview_tab, render_model_analysis_tab,

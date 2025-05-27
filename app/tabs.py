@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from utils import (
+from app.utils import (
     load_metrics_data, plot_confusion_matrix, plot_roc_curve,
     plot_precision_recall_curve, plot_threshold_sweep, get_plot_groups,
     MODEL_DIR, PLOT_DIR, PREDICTIONS_DIR

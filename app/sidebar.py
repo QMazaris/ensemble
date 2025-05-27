@@ -1,6 +1,13 @@
 import streamlit as st
 import inspect
 from pathlib import Path
+import sys
+
+# Add the root directory to Python path
+root_dir = str(Path(__file__).parent.parent)
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
+
 import config
 
 def render_sidebar():

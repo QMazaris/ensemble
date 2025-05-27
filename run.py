@@ -32,8 +32,6 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
 import config  # Import the config module
-# Export metrics for Streamlit
-from export_metrics_for_streamlit import export_metrics_for_streamlit
 
 # Import from helpers package
 from helpers import (
@@ -68,7 +66,10 @@ from helpers import (
     save_all_model_probabilities_from_structure,
     
     # Utils
-    create_directories
+    create_directories,
+    
+    # Streamlit exports
+    export_metrics_for_streamlit
 )
 
 # Explicit import for FinalModelCreateAndAnalyize

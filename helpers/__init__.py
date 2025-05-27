@@ -38,6 +38,8 @@ from .reporting import (
 
 from .utils import create_directories
 
+from .export_metrics_for_streamlit import export_metrics_for_streamlit
+
 # Re-export the main classes
 __all__ = [
     'ModelEvaluationResult',
@@ -62,5 +64,6 @@ __all__ = [
     'plot_runs_at_threshold',
     'print_performance_summary',
     'save_all_model_probabilities_from_structure',
-    'create_directories'
+    'create_directories',
+    'export_metrics_for_streamlit'
 ]
