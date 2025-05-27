@@ -143,12 +143,12 @@ C_FP = 1
 C_FN = 30
 
 # ===== Cross-Validation Settings =====
-USE_KFOLD = True
+USE_KFOLD = False
 N_SPLITS = 5
 
 # ===== Hyperparameter Optimization =====
-OPTIMIZE_HYPERPARAMS = True
-HYPERPARAM_ITER = 20
+OPTIMIZE_HYPERPARAMS = False
+HYPERPARAM_ITER = 50
 # Final full-data tuning
 OPTIMIZE_FINAL_MODEL = False
 N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)

@@ -76,18 +76,18 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     metrics_df.to_csv(output_dir / 'model_metrics.csv', index=False)
     
     # 2. Export threshold sweep data
-    sweep_data = {}
-    for run in runs:
-        if hasattr(run, 'threshold_sweep') and run.threshold_sweep is not None:
-            sweep_data[run.model_name] = {
-                'probabilities': run.threshold_sweep.probabilities.tolist(),
-                'thresholds': run.threshold_sweep.thresholds.tolist(),
-                'costs': run.threshold_sweep.costs.tolist(),
-                'accuracies': run.threshold_sweep.accuracies.tolist()
-            }
+    # sweep_data = {}
+    # for run in runs:
+    #     if hasattr(run, 'threshold_sweep') and run.threshold_sweep is not None:
+    #         sweep_data[run.model_name] = {
+    #             'probabilities': run.threshold_sweep.probabilities.tolist(),
+    #             'thresholds': run.threshold_sweep.thresholds.tolist(),
+    #             'costs': run.threshold_sweep.costs.tolist(),
+    #             'accuracies': run.threshold_sweep.accuracies.tolist()
+    #         }
     
-    with open(output_dir / 'threshold_sweep_data.json', 'w') as f:
-        json.dump(sweep_data, f)
+    # with open(output_dir / 'threshold_sweep_data.json', 'w') as f:
+    #     json.dump(sweep_data, f)
     
     # 3. Export confusion matrices
     cm_data = []

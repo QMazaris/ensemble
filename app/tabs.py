@@ -116,8 +116,6 @@ def render_model_analysis_tab():
                 render_model_curves(model, sweep_data, model_data_split)
             elif model_data_split['threshold_type'].isin(['base']).any():
                 st.info("Threshold sweep data is not available for decision-based models.")
-            else:
-                st.info("Threshold sweep data is not available for this model or split.")
     else:
         st.info("Run the pipeline to see analysis here.")
 
