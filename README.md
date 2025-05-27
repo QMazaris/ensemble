@@ -19,12 +19,30 @@ git clone <repository-url>
 cd ensemble_pipelineV2
 ```
 
-2. Install dependencies:
+2. Set up Python environment:
+   - **Python Version**: Python 3.12 is recommended for best compatibility
+   - **Windows Users**: If using Python < 3.12, you must enable long path support:
+     ```powershell
+     # Run PowerShell as Administrator
+     Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
+     ```
+   - Create and activate virtual environment:
+     ```bash
+     # Windows
+     python -m venv venv
+     .\venv\Scripts\activate
+
+     # Linux/Mac
+     python -m venv venv
+     source venv/bin/activate
+     ```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Optional ONNX dependencies (for model export):
+4. Optional ONNX dependencies (for model export):
    - For most systems (Python 3.8-3.12):
      ```bash
      pip install onnx skl2onnx
@@ -195,10 +213,15 @@ The pipeline provides comprehensive evaluation metrics:
 
 1. **ONNX Export**:
    - Ensure correct Python version (3.8-3.12 recommended)
+   - Windows Users:
+     - Either use Python 3.12 (recommended)
+     - Or enable long path support in Windows Registry
+     - Or use conda instead of pip
    - Check ONNX and skl2onnx installation
    - Verify feature names are provided
    - Windows Path Length Error:
-     - Enable long path support in Windows
+     - Enable long path support in Windows Registry (see Installation section)
+     - Or use Python 3.12
      - Or use conda instead of pip
    - Python 3.13 Compatibility:
      - ONNX may not have pre-built wheels for the latest Python versions
@@ -206,6 +229,7 @@ The pipeline provides comprehensive evaluation metrics:
    - Import Errors:
      - The application will automatically detect missing dependencies
      - Check the console output for warning messages
+     - Ensure you're using the virtual environment
 
 2. **Model Training**:
    - Check class imbalance (SMOTE enabled by default)
