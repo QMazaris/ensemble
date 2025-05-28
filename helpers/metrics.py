@@ -24,6 +24,7 @@ class ModelEvaluationRun:
     model_name: str
     results: list  # List of ModelEvaluationResult (including base and meta models)
     probabilities: Optional[dict] = None  # Dict of model_name -> np.ndarray (including base models if available)
+    threshold_sweep: Optional[dict] = None  # Dict of split_name -> sweep_results from threshold_sweep_with_cost
 
 def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
     """Compute precision, recall, accuracy, and cost metrics."""

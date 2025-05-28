@@ -182,6 +182,11 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
         X: Feature matrix
         y: Target vector
     """
+    if not config.OPTIMIZE_FINAL_MODEL:
+        if config.SUMMARY:
+            print("\n⚠️ Final model optimization is disabled. Skipping production model training.")
+        return
+
     if config.SAVE_MODEL:
         if config.SUMMARY:
             print("\n" + "="*80)
@@ -189,51 +194,44 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
             print("="*80)
 
         for name, prototype in config.MODELS.items():
-            if config.OPTIMIZE_FINAL_MODEL:
-                if config.SUMMARY:
-                    print(f"\n🏭 Optimizing final production model: {name}")
-                # Get fresh instance and optimize hyperparameters
-                base = clone(prototype)
+            if config.SUMMARY:
+                print(f"\n🏭 Optimizing final production model: {name}")
+            # Get fresh instance and optimize hyperparameters
+            base = clone(prototype)
+            if config.OPTIMIZE_HYPERPARAMS:
                 best = optimize_hyperparams(name, base, X, y, config)
-                
-                # Train the optimized model on full dataset
-                best.fit(X, y)
-                
-                # Perform threshold sweep on full dataset
-                if config.SUMMARY:
-                    print(f"\n📊 Performing threshold sweep for {name} on full dataset...")
-                proba = best.predict_proba(X)[:, 1]
-                sweep_results, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y, C_FP=C_FP, C_FN=C_FN,
-                    SUMMARY=config.SUMMARY,
-                    split_name=f"FINAL PRODUCTION {name}"
-                )
-                
-                # Save threshold sweep plot
-                if SAVE_PLOTS:
-                    plot_threshold_sweep(
-                        sweep_results, C_FP, C_FN,
-                        cost_optimal_thr=best_cost['threshold'],
-                        accuracy_optimal_thr=best_acc['threshold'],
-                        output_path=os.path.join(
-                            image_path,
-                            f"{name}_final_production_threshold_sweep.png"
-                        ),
-                        SUMMARY=config.SUMMARY
-                    )
-                
-                # Save the optimized model
-                out_path = export_model(best, f"{name}_production", model_path, config, feature_names=X.columns.tolist())
-                if config.SUMMARY:
-                    print(f"✅ Saved optimized production model: {out_path}")
-                    print(f"   • Cost-optimal threshold: {best_cost['threshold']:.3f}")
-                    print(f"   • Accuracy-optimal threshold: {best_acc['threshold']:.3f}")
             else:
-                # For non-optimized final models, just train and save
-                if config.SUMMARY:
-                    print(f"\n🏭 Training final production model: {name}")
-                model = clone(prototype)
-                model.fit(X, y)
-                out_path = export_model(model, f"{name}_production", model_path, config, feature_names=X.columns.tolist())
-                if config.SUMMARY:
-                    print(f"✅ Saved production model: {out_path}")
+                best = base  # Use default parameters if optimization is disabled
+            
+            # Train the model on full dataset
+            best.fit(X, y)
+            
+            # Perform threshold sweep on full dataset
+            if config.SUMMARY:
+                print(f"\n📊 Performing threshold sweep for {name} on full dataset...")
+            proba = best.predict_proba(X)[:, 1]
+            sweep_results, best_cost, best_acc = threshold_sweep_with_cost(
+                proba, y, C_FP=C_FP, C_FN=C_FN,
+                SUMMARY=config.SUMMARY,
+                split_name=f"FINAL PRODUCTION {name}"
+            )
+            
+            # Save threshold sweep plot
+            if SAVE_PLOTS:
+                plot_threshold_sweep(
+                    sweep_results, C_FP, C_FN,
+                    cost_optimal_thr=best_cost['threshold'],
+                    accuracy_optimal_thr=best_acc['threshold'],
+                    output_path=os.path.join(
+                        image_path,
+                        f"{name}_final_production_threshold_sweep.png"
+                    ),
+                    SUMMARY=config.SUMMARY
+                )
+            
+            # Save the model
+            out_path = export_model(best, f"{name}_production", model_path, config, feature_names=X.columns.tolist())
+            if config.SUMMARY:
+                print(f"✅ Saved production model: {out_path}")
+                print(f"   • Cost-optimal threshold: {best_cost['threshold']:.3f}")
+                print(f"   • Accuracy-optimal threshold: {best_acc['threshold']:.3f}")
