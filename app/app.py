@@ -17,8 +17,7 @@ from tabs import (
     render_plots_gallery_tab, render_downloads_tab,
     render_data_management_tab,
     render_preprocessing_tab,
-    render_model_zoo_tab,
-    render_model_metrics_cheat_tab
+    render_model_zoo_tab
 )
 from sidebar import render_sidebar, save_config
 
@@ -78,8 +77,8 @@ def main():
 
     # Tabs
     # Passing current_config_settings dictionary to access all config settings
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
-        "Overview", "Data Management", "Preprocessing Config", "Model Zoo", "Model Analysis", "Cheat Metrics", "Plots Gallery", "Downloads"
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "Overview", "Data Management", "Preprocessing Config", "Model Zoo", "Model Analysis", "Plots Gallery", "Downloads"
     ])
     
     with tab1:
@@ -98,12 +97,9 @@ def main():
         render_model_analysis_tab()
     
     with tab6:
-        render_model_metrics_cheat_tab()
-    
-    with tab7:
         render_plots_gallery_tab()
         
-    with tab8:
+    with tab7:
         render_downloads_tab()
 
 if __name__ == "__main__":

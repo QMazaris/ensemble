@@ -106,6 +106,45 @@ def main(config):
     
     df, X, y = Initalize(config, SAVE_MODEL)
 
+    # Add detailed feature information logging and saving
+    if config.SUMMARY:
+        print("=== TRAINING FEATURE INFO ===")
+        print(f"Final X shape: {X.shape}")
+        print(f"Number of features: {X.shape[1]}")
+        print()
+        print("Feature columns in exact order:")
+        for i, col in enumerate(X.columns):
+            print(f"{i:2d}: {col}")
+        print()
+        print("First row of X (sample features):")
+        print(X.iloc[0].values)
+        print()
+        print("Feature statistics:")
+        print(X.describe())
+
+    # Save the exact feature info for inference
+    import pickle
+    feature_mapping = {
+        'feature_columns': list(X.columns),
+        'feature_count': X.shape[1],
+        'sample_features': X.iloc[0].to_dict(),
+        'feature_dtypes': X.dtypes.to_dict(),
+        'preprocessing_steps': {
+            'variance_filter': config.FilterData and hasattr(config, 'VARIANCE_THRESH'),
+            'correlation_filter': config.FilterData and hasattr(config, 'CORRELATION_THRESH'),
+            'variance_threshold': getattr(config, 'VARIANCE_THRESH', None),
+            'correlation_threshold': getattr(config, 'CORRELATION_THRESH', None)
+        }
+    }
+
+    feature_info_path = os.path.join(config.MODEL_DIR, 'exact_training_features.pkl')
+    with open(feature_info_path, 'wb') as f:
+        pickle.dump(feature_mapping, f)
+        
+    if config.SUMMARY:
+        print(f"Saved exact training features to '{feature_info_path}'")
+        print()
+
     # Plot class balance if SAVE_PLOTS is enabled
     if SAVE_PLOTS:
         plot_class_balance(
