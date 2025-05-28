@@ -123,49 +123,53 @@ def render_model_curves(model, sweep_data, model_data_split):
     """Render model curves and threshold analysis."""
     st.write("#### Model Curves and Threshold Analysis")
     
-    col3, col4 = st.columns(2)
-    
-    with col3:
-        st.write("##### ROC Curve (Full Data)")
-        try:
-            pred_df = pd.read_csv(PREDICTIONS_DIR / 'all_model_predictions.csv')
-            y_true = pred_df['GT'].values
-            probs = np.array(sweep_data[model]['probabilities'])
+    # Load predictions and ensure we have the data
+    try:
+        pred_df = pd.read_csv(PREDICTIONS_DIR / 'all_model_predictions.csv')
+        if model not in pred_df.columns:
+            st.warning(f"Model {model} not found in predictions file.")
+            return
+            
+        # Get the probabilities and true labels for this model
+        probs = np.array(sweep_data[model]['probabilities'])
+        y_true = pred_df['GT'].values
+        
+        # Ensure lengths match
+        if len(probs) != len(y_true):
+            st.warning(f"Length mismatch between probabilities ({len(probs)}) and true labels ({len(y_true)}). Using the shorter length.")
+            min_len = min(len(probs), len(y_true))
+            probs = probs[:min_len]
+            y_true = y_true[:min_len]
+        
+        col3, col4 = st.columns(2)
+        
+        with col3:
+            st.write("##### ROC Curve (Full Data)")
             st.plotly_chart(plot_roc_curve(probs, y_true), use_container_width=True)
-        except FileNotFoundError:
-            st.warning("Predictions CSV not found for ROC/PR curves.")
-    
-    with col4:
-        st.write("##### Precision-Recall Curve (Full Data)")
-        try:
-            pred_df = pd.read_csv(PREDICTIONS_DIR / 'all_model_predictions.csv')
-            y_true = pred_df['GT'].values
-            probs = np.array(sweep_data[model]['probabilities'])
+        
+        with col4:
+            st.write("##### Precision-Recall Curve (Full Data)")
             st.plotly_chart(plot_precision_recall_curve(probs, y_true), use_container_width=True)
-        except FileNotFoundError:
-            st.warning("Predictions CSV not found for ROC/PR curves.")
 
-    # Threshold Analysis
-    st.write("##### Probability Distribution and Threshold Sweep")
-    
-    probs = np.array(sweep_data[model]['probabilities'])
-    fig_hist = px.histogram(
-        x=probs,
-        title=f'Probability Distribution - {model}',
-        nbins=50,
-        labels={'x': 'Probability', 'y': 'Count'}
-    )
-    st.plotly_chart(fig_hist, use_container_width=True)
+        # Threshold Analysis
+        st.write("##### Probability Distribution and Threshold Sweep")
+        
+        fig_hist = px.histogram(
+            x=probs,
+            title=f'Probability Distribution - {model}',
+            nbins=50,
+            labels={'x': 'Probability', 'y': 'Count'}
+        )
+        st.plotly_chart(fig_hist, use_container_width=True)
 
-    # Get optimal thresholds
-    cost_optimal_thr = (model_data_split[model_data_split['threshold_type'] == 'cost']['threshold'].iloc[0] 
-                       if not model_data_split[model_data_split['threshold_type'] == 'cost'].empty else None)
-    acc_optimal_thr = (model_data_split[model_data_split['threshold_type'] == 'accuracy']['threshold'].iloc[0] 
-                      if not model_data_split[model_data_split['threshold_type'] == 'accuracy'].empty else None)
-
-    # Plot threshold sweep
-    fig_sweep = plot_threshold_sweep(sweep_data[model], model, cost_optimal_thr, acc_optimal_thr)
-    st.plotly_chart(fig_sweep, use_container_width=True)
+        # Get optimal thresholds
+        cost_optimal_thr = (model_data_split[model_data_split['threshold_type'] == 'cost']['threshold'].iloc[0] 
+                           if not model_data_split[model_data_split['threshold_type'] == 'cost'].empty else None)
+        
+    except FileNotFoundError:
+        st.warning("Predictions CSV not found for ROC/PR curves.")
+    except Exception as e:
+        st.error(f"Error plotting curves: {str(e)}")
 
 def render_plots_gallery_tab():
     """Render the plots gallery tab content."""
@@ -807,5 +811,40 @@ def render_model_zoo_tab():
             st.rerun()
         except Exception as e:
             st.error(f"Error updating advanced configuration: {e}")
+
+def render_model_metrics_cheat_tab():
+    """Display the model metrics from model_metrics.csv and explain why using these parameters for evaluation is cheating."""
+    st.write("# Model Metrics (Full Data, Cost/Accuracy-Optimal Thresholds)")
+    st.write("""
+    This table shows the performance metrics for each model, split, and threshold type as exported from the pipeline's `model_metrics.csv` file.
+    
+    **What is being shown:**
+    - Each row corresponds to a model evaluated on a particular split (e.g., Full, Train, Test) and at a particular threshold (cost-optimal or accuracy-optimal).
+    - Metrics include accuracy, precision, recall, cost, threshold, and confusion matrix values (TP, FP, TN, FN).
+    - These metrics are computed using the *best* threshold for each split, as determined by sweeping over all possible thresholds and picking the one that gives the lowest cost or highest accuracy.
+    
+    **Why using these parameters is technically cheating:**
+    - The thresholds shown here are selected *after* seeing the true labels for the entire split (including the test or full data).
+    - In a real-world deployment, you would not have access to the true labels for new, unseen data, so you cannot select the threshold that gives the best result on the test set.
+    - This means the reported metrics are *optimistic* and do not reflect the true generalization performance of the model.
+    - The correct way to evaluate a model is to select thresholds using only the training data (or via cross-validation), and then report performance on a held-out test set using those pre-selected thresholds.
+    
+    **In summary:**
+    - The metrics here are useful for understanding the *potential* of your models, but should not be used as the final measure of model performance for decision-making or reporting.
+    """)
+    metrics_path = Path("output/streamlit_data/model_metrics.csv")
+    if not metrics_path.exists():
+        st.error("model_metrics.csv not found. Please run the pipeline first.")
+        return
+    df = pd.read_csv(metrics_path)
+    st.dataframe(df.style.format({
+        'accuracy': '{:.1f}%',
+        'precision': '{:.1f}%',
+        'recall': '{:.1f}%',
+        'cost': '{:.1f}',
+        'threshold': '{:.3f}'
+    }))
+    st.write("---")
+    st.write("**Legend:**\n- TP: True Positives\n- FP: False Positives\n- TN: True Negatives\n- FN: False Negatives")
 
 # ... rest of the file ... 

@@ -147,14 +147,18 @@ USE_KFOLD = False
 N_SPLITS = 5
 
 # ===== Hyperparameter Optimization =====
-OPTIMIZE_HYPERPARAMS = False
-HYPERPARAM_ITER = 50
+OPTIMIZE_HYPERPARAMS = True
+HYPERPARAM_ITER = 25
 # Final full-data tuning
-OPTIMIZE_FINAL_MODEL = False
+OPTIMIZE_FINAL_MODEL = True
 N_JOBS = -1  # Number of jobs to run in parallel (-1 uses all available cores)
 
 # Parameter grids for RandomizedSearchCV
 HYPERPARAM_SPACE = {
+    'shared': {
+        'random_state': [42],  # Fixed random state for reproducibility
+        'n_jobs': [-1]        # Use all available cores
+    },
     'XGBoost': {
         'max_depth':        [3,4,5,6],
         'learning_rate':    [0.01,0.05,0.1],
@@ -162,14 +166,20 @@ HYPERPARAM_SPACE = {
         'colsample_bytree': [0.6,0.8,1.0],
         'n_estimators':     [100,200,400],
         'gamma':            [0,0.1,0.2],
+        'min_child_weight': [3,5,7],
+        'scale_pos_weight': [62.5],  # Fixed based on class imbalance
+        'eval_metric':      ['logloss']
     },
     'RandomForest': {
         'n_estimators':      [100,200,300],
         'max_depth':         [None,5,10],
         'min_samples_split': [2,5,10],
         'min_samples_leaf':  [1,2,5],
-    },
-    # add other models if you like…
+        'class_weight':      ['balanced_subsample'],
+        'max_features':      ['sqrt'],
+        'bootstrap':         [True],
+        'oob_score':         [True]
+    }
 }
 
 # ===== Training Configuration =====

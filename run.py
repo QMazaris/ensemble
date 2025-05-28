@@ -340,6 +340,7 @@ def Core_Standard(config, C_FP, C_FN, base_cols, SAVE_PLOTS, SAVE_MODEL, MODELS,
 
         single_results = []
         single_probs = {}
+        single_sweeps = {}  # Store sweep data for each split
 
         for split_name, (proba, y_eval) in split_preds.items():
             sweep, best_cost, best_acc = threshold_sweep_with_cost(
@@ -363,12 +364,14 @@ def Core_Standard(config, C_FP, C_FN, base_cols, SAVE_PLOTS, SAVE_MODEL, MODELS,
                     _mk_result(model_name, split_name, best_acc, 'accuracy')
                 ])
             single_probs[split_name] = proba
+            single_sweeps[split_name] = sweep  # Store sweep data
 
         model_zoo_runs.append(
                 ModelEvaluationRun(
                     model_name=model_name,
                     results=single_results,
-                    probabilities=single_probs
+                    probabilities=single_probs,
+                    sweep_data=single_sweeps  # Include sweep data
                 )
             )
 
@@ -398,6 +401,7 @@ def Core_Standard(config, C_FP, C_FN, base_cols, SAVE_PLOTS, SAVE_MODEL, MODELS,
     # Process AD scores
     ad_results = []
     ad_probs = {}
+    ad_sweeps = {}  # Store sweep data for AD
     
     for split_name in ['Train', 'Test', 'Full']:
         sweep_ad, bc_ad, ba_ad = threshold_sweep_with_cost(
@@ -420,18 +424,21 @@ def Core_Standard(config, C_FP, C_FN, base_cols, SAVE_PLOTS, SAVE_MODEL, MODELS,
             _mk_result('AD', split_name, ba_ad, 'accuracy')
         ])
         ad_probs[split_name] = ad_scores[split_name]
+        ad_sweeps[split_name] = sweep_ad  # Store sweep data
     
     base_model_runs.append(
         ModelEvaluationRun(
             model_name='AD',
             results=ad_results,
-            probabilities=ad_probs
+            probabilities=ad_probs,
+            sweep_data=ad_sweeps  # Include sweep data
         )
     )
     
     # Process CL scores
     cl_results = []
     cl_probs = {}
+    cl_sweeps = {}  # Store sweep data for CL
     
     for split_name in ['Train', 'Test', 'Full']:
         sweep_cl, bc_cl, ba_cl = threshold_sweep_with_cost(
@@ -454,12 +461,14 @@ def Core_Standard(config, C_FP, C_FN, base_cols, SAVE_PLOTS, SAVE_MODEL, MODELS,
             _mk_result('CL', split_name, ba_cl, 'accuracy')
         ])
         cl_probs[split_name] = cl_scores[split_name]
+        cl_sweeps[split_name] = sweep_cl  # Store sweep data
     
     base_model_runs.append(
         ModelEvaluationRun(
             model_name='CL',
             results=cl_results,
-            probabilities=cl_probs
+            probabilities=cl_probs,
+            sweep_data=cl_sweeps  # Include sweep data
         )
     )
     
@@ -472,16 +481,25 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
             random_state = config.RANDOM_STATE
         )
 
+    n_samples = len(X)
+    # Initialize OOF probability arrays for meta, AD, and CL models
+    oof_probs_dict = {model_name: np.full(n_samples, np.nan) for model_name in MODELS}
+    oof_probs_ad = np.full(n_samples, np.nan)
+    oof_probs_cl = np.full(n_samples, np.nan)
+
     for model_name, prototype in MODELS.items():
         if config.SUMMARY:
             print(f"\n{'='*40}\nNested‑CV → {model_name}\n{'='*40}")
 
         fold_cost, fold_acc, fold_probs = [], [], []
-            # Add arrays for AD/CL results
+        fold_sweeps = []  # Store sweep data for each fold
+        # Add arrays for AD/CL results
         fold_cost_ad, fold_acc_ad, fold_probs_ad = [], [], []
+        fold_sweeps_ad = []  # Store AD sweep data
         fold_cost_cl, fold_acc_cl, fold_probs_cl = [], [], []
+        fold_sweeps_cl = []  # Store CL sweep data
 
-            # ── Outer folds ──
+        # ── Outer folds ──
         for fold_idx, (tr_idx, te_idx) in enumerate(outer_cv.split(X, y), start=1):
             if config.SUMMARY:
                 print(f"  ➤ Fold {fold_idx}")
@@ -489,7 +507,7 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
             X_tr, y_tr = X.iloc[tr_idx], y.iloc[tr_idx]
             X_te, y_te = X.iloc[te_idx], y.iloc[te_idx]
 
-                # ── Inner tuning ──
+            # ── Inner tuning ──
             if config.OPTIMIZE_HYPERPARAMS:
                 tuned = optimize_hyperparams(
                         model_name,
@@ -500,7 +518,7 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
             else:
                 tuned = clone(prototype)  # Use untuned model if optimization is disabled
 
-                # ── Train & predict this fold ──
+            # ── Train & predict this fold ──
             split_preds, _ = train_and_evaluate_model(
                     tuned,
                     X_tr, y_tr,
@@ -512,22 +530,26 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
                     config=config
                 )
             proba, y_eval = split_preds[f"Fold{fold_idx}"]
+            oof_probs_dict[model_name][te_idx] = proba  # Store OOF probabilities for meta model
 
-                # ── Threshold sweep for meta model ──
+            # ── Threshold sweep for meta model ──
             sweep, bc, ba = threshold_sweep_with_cost(
                     proba, y_eval, C_FP=C_FP, C_FN=C_FN,
                     SUMMARY=config.SUMMARY, split_name=f"Fold{fold_idx}"
                 )
 
-                # ── Collect fold results for meta model ──
+            # ── Collect fold results for meta model ──
             fold_cost.append(_mk_result(model_name, f"Fold{fold_idx}", bc, 'cost'))
             fold_acc.append(_mk_result(model_name, f"Fold{fold_idx}", ba, 'accuracy'))
             fold_probs.append(proba)
+            fold_sweeps.append(sweep)  # Store sweep data
 
-                # ── Base‑model threshold sweeps ──
-                # pull raw scores from df via config
+            # ── Base‑model threshold sweeps ──
+            # pull raw scores from df via config
             ad_scores = df.loc[te_idx, base_cols["AD"]].values
             cl_scores = df.loc[te_idx, base_cols["CL"]].values
+            oof_probs_ad[te_idx] = ad_scores  # Store OOF for AD
+            oof_probs_cl[te_idx] = cl_scores  # Store OOF for CL
 
             sweep_ad, bc_ad, ba_ad = threshold_sweep_with_cost(
                     ad_scores, y_te, C_FP, C_FN,
@@ -538,7 +560,7 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
                     SUMMARY=config.SUMMARY, split_name=f"CL_Fold{fold_idx}"
                 )
 
-                # optional: plot them
+            # optional: plot them
             if SAVE_PLOTS:
                 plot_threshold_sweep(sweep_ad, C_FP, C_FN,
                                         cost_optimal_thr=bc_ad["threshold"],
@@ -553,16 +575,18 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
                                             config.PLOT_DIR, f"CL_fold{fold_idx}_threshold_sweep.png"),
                                         SUMMARY=config.SUMMARY)
 
-                # stash their results/probs in parallel arrays
+            # stash their results/probs in parallel arrays
             fold_cost_ad.append(_mk_result("AD", f"Fold{fold_idx}", bc_ad, 'cost'))
             fold_acc_ad.append(_mk_result("AD", f"Fold{fold_idx}", ba_ad, 'accuracy'))
             fold_probs_ad.append(ad_scores)
+            fold_sweeps_ad.append(sweep_ad)  # Store AD sweep data
 
             fold_cost_cl.append(_mk_result("CL", f"Fold{fold_idx}", bc_cl, 'cost'))
             fold_acc_cl.append(_mk_result("CL", f"Fold{fold_idx}", ba_cl, 'accuracy'))
             fold_probs_cl.append(cl_scores)
+            fold_sweeps_cl.append(sweep_cl)  # Store CL sweep data
 
-                # Optional per-fold sweep plot for meta model
+            # Optional per-fold sweep plot for meta model
             if SAVE_PLOTS:
                 plot_threshold_sweep(
                         sweep, C_FP, C_FN,
@@ -574,40 +598,89 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
                         SUMMARY=config.SUMMARY
                     )
 
-            # ── Average & store meta model results ──
+        # ── Average & store meta model results ──
         avg_c = _average_results(fold_cost, model_name)
         avg_a = _average_results(fold_acc, model_name)
         avg_p = _average_probabilities(fold_probs)
+        
+        # Average sweep data across folds
+        avg_sweep = {}
+        if fold_sweeps:  # If we have sweep data
+            # Get all unique thresholds across all folds
+            all_thresholds = sorted(set().union(*[set(s.keys()) for s in fold_sweeps]))
+            for thr in all_thresholds:
+                # For each threshold, average the metrics across folds
+                metrics = {}
+                for metric in ['cost', 'accuracy', 'precision', 'recall', 'tp', 'fp', 'tn', 'fn']:
+                    values = [s[thr][metric] for s in fold_sweeps if thr in s]
+                    if values:  # Only average if we have values for this threshold
+                        metrics[metric] = float(np.mean(values))
+                if metrics:  # Only add if we have metrics
+                    avg_sweep[float(thr)] = metrics
+
+        # Store OOF probabilities for meta model
         model_zoo_runs.append(
                 ModelEvaluationRun(
                     model_name=f'kfold_avg_{model_name}',
                     results=[avg_c, avg_a],
-                    probabilities={'Full': avg_p} if avg_p is not None else {}
+                    probabilities={'Full': avg_p, 'oof': oof_probs_dict[model_name].tolist()},
+                    sweep_data={'Full': avg_sweep} if avg_sweep else None
                 )
             )
 
         # ── Now do the same for AD and CL ──
-        # Calculate the kfold averaged AD/CL results.
-        # These will be included in base_model_runs if config.USE_KFOLD is True.
-    avg_c_ad = _average_results(fold_cost_ad, "AD")
-    avg_a_ad = _average_results(fold_acc_ad, "AD")
-    avg_p_ad = _average_probabilities(fold_probs_ad)
-    kfold_avg_ad_run = ModelEvaluationRun(
-            model_name='kfold_avg_AD',
-            results=[avg_c_ad, avg_a_ad],
-            probabilities={'Full': avg_p_ad} if avg_p_ad is not None else {}
-        )
+        # Calculate the kfold averaged AD/CL results
+        avg_c_ad = _average_results(fold_cost_ad, "AD")
+        avg_a_ad = _average_results(fold_acc_ad, "AD")
+        avg_p_ad = _average_probabilities(fold_probs_ad)
+        
+        # Average AD sweep data
+        avg_sweep_ad = {}
+        if fold_sweeps_ad:
+            all_thresholds = sorted(set().union(*[set(s.keys()) for s in fold_sweeps_ad]))
+            for thr in all_thresholds:
+                metrics = {}
+                for metric in ['cost', 'accuracy', 'precision', 'recall', 'tp', 'fp', 'tn', 'fn']:
+                    values = [s[thr][metric] for s in fold_sweeps_ad if thr in s]
+                    if values:
+                        metrics[metric] = float(np.mean(values))
+                if metrics:
+                    avg_sweep_ad[float(thr)] = metrics
 
-    avg_c_cl = _average_results(fold_cost_cl, "CL")
-    avg_a_cl = _average_results(fold_acc_cl, "CL")
-    avg_p_cl = _average_probabilities(fold_probs_cl)
-    kfold_avg_cl_run = ModelEvaluationRun(
-            model_name='kfold_avg_CL',
-            results=[avg_c_cl, avg_a_cl],
-            probabilities={'Full': avg_p_cl} if avg_p_cl is not None else {}
-        )
+        # Store OOF probabilities for AD
+        kfold_avg_ad_run = ModelEvaluationRun(
+                model_name='kfold_avg_AD',
+                results=[avg_c_ad, avg_a_ad],
+                probabilities={'Full': avg_p_ad, 'oof': oof_probs_ad.tolist()},
+                sweep_data={'Full': avg_sweep_ad} if avg_sweep_ad else None
+            )
+
+        avg_c_cl = _average_results(fold_cost_cl, "CL")
+        avg_a_cl = _average_results(fold_acc_cl, "CL")
+        avg_p_cl = _average_probabilities(fold_probs_cl)
+        
+        # Average CL sweep data
+        avg_sweep_cl = {}
+        if fold_sweeps_cl:
+            all_thresholds = sorted(set().union(*[set(s.keys()) for s in fold_sweeps_cl]))
+            for thr in all_thresholds:
+                metrics = {}
+                for metric in ['cost', 'accuracy', 'precision', 'recall', 'tp', 'fp', 'tn', 'fn']:
+                    values = [s[thr][metric] for s in fold_sweeps_cl if thr in s]
+                    if values:
+                        metrics[metric] = float(np.mean(values))
+                if metrics:
+                    avg_sweep_cl[float(thr)] = metrics
+
+        # Store OOF probabilities for CL
+        kfold_avg_cl_run = ModelEvaluationRun(
+                model_name='kfold_avg_CL',
+                results=[avg_c_cl, avg_a_cl],
+                probabilities={'Full': avg_p_cl, 'oof': oof_probs_cl.tolist()},
+                sweep_data={'Full': avg_sweep_cl} if avg_sweep_cl else None
+            )
     
-    return kfold_avg_ad_run,kfold_avg_cl_run
+    return kfold_avg_ad_run, kfold_avg_cl_run
 
 def Split_No_KFold(config, MODELS, X, y):
     X_train, y_train, train_idx, test_idx, single_splits = Regular_Split(config, X, y)

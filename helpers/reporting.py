@@ -80,9 +80,11 @@ def save_all_model_probabilities_from_structure(results_total, predictions_dir, 
     if not results_total:
         raise ValueError("results_total is empty")
     wide_df['GT'] = y_true
-    def pick_full_or_longest(probas):
+    def pick_oof_or_full_or_longest(probas):
         if not probas:
             return None
+        if 'oof' in probas:
+            return probas['oof']
         if 'Full' in probas:
             return probas['Full']
         non_empty = [arr for arr in probas.values() if arr is not None and hasattr(arr, 'shape')]
@@ -91,7 +93,7 @@ def save_all_model_probabilities_from_structure(results_total, predictions_dir, 
         return max(non_empty, key=lambda arr: arr.shape[0])
     for run in results_total:
         model_col = run.model_name
-        probas = pick_full_or_longest(run.probabilities)
+        probas = pick_oof_or_full_or_longest(run.probabilities)
         if probas is None:
             print(f"[WARN] No probabilities found for model {model_col}, skipping.")
             continue

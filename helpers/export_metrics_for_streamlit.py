@@ -78,36 +78,42 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     # 2. Export threshold sweep data
     sweep_data = {}
     for run in runs:
-        # Only export sweep data for models that have probabilities (not decision-based models)
-        if hasattr(run, 'probabilities') and run.probabilities:
-            # Use the 'Full' split probabilities if available, otherwise use the first available split
-            if 'Full' in run.probabilities:
-                probs = run.probabilities['Full']
-            elif run.probabilities:
+        # Only export sweep data for models that have probabilities and sweep data
+        if (hasattr(run, 'probabilities') and run.probabilities and 
+            hasattr(run, 'sweep_data') and run.sweep_data):
+            
+            # Use the 'Full' split sweep data if available, otherwise use the first available split
+            if 'Full' in run.sweep_data:
+                sweep = run.sweep_data['Full']
+            elif run.sweep_data:
                 # Use the first available split
-                first_split = list(run.probabilities.keys())[0]
-                probs = run.probabilities[first_split]
+                first_split = list(run.sweep_data.keys())[0]
+                sweep = run.sweep_data[first_split]
             else:
                 continue
                 
-            # Convert to list if it's a numpy array
-            if hasattr(probs, 'tolist'):
-                probs = probs.tolist()
-            elif not isinstance(probs, list):
-                probs = list(probs)
+            # Convert sweep data to lists for JSON serialization
+            thresholds = [float(t) for t in sweep.keys()]  # Convert to float
+            costs = [float(sweep[t]['cost']) for t in sweep.keys()]  # Convert to float
+            accuracies = [float(sweep[t]['accuracy']) for t in sweep.keys()]  # Convert to float
+            
+            # Get probabilities for the same split
+            if 'oof' in run.probabilities:
+                probs = run.probabilities['oof']
+            elif 'Full' in run.probabilities:
+                probs = run.probabilities['Full']
+            else:
+                first_split = list(run.probabilities.keys())[0]
+                probs = run.probabilities[first_split]
                 
-            # Generate threshold sweep data for visualization
-            thresholds = np.linspace(0, 1, 21).tolist()
-            costs = []
-            accuracies = []
-            
-            # We need to get the true labels for this model to calculate costs and accuracies
-            # For now, we'll create placeholder data - this will be improved when we have access to y_true
-            for threshold in thresholds:
-                # Placeholder calculations - these should be replaced with actual calculations
-                costs.append(threshold * 100)  # Placeholder
-                accuracies.append((1 - threshold) * 100)  # Placeholder
-            
+            # Convert to list and ensure all values are Python native types
+            if hasattr(probs, 'tolist'):
+                probs = [float(p) for p in probs.tolist()]  # Convert to float
+            elif not isinstance(probs, list):
+                probs = [float(p) for p in list(probs)]  # Convert to float
+            else:
+                probs = [float(p) for p in probs]  # Convert to float
+                
             sweep_data[run.model_name] = {
                 'probabilities': probs,
                 'thresholds': thresholds,
