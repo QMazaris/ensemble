@@ -1,128 +1,140 @@
-# AI Pipeline Configuration
-# This YAML file contains all configuration settings for the ML pipeline
-
-# ===== Data Configuration =====
-data:
-  path: 'data/training_data.csv'
-  target_column: 'GT_Label'
-  exclude_columns:
-    - 'Image'
-    - 'AD_Decision'
-    - 'CL_Decision'
-    - 'AD_ClassID'
-    - 'CL_ClassID'
-    - 'GT_Label_Num'
-    - 'ClassThresh'
-    - 'SegThresh'
-  test_size: 0.2
-  random_state: 42
-
-# ===== Feature Engineering =====
-features:
-  filter_data: false
-  variance_threshold: 0.01
-  correlation_threshold: 0.95
-
-# ===== Model Configuration =====
-models:
-  enabled:
-    - 'XGBoost'
-    - 'RandomForest'
-  
-  # Base model output columns for legacy models
-  base_model_columns:
-    AD: 'AnomalyScore'
-    CL: 'CL_ConfMax'
-
-# ===== Training Configuration =====
-training:
-  use_kfold: true
-  n_splits: 5
-  use_smote: true
-  smote_ratio: 0.5
-
-# ===== Cost Configuration =====
 costs:
-  false_positive: 1
   false_negative: 30
-
-# ===== Hyperparameter Optimization =====
-optimization:
-  enabled: true
-  iterations: 25
-  optimize_final_model: true
-  n_jobs: -1
-
-# ===== Export Configuration =====
+  false_positive: 1
+data:
+  exclude_columns:
+  - Image
+  - AD_Decision
+  - CL_Decision
+  - AD_ClassID
+  - CL_ClassID
+  - GT_Label_Num
+  - ClassThresh
+  - SegThresh
+  path: data/training_data.csv
+  random_state: 42
+  target_column: GT_Label
+  test_size: 0.2
 export:
+  export_onnx: true
+  onnx_opset_version: 12
   save_models: true
   save_plots: true
   save_predictions: true
-  export_onnx: true
-  onnx_opset_version: 12
-
-# ===== Output Configuration =====
-output:
-  base_dir: 'output'
-  subdirs:
-    models: 'models'
-    plots: 'plots'
-    predictions: 'predictions'
-    logs: 'logs'
-    streamlit_data: 'streamlit_data'
-
-# ===== Logging =====
+features:
+  correlation_threshold: 0.95
+  filter_data: false
+  variance_threshold: 0.01
+hyperparam_spaces:
+  RandomForest:
+    bootstrap:
+    - true
+    class_weight:
+    - balanced_subsample
+    max_depth:
+    - null
+    - 5
+    - 10
+    max_features:
+    - sqrt
+    min_samples_leaf:
+    - 1
+    - 2
+    - 5
+    min_samples_split:
+    - 2
+    - 5
+    - 10
+    n_estimators:
+    - 100
+    - 200
+    - 300
+    oob_score:
+    - true
+  XGBoost:
+    colsample_bytree:
+    - 0.6
+    - 0.8
+    - 1.0
+    eval_metric:
+    - logloss
+    gamma:
+    - 0
+    - 0.1
+    - 0.2
+    learning_rate:
+    - 0.01
+    - 0.05
+    - 0.1
+    max_depth:
+    - 3
+    - 4
+    - 5
+    - 6
+    min_child_weight:
+    - 3
+    - 5
+    - 7
+    n_estimators:
+    - 100
+    - 200
+    - 400
+    scale_pos_weight:
+    - 62.5
+    subsample:
+    - 0.6
+    - 0.8
+    - 1.0
 logging:
   enabled: true
   summary: true
-
-# ===== Model Parameters =====
 model_params:
-  XGBoost:
-    objective: 'binary:logistic'
-    max_depth: 4
-    learning_rate: 0.1
-    n_estimators: 400
-    subsample: 0.8
-    colsample_bytree: 0.8
-    min_child_weight: 5
-    gamma: 0.1
-    scale_pos_weight: 62.5
-    random_state: 42
-    n_jobs: -1
-    eval_metric: 'logloss'
-  
   RandomForest:
-    n_estimators: 300
-    max_depth: 6
-    min_samples_split: 10
-    min_samples_leaf: 5
-    class_weight: 'balanced_subsample'
-    max_features: 'sqrt'
     bootstrap: true
-    oob_score: true
+    class_weight: balanced_subsample
+    max_depth: 6
+    max_features: sqrt
+    min_samples_leaf: 5
+    min_samples_split: 10
+    n_estimators: 300
     n_jobs: -1
+    oob_score: true
     random_state: 42
-
-# ===== Hyperparameter Search Spaces =====
-hyperparam_spaces:
   XGBoost:
-    max_depth: [3, 4, 5, 6]
-    learning_rate: [0.01, 0.05, 0.1]
-    subsample: [0.6, 0.8, 1.0]
-    colsample_bytree: [0.6, 0.8, 1.0]
-    n_estimators: [100, 200, 400]
-    gamma: [0, 0.1, 0.2]
-    min_child_weight: [3, 5, 7]
-    scale_pos_weight: [62.5]
-    eval_metric: ['logloss']
-  
-  RandomForest:
-    n_estimators: [100, 200, 300]
-    max_depth: [null, 5, 10]
-    min_samples_split: [2, 5, 10]
-    min_samples_leaf: [1, 2, 5]
-    class_weight: ['balanced_subsample']
-    max_features: ['sqrt']
-    bootstrap: [true]
-    oob_score: [true] 
+    colsample_bytree: 0.8
+    eval_metric: logloss
+    gamma: 0.1
+    learning_rate: 0.1
+    max_depth: 4
+    min_child_weight: 5
+    n_estimators: 400
+    n_jobs: -1
+    objective: binary:logistic
+    random_state: 42
+    scale_pos_weight: 62.5
+    subsample: 0.8
+models:
+  base_model_columns:
+    AD: AnomalyScore
+    CL: CL_ConfMax
+  enabled:
+  - XGBoost
+  - RandomForest
+optimization:
+  enabled: false
+  iterations: 50
+  n_jobs: -1
+  optimize_final_model: false
+output:
+  base_dir: output
+  subdirs:
+    logs: logs
+    models: models
+    plots: plots
+    predictions: predictions
+    streamlit_data: streamlit_data
+training:
+  n_splits: 5
+  smote_ratio: 0.5
+  use_kfold: true
+  use_smote: true

@@ -21,32 +21,25 @@ def render_sidebar():
     C_FP = st.sidebar.number_input(
         "Cost of False-Positive", 
         value=config.cost_fp,
-        min_value=0.0,
+        min_value=0,
         help="Cost penalty for false positive predictions"
     )
     C_FN = st.sidebar.number_input(
         "Cost of False-Negative", 
         value=config.cost_fn,
-        min_value=0.0,
+        min_value=0,
         help="Cost penalty for false negative predictions (usually higher)"
     )
     
     # Training Settings
     st.sidebar.subheader("🎯 Training Settings")
-    USE_KFOLD = st.sidebar.checkbox(
-        "Use K-Fold Cross Validation", 
-        value=config.use_kfold,
-        help="Enable cross-validation for more robust model evaluation"
+    N_SPLITS = st.sidebar.number_input(
+        "Number of K-Fold Splits", 
+        value=config.n_splits, 
+        min_value=2, 
+        max_value=10,
+        help="Number of folds for cross-validation (K-fold is always enabled)"
     )
-    N_SPLITS = None
-    if USE_KFOLD:
-        N_SPLITS = st.sidebar.number_input(
-            "Number of K-Fold Splits", 
-            value=config.n_splits, 
-            min_value=2, 
-            max_value=10,
-            help="Number of folds for cross-validation"
-        )
 
     # Feature Settings
     st.sidebar.subheader("🔧 Feature Engineering")
@@ -147,8 +140,8 @@ def render_sidebar():
     return {
         'costs.false_positive': C_FP,
         'costs.false_negative': C_FN,
-        'training.use_kfold': USE_KFOLD,
-        'training.n_splits': N_SPLITS if USE_KFOLD else 5,
+        'training.use_kfold': True,
+        'training.n_splits': N_SPLITS,
         'features.filter_data': FilterData,
         'features.variance_threshold': VARIANCE_THRESH if FilterData else 0.01,
         'features.correlation_threshold': CORRELATION_THRESH if FilterData else 0.95,
