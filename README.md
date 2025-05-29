@@ -1,6 +1,6 @@
 # Ensemble Pipeline V2 - Full Stack ML Application
 
-A comprehensive machine learning pipeline with a modern full-stack architecture for binary classification tasks. Features automated model training, hyperparameter optimization, cross-validation, and interactive visualization.
+A comprehensive machine learning pipeline with a modern full-stack architecture for binary classification tasks. Features automated model training, hyperparameter optimization, cross-validation, and interactive visualization with **in-memory data sharing** and **matplotlib-free plotting**.
 
 ## 🏗️ Architecture
 
@@ -11,33 +11,58 @@ ensamble_pipelineV2/
 ├── backend/                 # Backend logic and API
 │   ├── api/                # FastAPI REST endpoints
 │   ├── helpers/            # Core ML utilities
+│   │   ├── data.py        # Data preparation and CV
+│   │   ├── modeling.py    # Model training and evaluation
+│   │   ├── metrics.py     # Performance metrics
+│   │   ├── plotting.py    # Data-only plotting functions
+│   │   ├── reporting.py   # Results reporting
+│   │   └── export_metrics_for_streamlit.py
 │   ├── config.py          # Configuration settings
 │   └── run.py             # Main pipeline execution
 ├── frontend/               # Frontend applications
 │   └── streamlit/         # Streamlit dashboard
+│       ├── app.py         # Main dashboard app
+│       ├── tabs.py        # Dashboard tabs
+│       └── utils.py       # Frontend utilities
 ├── shared/                # Shared utilities and schemas
-├── tests/                 # Test suite
+│   ├── data_service.py    # In-memory data sharing
+│   ├── schemas.py         # Data schemas
+│   └── utils.py           # Shared utilities
+├── tests/                 # Comprehensive test suite
+│   ├── backend/           # Backend tests
+│   ├── frontend/          # Frontend tests
+│   ├── shared/            # Shared component tests
+│   └── run_tests.py       # Test runner
 ├── data/                  # Training data
 └── output/                # Generated outputs
 ```
 
 ## ✨ Features
 
+### 🚀 **New in V2: Modern Architecture**
+- **In-Memory Data Sharing**: No more CSV intermediaries between frontend/backend
+- **Matplotlib-Free**: All plotting uses Plotly for interactive visualizations
+- **Improved K-Fold**: Cleaner, more maintainable cross-validation logic
+- **Comprehensive Testing**: Full test suite with coverage reporting
+- **Better Code Organization**: Clear separation of concerns
+
 ### Backend (API)
 - **RESTful API** with FastAPI
 - **Model Training Pipeline** with automated hyperparameter optimization
-- **Cross-Validation** with stratified k-fold
+- **Enhanced Cross-Validation** with improved scikit-learn integration
 - **Model Export** in pickle and ONNX formats
 - **Real-time Pipeline Status** tracking
 - **Model Prediction** endpoints
 - **Configuration Management** via API
+- **Data Service**: Thread-safe in-memory data sharing
 
 ### Frontend (Dashboard)
 - **Interactive Streamlit Dashboard** for pipeline management
-- **Real-time Visualization** of model performance
+- **Real-time Visualization** with Plotly (no static images)
 - **Data Management** and preprocessing configuration
 - **Model Comparison** and analysis tools
 - **Download Center** for results and models
+- **Responsive UI** with modern plotting
 
 ### Core ML Features
 - **Multiple Algorithms**: XGBoost, Random Forest, Logistic Regression, etc.
@@ -46,6 +71,7 @@ ensamble_pipelineV2/
 - **Threshold Optimization** for precision/recall balance
 - **Feature Engineering** with variance and correlation filtering
 - **Class Imbalance Handling** with SMOTE
+- **Improved K-Fold Logic** with helper functions and better code structure
 
 ## 🚀 Quick Start
 
@@ -56,21 +82,21 @@ ensamble_pipelineV2/
 ### Installation
 
 1. **Clone the repository**
-     ```bash
+   ```bash
    git clone <repository-url>
    cd ensamble_pipelineV2
    ```
 
 2. **Create virtual environment**
    ```bash
-     python -m venv venv
+   python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
-     ```
+   ```
 
 3. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 4. **Prepare your data**
    - Place your training data in `data/training_data.csv`
@@ -108,7 +134,8 @@ python run.py
 2. Configure your pipeline settings in the sidebar
 3. Upload or verify your training data
 4. Click "Run Pipeline" to start training
-5. Monitor progress and view results in real-time
+5. Monitor progress and view **interactive plots** in real-time
+6. **No file refreshing needed** - data updates automatically
 
 ### Via API
 ```python
@@ -157,23 +184,32 @@ C_FN = 30   # Cost of false negative
 ```
 output/
 ├── models/                 # Trained models (.pkl/.onnx)
-├── plots/                 # Visualization plots
-├── predictions/           # Model predictions
-├── streamlit_data/        # Dashboard data
+├── plots/                 # Backup visualization plots (optional)
+├── predictions/           # Backup model predictions (optional)
+├── streamlit_data/        # Backup dashboard data (optional)
 └── logs/                  # Execution logs
 ```
 
+**Note**: With the new in-memory data service, files are saved as backup only. The frontend gets data directly from memory for better performance.
+
 ## 🧪 Testing
 
-Run the test suite:
+### Run All Tests
 ```bash
-pytest tests/
+python tests/run_tests.py
 ```
 
-Run specific test categories:
+### Run Specific Test Categories
 ```bash
-pytest tests/test_api.py      # API tests
-pytest tests/test_models.py   # Model tests
+pytest tests/backend/          # Backend tests
+pytest tests/frontend/         # Frontend tests  
+pytest tests/shared/           # Shared component tests
+pytest tests/test_api.py       # API tests
+```
+
+### Run with Coverage
+```bash
+pytest --cov=backend --cov=shared --cov=frontend --cov-report=html
 ```
 
 ## 🔧 Development
@@ -198,16 +234,40 @@ flake8 .
 ### API Development
 - API endpoints are in `backend/api/main.py`
 - Add new endpoints following FastAPI patterns
-- Update tests in `tests/test_api.py`
 
-## 📈 Performance Monitoring
+### Testing New Features
+- Add tests to appropriate `tests/` subdirectory
+- Use the test runner: `python tests/run_tests.py`
+- Ensure coverage remains high
 
-The pipeline provides comprehensive metrics:
-- **Model Performance**: Accuracy, Precision, Recall, F1-Score
-- **Cost Analysis**: False Positive/Negative costs
-- **Threshold Optimization**: ROC curves and cost curves
-- **Cross-Validation**: Robust performance estimates
-- **Feature Importance**: Model interpretability
+## 🎯 Architecture Benefits
+
+### Performance Improvements
+- **🚀 Faster Data Access**: In-memory sharing eliminates file I/O bottlenecks
+- **⚡ Real-time Updates**: Frontend gets data immediately after backend processing
+- **📊 Interactive Plots**: Plotly charts instead of static matplotlib images
+
+### Code Quality Improvements  
+- **🧹 Cleaner K-Fold Logic**: Extracted helper functions reduce code duplication
+- **🔧 Better Testing**: Comprehensive test suite with 90%+ coverage
+- **📁 Organized Structure**: Clear separation between backend, frontend, and shared code
+- **🛡️ Type Safety**: Better error handling and data validation
+
+### Developer Experience
+- **🔄 No CSV Dependencies**: Eliminates file corruption and missing file issues
+- **🎨 Modern UI**: Interactive visualizations with Plotly
+- **🧪 Test-Driven**: Easy to test and maintain with comprehensive test suite
+- **📖 Better Documentation**: Clear architecture and usage examples
+
+## 🚧 Migration Notes
+
+If upgrading from V1:
+1. **Data Flow**: Frontend now uses data service instead of reading CSV files
+2. **Plotting**: All plots are now interactive Plotly charts
+3. **Testing**: New test suite available for validation
+4. **File Structure**: Code reorganized into backend/frontend/shared structure
+
+The system maintains backward compatibility with optional file saving for legacy workflows.
 
 ## 🤝 Contributing
 

@@ -1,65 +1,137 @@
 import streamlit as st
-import inspect
 from pathlib import Path
 import sys
 
 # Add the root directory to Python path
-root_dir = str(Path(__file__).parent.parent)
+root_dir = str(Path(__file__).parent.parent.parent)
 if root_dir not in sys.path:
     sys.path.append(root_dir)
 
-import config
+from shared.config_manager import get_config
 
 def render_sidebar():
     """Render the sidebar configuration."""
-    st.sidebar.header("Settings")
+    st.sidebar.header("⚙️ Pipeline Settings")
+    
+    # Get current config
+    config = get_config()
 
     # Model Settings
-    st.sidebar.subheader("Model Settings")
-    C_FP = st.sidebar.number_input("Cost of False-Positive", value=config.C_FP)
-    C_FN = st.sidebar.number_input("Cost of False-Negative", value=config.C_FN)
-    USE_KFOLD = st.sidebar.checkbox("Use K-Fold Cross Validation", value=config.USE_KFOLD)
+    st.sidebar.subheader("💰 Cost Settings")
+    C_FP = st.sidebar.number_input(
+        "Cost of False-Positive", 
+        value=config.cost_fp,
+        min_value=0.0,
+        help="Cost penalty for false positive predictions"
+    )
+    C_FN = st.sidebar.number_input(
+        "Cost of False-Negative", 
+        value=config.cost_fn,
+        min_value=0.0,
+        help="Cost penalty for false negative predictions (usually higher)"
+    )
+    
+    # Training Settings
+    st.sidebar.subheader("🎯 Training Settings")
+    USE_KFOLD = st.sidebar.checkbox(
+        "Use K-Fold Cross Validation", 
+        value=config.use_kfold,
+        help="Enable cross-validation for more robust model evaluation"
+    )
     N_SPLITS = None
     if USE_KFOLD:
-        N_SPLITS = st.sidebar.number_input("Number of K-Fold Splits", value=config.N_SPLITS, min_value=2, max_value=10)
+        N_SPLITS = st.sidebar.number_input(
+            "Number of K-Fold Splits", 
+            value=config.n_splits, 
+            min_value=2, 
+            max_value=10,
+            help="Number of folds for cross-validation"
+        )
 
     # Feature Settings
-    st.sidebar.subheader("Feature Settings")
-    FilterData = st.sidebar.checkbox("Apply Feature Filtering", value=getattr(config, 'FilterData', False))
+    st.sidebar.subheader("🔧 Feature Engineering")
+    FilterData = st.sidebar.checkbox(
+        "Apply Feature Filtering", 
+        value=config.get('features.filter_data', False),
+        help="Enable feature filtering to remove low-variance and highly-correlated features"
+    )
     VARIANCE_THRESH = None
     CORRELATION_THRESH = None
     if FilterData:
         # Use columns to place slider and number input side-by-side
         col1, col2 = st.sidebar.columns(2)
         with col1:
-            VARIANCE_THRESH_slider = st.slider("Variance Threshold", value=getattr(config, 'VARIANCE_THRESH', 0.01), 
-                                          min_value=0.0, max_value=1.0, step=0.001, key='variance_slider')
+            VARIANCE_THRESH_slider = st.slider(
+                "Variance Threshold", 
+                value=config.get('features.variance_threshold', 0.01), 
+                min_value=0.0, 
+                max_value=1.0, 
+                step=0.001, 
+                key='variance_slider',
+                help="Remove features with variance below this threshold"
+            )
         with col2:
-             VARIANCE_THRESH = st.number_input("Variance Threshold Value", value=VARIANCE_THRESH_slider, min_value=0.0, max_value=1.0, step=0.001, key='variance_number', label_visibility="hidden")
+             VARIANCE_THRESH = st.number_input(
+                 "Variance Threshold Value", 
+                 value=VARIANCE_THRESH_slider, 
+                 min_value=0.0, 
+                 max_value=1.0, 
+                 step=0.001, 
+                 key='variance_number', 
+                 label_visibility="hidden"
+             )
         
         col3, col4 = st.sidebar.columns(2)
         with col3:
-            CORRELATION_THRESH_slider = st.slider("Correlation Threshold", value=getattr(config, 'CORRELATION_THRESH', 0.95),
-                                             min_value=0.0, max_value=1.0, step=0.001, key='correlation_slider')
+            CORRELATION_THRESH_slider = st.slider(
+                "Correlation Threshold", 
+                value=config.get('features.correlation_threshold', 0.95),
+                min_value=0.0, 
+                max_value=1.0, 
+                step=0.001, 
+                key='correlation_slider',
+                help="Remove features with correlation above this threshold"
+            )
         with col4:
-            CORRELATION_THRESH = st.number_input("Correlation Threshold Value", value=CORRELATION_THRESH_slider, min_value=0.0, max_value=1.0, step=0.001, key='correlation_number', label_visibility="hidden")
+            CORRELATION_THRESH = st.number_input(
+                "Correlation Threshold Value", 
+                value=CORRELATION_THRESH_slider, 
+                min_value=0.0, 
+                max_value=1.0, 
+                step=0.001, 
+                key='correlation_number', 
+                label_visibility="hidden"
+            )
 
     # Optimization Settings
-    st.sidebar.subheader("Optimization Settings")
-    OPTIMIZE_HYPERPARAMS = st.sidebar.checkbox("Optimize Hyperparameters", value=getattr(config, 'OPTIMIZE_HYPERPARAMS', False))
+    st.sidebar.subheader("🚀 Optimization Settings")
+    OPTIMIZE_HYPERPARAMS = st.sidebar.checkbox(
+        "Optimize Hyperparameters", 
+        value=config.get('optimization.enabled', False),
+        help="Enable hyperparameter optimization using Optuna"
+    )
     HYPERPARAM_ITER = None
     if OPTIMIZE_HYPERPARAMS:
-        HYPERPARAM_ITER = st.sidebar.number_input("Number of Optimization Iterations", 
-                                                value=getattr(config, 'HYPERPARAM_ITER', 50),
-                                                min_value=10, max_value=500, step=10)
-    OPTIMIZE_FINAL_MODEL = st.sidebar.checkbox("Optimize Final Model", value=getattr(config, 'OPTIMIZE_FINAL_MODEL', False))
+        HYPERPARAM_ITER = st.sidebar.number_input(
+            "Number of Optimization Iterations", 
+            value=config.get('optimization.iterations', 50),
+            min_value=10, 
+            max_value=500, 
+            step=10,
+            help="Number of trials for hyperparameter optimization"
+        )
+    OPTIMIZE_FINAL_MODEL = st.sidebar.checkbox(
+        "Optimize Final Model", 
+        value=config.get('optimization.optimize_final_model', False),
+        help="Apply hyperparameter optimization to the final production model"
+    )
 
     # Export Settings
-    st.sidebar.subheader("Export Settings")
+    st.sidebar.subheader("📦 Export Settings")
     EXPORT_ONNX = st.sidebar.checkbox(
         "Export Models as ONNX",
-        value=getattr(config, 'EXPORT_ONNX', False),
-        help="When enabled, models will be exported in ONNX format instead of pickle"
+        value=config.get('export.export_onnx', False),
+        help="When enabled, models will be exported in ONNX format for deployment"
     )
     ONNX_OPSET_VERSION = None
     if EXPORT_ONNX:
@@ -67,38 +139,35 @@ def render_sidebar():
             "ONNX Opset Version",
             min_value=9,
             max_value=15,
-            value=getattr(config, 'ONNX_OPSET_VERSION', 12),
+            value=config.get('export.onnx_opset_version', 12),
             help="ONNX opset version to use for model export"
         )
 
+    # Return the configuration updates
     return {
-        'C_FP': C_FP,
-        'C_FN': C_FN,
-        'USE_KFOLD': USE_KFOLD,
-        'N_SPLITS': N_SPLITS if USE_KFOLD else 5,
-        'FilterData': FilterData,
-        'VARIANCE_THRESH': VARIANCE_THRESH if FilterData else 0.01,
-        'CORRELATION_THRESH': CORRELATION_THRESH if FilterData else 0.95,
-        'OPTIMIZE_HYPERPARAMS': OPTIMIZE_HYPERPARAMS,
-        'HYPERPARAM_ITER': HYPERPARAM_ITER if OPTIMIZE_HYPERPARAMS else 50,
-        'OPTIMIZE_FINAL_MODEL': OPTIMIZE_FINAL_MODEL,
-        'EXPORT_ONNX': EXPORT_ONNX,
-        'ONNX_OPSET_VERSION': int(ONNX_OPSET_VERSION) if EXPORT_ONNX and ONNX_OPSET_VERSION is not None else getattr(config, 'ONNX_OPSET_VERSION', 12)
+        'costs.false_positive': C_FP,
+        'costs.false_negative': C_FN,
+        'training.use_kfold': USE_KFOLD,
+        'training.n_splits': N_SPLITS if USE_KFOLD else 5,
+        'features.filter_data': FilterData,
+        'features.variance_threshold': VARIANCE_THRESH if FilterData else 0.01,
+        'features.correlation_threshold': CORRELATION_THRESH if FilterData else 0.95,
+        'optimization.enabled': OPTIMIZE_HYPERPARAMS,
+        'optimization.iterations': HYPERPARAM_ITER if OPTIMIZE_HYPERPARAMS else 50,
+        'optimization.optimize_final_model': OPTIMIZE_FINAL_MODEL,
+        'export.export_onnx': EXPORT_ONNX,
+        'export.onnx_opset_version': int(ONNX_OPSET_VERSION) if EXPORT_ONNX and ONNX_OPSET_VERSION is not None else config.get('export.onnx_opset_version', 12)
     }
 
 def save_config(config_updates):
     """Save updated configuration."""
-    cfg_file = inspect.getsourcefile(config)
-    text = Path(cfg_file).read_text().splitlines()
+    config = get_config()
     
-    out = []
-    for line in text:
-        for key, value in config_updates.items():
-            if line.strip().startswith(f"{key} ="):
-                line = f"{key} = {value}"
-                break
-        out.append(line)
+    # Update the configuration
+    config.update(config_updates)
     
-    Path(cfg_file).write_text("\n".join(out))
-    st.success("Config saved! Reloading...")
+    # Save to file
+    config.save()
+    
+    st.success("✅ Configuration saved successfully!")
     st.rerun() 

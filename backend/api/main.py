@@ -10,17 +10,17 @@ import joblib
 import pandas as pd
 import numpy as np
 
-# Add backend to path
+# Add backend directory to path
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
-from . import config
-from .helpers import (
+from backend import config_adapter as config
+from backend.helpers import (
     prepare_data, ModelEvaluationResult, ModelEvaluationRun,
     plot_threshold_sweep, plot_runs_at_threshold, plot_class_balance,
     save_all_model_probabilities_from_structure
 )
-from .run import main as run_pipeline
+from backend.run import main as run_pipeline
 
 app = FastAPI(title="Ensemble Pipeline API", version="1.0.0")
 
@@ -172,7 +172,7 @@ def get_data_info():
         return {
             "shape": df.shape,
             "columns": df.columns.tolist(),
-            "dtypes": df.dtypes.to_dict(),
+            "dtypes": {col: str(dtype) for col, dtype in df.dtypes.to_dict().items()},
             "missing_values": df.isnull().sum().to_dict(),
             "target_distribution": df[config.TARGET].value_counts().to_dict() if config.TARGET in df.columns else None
         }
@@ -220,13 +220,21 @@ def get_config():
     """Get the current configuration."""
     config_dict = {}
     for attr in dir(config):
-        if not attr.startswith('_'):
+        if not attr.startswith('_') and not attr.startswith('__'):
             value = getattr(config, attr)
             if not callable(value):
                 try:
-                    # Try to serialize the value
-                    json.dumps(value, default=str)
-                    config_dict[attr] = value
+                    # Handle special cases
+                    if attr == 'MODELS':
+                        # For models, just return the model names and types
+                        config_dict[attr] = {name: str(type(model).__name__) for name, model in value.items()}
+                    elif hasattr(value, '__dict__'):
+                        # For complex objects, convert to string
+                        config_dict[attr] = str(value)
+                    else:
+                        # Try to serialize the value
+                        json.dumps(value, default=str)
+                        config_dict[attr] = value
                 except:
                     config_dict[attr] = str(value)
     

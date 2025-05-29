@@ -74,7 +74,17 @@ def print_performance_summary(runs, meta_model_names, splits=('Train', 'Test', '
                     print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
 
 def save_all_model_probabilities_from_structure(results_total, predictions_dir, index, y_true, SUMMARY=None):
-    """Return all model probabilities as structured data instead of saving to CSV."""
+    """Store all model probabilities in data service instead of saving to CSV."""
+    # Import data service
+    try:
+        from ...shared import data_service
+    except ImportError:
+        # Fallback for direct execution
+        import sys
+        from pathlib import Path
+        sys.path.append(str(Path(__file__).parent.parent.parent))
+        from shared import data_service
+    
     if not results_total:
         raise ValueError("results_total is empty")
     
@@ -116,7 +126,20 @@ def save_all_model_probabilities_from_structure(results_total, predictions_dir, 
             padded_probas = probas_list + [None] * (len(index) - len(probas_list))
             predictions_data[model_col] = padded_probas
     
+    # Store in data service
+    data_service.set_predictions_data(predictions_data)
+    
+    # Optionally save to file as backup
+    if predictions_dir:
+        import pandas as pd
+        from pathlib import Path
+        predictions_dir = Path(predictions_dir)
+        predictions_dir.mkdir(exist_ok=True)
+        pd.DataFrame(predictions_data).to_csv(
+            predictions_dir / 'all_model_predictions.csv', index=False
+        )
+    
     if SUMMARY:
-        print(f"Generated predictions data structure with {len(predictions_data)-2} models")
+        print(f"Stored predictions data in memory with {len(predictions_data)-2} models")
     
     return predictions_data 

@@ -11,7 +11,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import log_loss
 
 # Local imports
-from .metrics import threshold_sweep_with_cost
+from .metrics import threshold_sweep_with_cost, _mk_result
 from .plotting import plot_threshold_sweep
 from .model_export import export_model
 
@@ -234,4 +234,58 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
             if config.SUMMARY:
                 print(f"✅ Saved production model: {out_path}")
                 print(f"   • Cost-optimal threshold: {best_cost['threshold']:.3f}")
-                print(f"   • Accuracy-optimal threshold: {best_acc['threshold']:.3f}") 
+                print(f"   • Accuracy-optimal threshold: {best_acc['threshold']:.3f}")
+
+def process_cv_fold(model_prototype, X_tr, y_tr, X_te, y_te, fold_idx, config, C_FP, C_FN):
+    """Process a single cross-validation fold.
+    
+    Args:
+        model_prototype: Model to train
+        X_tr, y_tr: Training data for this fold
+        X_te, y_te: Test data for this fold  
+        fold_idx: Fold number
+        config: Configuration object
+        C_FP, C_FN: Cost parameters
+        
+    Returns:
+        tuple: (cost_result, accuracy_result, probabilities, sweep_data)
+    """
+    from .metrics import threshold_sweep_with_cost, _mk_result
+    from sklearn.base import clone
+    
+    # Hyperparameter optimization for this fold
+    if config.OPTIMIZE_HYPERPARAMS:
+        tuned = optimize_hyperparams(
+            f"fold_{fold_idx}",
+            clone(model_prototype),
+            X_tr, y_tr,
+            config
+        )
+    else:
+        tuned = clone(model_prototype)
+    
+    # Train and predict on this fold
+    split_preds, _ = train_and_evaluate_model(
+        tuned,
+        X_tr, y_tr,
+        splits={f"Fold{fold_idx}": (X_te, y_te)},
+        model_name=None,
+        model_dir=None,
+        save_model=False,
+        SUMMARY=config.SUMMARY,
+        config=config
+    )
+    
+    proba, y_eval = split_preds[f"Fold{fold_idx}"]
+    
+    # Threshold sweep for this fold
+    sweep, bc, ba = threshold_sweep_with_cost(
+        proba, y_eval, C_FP=C_FP, C_FN=C_FN,
+        SUMMARY=config.SUMMARY, split_name=f"Fold{fold_idx}"
+    )
+    
+    # Create results
+    cost_result = _mk_result("temp", f"Fold{fold_idx}", bc, 'cost')
+    accuracy_result = _mk_result("temp", f"Fold{fold_idx}", ba, 'accuracy')
+    
+    return cost_result, accuracy_result, proba, sweep 

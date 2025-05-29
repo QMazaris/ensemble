@@ -19,129 +19,192 @@ def ensure_directories():
         dir_path.mkdir(exist_ok=True)
 
 def load_metrics_data():
-    """Load all metrics data for visualization."""
+    """Load all metrics data for visualization using data service only."""
+    # Import data service
     try:
-        metrics_df = pd.read_csv(STREAMLIT_DATA_DIR / 'model_metrics.csv')
-        summary_df = pd.read_csv(STREAMLIT_DATA_DIR / 'model_summary.csv')
-        cm_df = pd.read_csv(STREAMLIT_DATA_DIR / 'confusion_matrices.csv')
-        with open(STREAMLIT_DATA_DIR / 'threshold_sweep_data.json', 'r') as f:
-            sweep_data = json.load(f)
-        return metrics_df, summary_df, cm_df, sweep_data
+        import sys
+        from pathlib import Path
+        root_dir = str(Path(__file__).parent.parent.parent)
+        if root_dir not in sys.path:
+            sys.path.insert(0, root_dir)
+        from shared import data_service
+        
+        # Get data from memory
+        metrics_data = data_service.get_metrics_data()
+        sweep_data = data_service.get_sweep_data()
+        
+        if metrics_data and sweep_data:
+            # Convert to DataFrames for compatibility
+            metrics_df = pd.DataFrame(metrics_data.get('model_metrics', []))
+            summary_df = pd.DataFrame(metrics_data.get('model_summary', []))
+            cm_df = pd.DataFrame(metrics_data.get('confusion_matrices', []))
+            return metrics_df, summary_df, cm_df, sweep_data
+        else:
+            print("No data available in memory. Please run the pipeline first.")
+            return None, None, None, None
+            
     except Exception as e:
+        print(f"Could not load from data service: {e}")
         return None, None, None, None
 
+def load_predictions_data():
+    """Load predictions data using data service only."""
+    try:
+        import sys
+        from pathlib import Path
+        root_dir = str(Path(__file__).parent.parent.parent)
+        if root_dir not in sys.path:
+            sys.path.insert(0, root_dir)
+        from shared import data_service
+        
+        # Get predictions from memory
+        predictions_data = data_service.get_predictions_data()
+        
+        if predictions_data:
+            return pd.DataFrame(predictions_data)
+        else:
+            print("No predictions data available in memory. Please run the pipeline first.")
+            return None
+            
+    except Exception as e:
+        print(f"Could not load predictions from data service: {e}")
+        return None
+
 def plot_confusion_matrix(cm_data):
-    """Create a confusion matrix heatmap."""
-    cm = [[cm_data['tn'], cm_data['fp']], 
-          [cm_data['fn'], cm_data['tp']]]
-    fig = go.Figure(data=go.Heatmap(
-        z=cm,
+    """Create a confusion matrix plot using Plotly."""
+    # Extract values
+    tp, fp, tn, fn = cm_data['tp'], cm_data['fp'], cm_data['tn'], cm_data['fn']
+    
+    # Create confusion matrix
+    cm_matrix = np.array([[tn, fp], [fn, tp]])
+    
+    # Create heatmap
+    fig = px.imshow(
+        cm_matrix,
+        labels=dict(x="Predicted", y="Actual", color="Count"),
         x=['Negative', 'Positive'],
         y=['Negative', 'Positive'],
-        text=cm,
-        texttemplate='%{text}',
-        textfont={"size":16},
-        colorscale='RdBu'
-    ))
-    fig.update_layout(
-        title=f"Confusion Matrix - {cm_data['model_name']} ({cm_data['threshold_type']})",
-        xaxis_title="Predicted",
-        yaxis_title="Actual"
+        color_continuous_scale='Blues',
+        text_auto=True,
+        title=f"Confusion Matrix ({cm_data['threshold_type']} threshold)"
     )
+    
     return fig
 
-def plot_roc_curve(probs, y_true):
-    """Create ROC curve plot."""
-    fpr, tpr, _ = roc_curve(y_true, probs)
+def plot_roc_curve(y_true, y_scores):
+    """Create ROC curve plot using Plotly."""
+    fpr, tpr, _ = roc_curve(y_true, y_scores)
     roc_auc = auc(fpr, tpr)
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=fpr, y=tpr,
-        name=f'ROC curve (AUC = {roc_auc:.2f})',
-        line=dict(width=2)
+        mode='lines',
+        name=f'ROC Curve (AUC = {roc_auc:.3f})',
+        line=dict(color='blue', width=2)
     ))
+    
+    # Add diagonal line
     fig.add_trace(go.Scatter(
         x=[0, 1], y=[0, 1],
-        name='Random',
-        line=dict(dash='dash', color='gray')
+        mode='lines',
+        name='Random Classifier',
+        line=dict(color='red', dash='dash')
     ))
+    
     fig.update_layout(
         title='ROC Curve',
         xaxis_title='False Positive Rate',
         yaxis_title='True Positive Rate',
-        yaxis=dict(scaleanchor="x", scaleratio=1),
-        xaxis=dict(constrain='domain'),
-        width=700, height=700
+        showlegend=True
     )
+    
     return fig
 
-def plot_precision_recall_curve(probs, y_true):
-    """Create Precision-Recall curve plot."""
-    precision, recall, _ = precision_recall_curve(y_true, probs)
+def plot_precision_recall_curve(y_true, y_scores):
+    """Create Precision-Recall curve plot using Plotly."""
+    precision, recall, _ = precision_recall_curve(y_true, y_scores)
     pr_auc = auc(recall, precision)
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=recall, y=precision,
-        name=f'PR curve (AUC = {pr_auc:.2f})',
-        line=dict(width=2)
+        mode='lines',
+        name=f'PR Curve (AUC = {pr_auc:.3f})',
+        line=dict(color='green', width=2)
     ))
+    
     fig.update_layout(
         title='Precision-Recall Curve',
         xaxis_title='Recall',
         yaxis_title='Precision',
-        yaxis=dict(scaleanchor="x", scaleratio=1),
-        xaxis=dict(constrain='domain'),
-        width=700, height=700
+        showlegend=True
     )
+    
     return fig
 
-def plot_threshold_sweep(sweep_data, model_name, cost_optimal_thr=None, acc_optimal_thr=None):
-    """Create threshold sweep analysis plot."""
-    fig_sweep = go.Figure()
-    fig_sweep.add_trace(go.Scatter(x=sweep_data['thresholds'], y=sweep_data['costs'], mode='lines', name='Cost'))
-    fig_sweep.add_trace(go.Scatter(x=sweep_data['thresholds'], y=sweep_data['accuracies'], mode='lines', name='Accuracy', yaxis='y2'))
-
-    if cost_optimal_thr is not None:
-        fig_sweep.add_vline(x=cost_optimal_thr, line_dash="dash", line_color="red", 
-                           annotation_text=f"Cost Optimal ({cost_optimal_thr:.3f})")
-    if acc_optimal_thr is not None:
-        fig_sweep.add_vline(x=acc_optimal_thr, line_dash="dash", line_color="green", 
-                           annotation_text=f"Accuracy Optimal ({acc_optimal_thr:.3f})", 
-                           annotation_position="bottom right")
-
-    fig_sweep.update_layout(
-        title=f'Threshold Sweep Analysis - {model_name}',
+def plot_threshold_sweep(sweep_data, model_name):
+    """Create threshold sweep plot using Plotly."""
+    if model_name not in sweep_data:
+        return None
+        
+    data = sweep_data[model_name]
+    thresholds = data['thresholds']
+    costs = data['costs']
+    accuracies = data['accuracies']
+    
+    fig = go.Figure()
+    
+    # Add cost curve
+    fig.add_trace(go.Scatter(
+        x=thresholds, y=costs,
+        mode='lines+markers',
+        name='Cost',
+        yaxis='y',
+        line=dict(color='red')
+    ))
+    
+    # Add accuracy curve on secondary y-axis
+    fig.add_trace(go.Scatter(
+        x=thresholds, y=accuracies,
+        mode='lines+markers',
+        name='Accuracy',
+        yaxis='y2',
+        line=dict(color='blue')
+    ))
+    
+    fig.update_layout(
+        title=f'Threshold Sweep - {model_name}',
         xaxis_title='Threshold',
-        yaxis_title='Cost',
-        yaxis2=dict(
-            title='Accuracy',
-            overlaying='y',
-            side='right',
-            range=[0, 100]
-        )
+        yaxis=dict(title='Cost', side='left'),
+        yaxis2=dict(title='Accuracy', side='right', overlaying='y'),
+        showlegend=True
     )
-    return fig_sweep
+    
+    return fig
 
 def get_plot_groups(plot_dir):
-    """Group plots by type for the gallery."""
-    plot_groups = {}
-    for img in sorted(plot_dir.glob("*.png")):
-        parts = img.stem.split('_')
-        if len(parts) > 1:
-            plot_type = parts[-1]
-            if plot_type in ['cost', 'accuracy'] and len(parts) > 2 and parts[-2] == 'optimized':
-                plot_type = 'Comparison'
-            elif plot_type == 'sweep' and len(parts) > 2:
-                plot_type = 'Threshold Sweep'
-            else:
-                plot_type = 'Other'
-        else:
-            plot_type = 'Other'
-            
-        if plot_type not in plot_groups:
-            plot_groups[plot_type] = []
-        plot_groups[plot_type].append(img)
+    """Group plot files by type."""
+    plot_files = list(plot_dir.glob("*.png"))
+    groups = {}
     
-    return plot_groups 
+    for plot_file in plot_files:
+        name = plot_file.stem
+        if 'comparison' in name.lower():
+            group = 'Comparison'
+        elif 'threshold' in name.lower() or 'sweep' in name.lower():
+            group = 'Threshold Sweep'
+        elif any(model in name for model in ['XGBoost', 'RandomForest', 'LogisticRegression']):
+            # Extract model name
+            for model in ['XGBoost', 'RandomForest', 'LogisticRegression']:
+                if model in name:
+                    group = model
+                    break
+        else:
+            group = 'Other'
+            
+        if group not in groups:
+            groups[group] = []
+        groups[group].append(plot_file)
+    
+    return groups 

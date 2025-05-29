@@ -10,38 +10,36 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 # Import from the same directory
-from .utils import ensure_directories
-from .tabs import (
+from frontend.streamlit.utils import ensure_directories
+from frontend.streamlit.tabs import (
     render_overview_tab, render_model_analysis_tab,
     render_plots_gallery_tab, render_downloads_tab,
     render_data_management_tab,
     render_preprocessing_tab,
     render_model_zoo_tab
 )
-from .sidebar import render_sidebar, save_config
+from frontend.streamlit.sidebar import render_sidebar, save_config
+from shared.config_manager import get_config
 
 # Page config
 st.set_page_config(
-    page_title="AI Pipeline Dash",
+    page_title="🚀 AI Pipeline Dashboard",
     page_icon="🚀",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Ensure directories exist
 ensure_directories()
 
 def load_config_settings():
-    """Loads config settings by reading the backend/config.py file."""
-    config_settings = {}
+    """Loads config settings using the new configuration manager."""
     try:
-        config_path = Path(root_dir) / "backend" / "config.py"
-        if config_path.exists():
-            # Safely execute the config file to load settings into a dictionary
-            # This is a simple approach; for complex configs, a dedicated parser is better
-            exec(config_path.read_text(), {}, config_settings)
+        config = get_config()
+        return config.to_dict()
     except Exception as e:
         st.error(f"Error loading config settings: {e}")
-    return config_settings
+        return {}
 
 def run_pipeline():
     """Run the main pipeline using the virtual environment's Python."""
@@ -50,35 +48,45 @@ def run_pipeline():
             # Get the path to the virtual environment's Python
             venv_python = os.path.join("venv", "Scripts", "python.exe")
             if not os.path.exists(venv_python):
-                st.error("Virtual environment Python not found. Please ensure venv is set up correctly.")
-                return
+                # Fallback to system Python if venv not found
+                venv_python = "python"
                 
             # Run the backend pipeline
             subprocess.run([venv_python, "-m", "backend.run"], check=True, cwd=root_dir)
-            st.success("Pipeline complete and metrics exported!")
+            st.success("✅ Pipeline completed successfully!")
         except subprocess.CalledProcessError as e:
-            st.error(f"Pipeline failed with error: {str(e)}")
+            st.error(f"❌ Pipeline failed with error: {str(e)}")
         except FileNotFoundError:
-            st.error("Error: backend/run.py not found. Please ensure backend/run.py exists.")
+            st.error("❌ Error: backend/run.py not found. Please ensure backend/run.py exists.")
 
 def main():
     """Main application entry point."""
+    # Header
+    st.title("🚀 AI Pipeline Dashboard")
+    st.markdown("---")
+    
     # Sidebar
     config_updates = render_sidebar() # Get latest config settings
     
-    if st.sidebar.button("💾 Save & Reload Config"):
-        save_config(config_updates)
+    # Sidebar buttons
+    st.sidebar.markdown("---")
+    col1, col2 = st.sidebar.columns(2)
     
-    if st.sidebar.button("▶️ Run Pipeline"):
-        run_pipeline()
+    with col1:
+        if st.button("💾 Save Config", use_container_width=True):
+            save_config(config_updates)
+    
+    with col2:
+        if st.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
+            run_pipeline()
 
     # Load config settings for the app
     current_config_settings = load_config_settings()
 
     # Tabs
-    # Passing current_config_settings dictionary to access all config settings
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-        "Overview", "Data Management", "Preprocessing Config", "Model Zoo", "Model Analysis", "Plots Gallery", "Downloads"
+        "📊 Overview", "📁 Data Management", "⚙️ Preprocessing Config", 
+        "🎯 Model Zoo", "📈 Model Analysis", "📊 Plots Gallery", "📥 Downloads"
     ])
     
     with tab1:

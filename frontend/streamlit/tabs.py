@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from app.utils import (
-    load_metrics_data, plot_confusion_matrix, plot_roc_curve,
+from .utils import (
+    load_metrics_data, load_predictions_data, plot_confusion_matrix, plot_roc_curve,
     plot_precision_recall_curve, plot_threshold_sweep, get_plot_groups,
     MODEL_DIR, PLOT_DIR, PREDICTIONS_DIR
 )
@@ -125,9 +125,9 @@ def render_model_curves(model, sweep_data, model_data_split):
     
     # Load predictions and ensure we have the data
     try:
-        pred_df = pd.read_csv(PREDICTIONS_DIR / 'all_model_predictions.csv')
-        if model not in pred_df.columns:
-            st.warning(f"Model {model} not found in predictions file.")
+        pred_df = load_predictions_data()
+        if pred_df is None or model not in pred_df.columns:
+            st.warning(f"Model {model} not found in predictions data.")
             return
             
         # Get the probabilities and true labels for this model
@@ -145,11 +145,11 @@ def render_model_curves(model, sweep_data, model_data_split):
         
         with col3:
             st.write("##### ROC Curve (Full Data)")
-            st.plotly_chart(plot_roc_curve(probs, y_true), use_container_width=True)
+            st.plotly_chart(plot_roc_curve(y_true, probs), use_container_width=True)
         
         with col4:
             st.write("##### Precision-Recall Curve (Full Data)")
-            st.plotly_chart(plot_precision_recall_curve(probs, y_true), use_container_width=True)
+            st.plotly_chart(plot_precision_recall_curve(y_true, probs), use_container_width=True)
 
         # Threshold Analysis
         st.write("##### Probability Distribution and Threshold Sweep")
@@ -162,12 +162,15 @@ def render_model_curves(model, sweep_data, model_data_split):
         )
         st.plotly_chart(fig_hist, use_container_width=True)
 
+        # Threshold sweep plot
+        sweep_fig = plot_threshold_sweep(sweep_data, model)
+        if sweep_fig:
+            st.plotly_chart(sweep_fig, use_container_width=True)
+
         # Get optimal thresholds
         cost_optimal_thr = (model_data_split[model_data_split['threshold_type'] == 'cost']['threshold'].iloc[0] 
                            if not model_data_split[model_data_split['threshold_type'] == 'cost'].empty else None)
         
-    except FileNotFoundError:
-        st.warning("Predictions CSV not found for ROC/PR curves.")
     except Exception as e:
         st.error(f"Error plotting curves: {str(e)}")
 

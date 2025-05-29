@@ -119,6 +119,34 @@ def _average_probabilities(prob_arrays):
     min_len = min(map(len, prob_arrays))
     return np.mean([p[:min_len] for p in prob_arrays], axis=0)
 
+def _average_sweep_data(fold_sweeps):
+    """Average sweep data across multiple folds.
+    
+    Args:
+        fold_sweeps: List of sweep dictionaries from different folds
+        
+    Returns:
+        dict: Averaged sweep data
+    """
+    if not fold_sweeps:
+        return {}
+        
+    avg_sweep = {}
+    # Get all unique thresholds across all folds
+    all_thresholds = sorted(set().union(*[set(s.keys()) for s in fold_sweeps]))
+    
+    for thr in all_thresholds:
+        # For each threshold, average the metrics across folds
+        metrics = {}
+        for metric in ['cost', 'accuracy', 'precision', 'recall', 'tp', 'fp', 'tn', 'fn']:
+            values = [s[thr][metric] for s in fold_sweeps if thr in s]
+            if values:  # Only average if we have values for this threshold
+                metrics[metric] = float(np.mean(values))
+        if metrics:  # Only add if we have metrics
+            avg_sweep[float(thr)] = metrics
+            
+    return avg_sweep
+
 def calculate_final_production_thresholds(model, X, y, C_FP, C_FN, model_name, SUMMARY=None):
     """Calculate and print final production thresholds using the entire dataset.
     

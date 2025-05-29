@@ -2,17 +2,27 @@ import pandas as pd
 import numpy as np
 import json
 from pathlib import Path
-from helpers.metrics import ModelEvaluationResult, ModelEvaluationRun
-from helpers.reporting import print_performance_summary
+from .metrics import ModelEvaluationResult, ModelEvaluationRun
+from .reporting import print_performance_summary
 
 def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
-    """Export evaluation results in a format suitable for Streamlit visualization.
+    """Export evaluation results using in-memory data service instead of CSV files.
     
     Args:
         runs: List of ModelEvaluationRun objects from the pipeline
-        output_dir: Directory to save the exported data
+        output_dir: Directory to save backup files (optional)
         meta_model_names: Set of model names that are meta-models (used for performance summary)
     """
+    # Import data service
+    try:
+        from ...shared import data_service
+    except ImportError:
+        # Fallback for direct execution
+        import sys
+        from pathlib import Path
+        sys.path.append(str(Path(__file__).parent.parent.parent))
+        from shared import data_service
+    
     # Temporary: Print the structure of the received runs object for debugging
     print("\n--- Structure of runs object received by export_metrics_for_streamlit ---")
     for i, run in enumerate(runs):
@@ -32,10 +42,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
              print(f"  Threshold Sweep available: False")
     print("--------------------------------------------------------------------")
     
-    output_dir = Path(output_dir)
-    output_dir.mkdir(exist_ok=True)
-    
-    # 1. Export detailed metrics for each model
+    # 1. Prepare detailed metrics data
     metrics_data = []
     for run in runs:
         # Handle both list and dict cases for results
@@ -72,10 +79,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                     'fn': result.fn
                 })
     
-    metrics_df = pd.DataFrame(metrics_data)
-    metrics_df.to_csv(output_dir / 'model_metrics.csv', index=False)
-    
-    # 2. Export threshold sweep data
+    # 2. Prepare threshold sweep data
     sweep_data = {}
     for run in runs:
         # Only export sweep data for models that have probabilities and sweep data
@@ -121,10 +125,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                 'accuracies': accuracies
             }
     
-    with open(output_dir / 'threshold_sweep_data.json', 'w') as f:
-        json.dump(sweep_data, f)
-    
-    # 3. Export confusion matrices
+    # 3. Prepare confusion matrices data
     cm_data = []
     for run in runs:
         if isinstance(run.results, list):
@@ -150,10 +151,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                     'fn': result.fn
                 })
     
-    cm_df = pd.DataFrame(cm_data)
-    cm_df.to_csv(output_dir / 'confusion_matrices.csv', index=False)
-    
-    # 4. Export summary statistics
+    # 4. Prepare summary statistics data
     summary_data = []
     for run in runs:
         if isinstance(run.results, list):
@@ -183,10 +181,22 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                     'total_samples': (result.tp + result.fp + result.tn + result.fn)
                 })
     
-    summary_df = pd.DataFrame(summary_data)
-    summary_df.to_csv(output_dir / 'model_summary.csv', index=False)
+    # Store all data in the data service
+    metrics_package = {
+        'model_metrics': metrics_data,
+        'confusion_matrices': cm_data,
+        'model_summary': summary_data
+    }
     
-    print(f"Metrics data exported to {output_dir}")
+    data_service.set_metrics_data(metrics_package)
+    data_service.set_sweep_data(sweep_data)
+    
+    # Optionally save to files as backup
+    if output_dir:
+        output_dir = Path(output_dir)
+        data_service.save_to_files(output_dir)
+    
+    print(f"Metrics data stored in memory and optionally saved to {output_dir}")
     print("\nPerformance Summary:")
     if meta_model_names is not None:
         print_performance_summary(runs, meta_model_names)

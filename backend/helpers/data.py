@@ -67,13 +67,17 @@ def Regular_Split(config, X, y):
     }
     return X_train, y_train, train_idx, test_idx, single_splits
 
+def get_cv_splitter(config):
+    """Get a configured StratifiedKFold splitter for consistent cross-validation."""
+    return StratifiedKFold(
+        n_splits=config.N_SPLITS,
+        shuffle=True,
+        random_state=getattr(config, 'RANDOM_STATE', 42)
+    )
+
 def CV_Split(config, X, y):
     """Create K-fold cross-validation splits."""
-    kf = StratifiedKFold(
-        n_splits = config.N_SPLITS,
-        shuffle  = True,
-        random_state = getattr(config, 'RANDOM_STATE', 42)
-    )
+    kf = get_cv_splitter(config)
     cv_splits = []
     for fold_idx, (train_idx, test_idx) in enumerate(kf.split(X, y), start=1):
         X_tr, y_tr = X.iloc[train_idx], y.iloc[train_idx]
