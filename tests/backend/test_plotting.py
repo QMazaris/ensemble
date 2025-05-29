@@ -153,7 +153,7 @@ class TestPlottingHelpers:
     
     def test_plot_runs_at_threshold_no_matches(self):
         """Test model comparison with no matching results."""
-        with pytest.raises(RuntimeError, match="No results for split=NonExistent"):
+        with pytest.raises(RuntimeError, match="No results for split=Nonexistent, threshold_type=cost"):
             plot_runs_at_threshold(
                 self.sample_runs,
                 threshold_type='cost',

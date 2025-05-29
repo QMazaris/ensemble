@@ -1,0 +1,22 @@
+2025-05-29 13:12:05 - ensemble_api - INFO - 🔌 API CALL: GET /results/metrics - Status: ✅ 200 - Time: 0.123s - Data: 3 models, 15 metrics
+2025-05-29 13:12:05 - ensemble_api - INFO - 🔌 API CALL: GET /results/predictions - Status: ✅ 200 - Time: 0.087s - Data: 1000 predictions
+2025-05-29 13:12:05 - ensemble_api - INFO - 🔌 API CALL: GET /results/threshold-sweep - Params: {'model_name': 'XGBoost', 'data_type': 'costs'} - Status: ✅ 200 - Time: 0.234s
+2025-05-29 13:12:05 - ensemble_api - INFO - 🔌 API CALL: GET /results/metrics - Status: ❌ 404 - Time: 0.045s
+2025-05-29 13:12:05 - ensemble_api - INFO - 📊 DATA: FETCH metrics_data - Count: 15 - Source: data_service - Result: ✅
+2025-05-29 13:12:05 - ensemble_api - INFO - 📊 DATA: FETCH predictions_data - Source: data_service - Result: ❌
+2025-05-29 13:12:05 - ensemble_api - INFO - 🚀 Starting pipeline run...
+2025-05-29 13:12:05 - ensemble_api - INFO - 📥 API CALL: POST /pipeline/run
+2025-05-29 13:12:05 - ensemble_api - INFO - 📤 API RESPONSE: POST /pipeline/run - Status: 200 - Time: 0.098s
+2025-05-29 13:12:05 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:12:05 - ensemble_api - INFO - ✅ Returning metrics data: 3 model metrics, 3 summaries, 3 confusion matrices
+2025-05-29 13:12:31 - ensemble_api - INFO - 🔌 API CALL: GET /results/metrics - Status: ✅ 200 - Time: 0.123s - Data: 3 models, 15 metrics
+2025-05-29 13:12:31 - ensemble_api - INFO - 🔌 API CALL: GET /results/predictions - Status: ✅ 200 - Time: 0.087s - Data: 1000 predictions
+2025-05-29 13:12:31 - ensemble_api - INFO - 🔌 API CALL: GET /results/threshold-sweep - Params: {'model_name': 'XGBoost', 'data_type': 'costs'} - Status: ✅ 200 - Time: 0.234s
+2025-05-29 13:12:31 - ensemble_api - INFO - 🔌 API CALL: GET /results/metrics - Status: ❌ 404 - Time: 0.045s
+2025-05-29 13:12:31 - ensemble_api - INFO - 📊 DATA: FETCH metrics_data - Count: 15 - Source: data_service - Result: ✅
+2025-05-29 13:12:31 - ensemble_api - INFO - 📊 DATA: FETCH predictions_data - Source: data_service - Result: ❌
+2025-05-29 13:12:31 - ensemble_api - INFO - 🚀 Starting pipeline run...
+2025-05-29 13:12:31 - ensemble_api - INFO - 📥 API CALL: POST /pipeline/run
+2025-05-29 13:12:32 - ensemble_api - INFO - 📤 API RESPONSE: POST /pipeline/run - Status: 200 - Time: 0.098s
+2025-05-29 13:12:32 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:12:32 - ensemble_api - INFO - ✅ Returning metrics data: 3 model metrics, 3 summaries, 3 confusion matrices

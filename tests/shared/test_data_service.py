@@ -118,7 +118,7 @@ class TestDataService:
             data_service.set_predictions_data(test_predictions)
             
             # Save to files
-            data_service.save_to_files(temp_path)
+            data_service.save_to_files(temp_path, save_csv_backup=True)
             
             # Check that files were created
             assert (temp_path / 'model_metrics.csv').exists()

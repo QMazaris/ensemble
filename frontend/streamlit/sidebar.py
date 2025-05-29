@@ -20,14 +20,14 @@ def render_sidebar():
     st.sidebar.subheader("💰 Cost Settings")
     C_FP = st.sidebar.number_input(
         "Cost of False-Positive", 
-        value=config.cost_fp,
-        min_value=0,
+        value=float(config.cost_fp),
+        min_value=0.0,
         help="Cost penalty for false positive predictions"
     )
     C_FN = st.sidebar.number_input(
         "Cost of False-Negative", 
-        value=config.cost_fn,
-        min_value=0,
+        value=float(config.cost_fn),
+        min_value=0.0,
         help="Cost penalty for false negative predictions (usually higher)"
     )
     
@@ -38,6 +38,7 @@ def render_sidebar():
         value=config.n_splits, 
         min_value=2, 
         max_value=10,
+        step=1,
         help="Number of folds for cross-validation (K-fold is always enabled)"
     )
 
@@ -133,6 +134,7 @@ def render_sidebar():
             min_value=9,
             max_value=15,
             value=config.get('export.onnx_opset_version', 12),
+            step=1,
             help="ONNX opset version to use for model export"
         )
 
@@ -141,12 +143,12 @@ def render_sidebar():
         'costs.false_positive': C_FP,
         'costs.false_negative': C_FN,
         'training.use_kfold': True,
-        'training.n_splits': N_SPLITS,
+        'training.n_splits': int(N_SPLITS),
         'features.filter_data': FilterData,
         'features.variance_threshold': VARIANCE_THRESH if FilterData else 0.01,
         'features.correlation_threshold': CORRELATION_THRESH if FilterData else 0.95,
         'optimization.enabled': OPTIMIZE_HYPERPARAMS,
-        'optimization.iterations': HYPERPARAM_ITER if OPTIMIZE_HYPERPARAMS else 50,
+        'optimization.iterations': int(HYPERPARAM_ITER) if OPTIMIZE_HYPERPARAMS else 50,
         'optimization.optimize_final_model': OPTIMIZE_FINAL_MODEL,
         'export.export_onnx': EXPORT_ONNX,
         'export.onnx_opset_version': int(ONNX_OPSET_VERSION) if EXPORT_ONNX and ONNX_OPSET_VERSION is not None else config.get('export.onnx_opset_version', 12)

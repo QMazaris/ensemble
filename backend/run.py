@@ -181,7 +181,10 @@ def main(config):
 
     if SAVE_PREDICTIONS:
         y_full = y.loc[df.index].values # Get true y for the full dataset
-        predictions_data = save_all_model_probabilities_from_structure(results_total, config.PREDICTIONS_DIR, df.index, y_full, SUMMARY = config.SUMMARY)
+        predictions_data = save_all_model_probabilities_from_structure(
+            results_total, config.PREDICTIONS_DIR, df.index, y_full, 
+            SUMMARY=config.SUMMARY, save_csv_backup=False
+        )
       
     if SAVE_PLOTS:
         # Always use Full split for k-fold mode

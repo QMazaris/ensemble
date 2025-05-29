@@ -194,7 +194,8 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     # Optionally save to files as backup
     if output_dir:
         output_dir = Path(output_dir)
-        data_service.save_to_files(output_dir)
+        # Only save JSON files by default for efficiency, CSV files only if needed for debugging
+        data_service.save_to_files(output_dir, save_csv_backup=False)
     
     print(f"Metrics data stored in memory and optionally saved to {output_dir}")
     print("\nPerformance Summary:")

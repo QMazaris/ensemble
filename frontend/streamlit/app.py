@@ -13,10 +13,8 @@ if root_dir not in sys.path:
 from frontend.streamlit.utils import ensure_directories
 from frontend.streamlit.tabs import (
     render_overview_tab, render_model_analysis_tab,
-    render_plots_gallery_tab, render_downloads_tab,
-    render_data_management_tab,
-    render_preprocessing_tab,
-    render_model_zoo_tab
+    render_downloads_tab, render_data_management_tab,
+    render_preprocessing_tab, render_model_zoo_tab
 )
 from frontend.streamlit.sidebar import render_sidebar, save_config
 from shared.config_manager import get_config
@@ -83,10 +81,10 @@ def main():
     # Load config settings for the app
     current_config_settings = load_config_settings()
 
-    # Tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    # Tabs - Removed Plots Gallery tab
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Overview", "📁 Data Management", "⚙️ Preprocessing Config", 
-        "🎯 Model Zoo", "📈 Model Analysis", "📊 Plots Gallery", "📥 Downloads"
+        "🎯 Model Zoo", "📈 Model Analysis", "📥 Downloads"
     ])
     
     with tab1:
@@ -105,9 +103,6 @@ def main():
         render_model_analysis_tab()
     
     with tab6:
-        render_plots_gallery_tab()
-        
-    with tab7:
         render_downloads_tab()
 
 if __name__ == "__main__":

@@ -43,10 +43,11 @@ def apply_variance_filter(X, threshold=0.01, SUMMARY=None):
     return pd.DataFrame(X_reduced, columns=kept_cols, index=X.index)
 
 def apply_correlation_filter(X, threshold=0.9, SUMMARY=None):
-    """Remove highly correlated features."""
-    corr_matrix = X.corr().abs()
+    """Remove features that are positively correlated above the threshold."""
+    corr_matrix = X.corr()  # KEEP the sign
     upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-    to_drop = [column for column in upper.columns if any(upper[column] > threshold)]
+    # Only drop features with positive correlation above the threshold
+    to_drop = [column for column in upper.columns if (upper[column] > threshold).any()]
     X_reduced = X.drop(columns=to_drop)
     if SUMMARY:
         print(f"🔍 Correlation Filter: Dropped {len(to_drop)} features (threshold = {threshold})")

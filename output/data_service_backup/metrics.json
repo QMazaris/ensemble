@@ -1,0 +1,382 @@
+{
+  "model_metrics": [
+    {
+      "model_name": "kfold_avg_XGBoost",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 98.05168251677362,
+      "precision": 51.19518162996424,
+      "recall": 84.28571428571429,
+      "cost": 44.2,
+      "threshold": 0.41000000000000003,
+      "tp": 6.4,
+      "fp": 8.2,
+      "tn": 466.6,
+      "fn": 1.2
+    },
+    {
+      "model_name": "kfold_avg_XGBoost",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 99.1292320644657,
+      "precision": 77.66666666666666,
+      "recall": 66.78571428571429,
+      "cost": 79.6,
+      "threshold": 0.8400000000000001,
+      "tp": 5.0,
+      "fp": 1.6,
+      "tn": 473.2,
+      "fn": 2.6
+    },
+    {
+      "model_name": "kfold_avg_RandomForest",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 97.80426621307011,
+      "precision": 62.58937198067633,
+      "recall": 86.78571428571429,
+      "cost": 39.6,
+      "threshold": 0.4600000000000001,
+      "tp": 6.6,
+      "fp": 9.6,
+      "tn": 465.2,
+      "fn": 1.0
+    },
+    {
+      "model_name": "kfold_avg_RandomForest",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 99.21221961633292,
+      "precision": 78.25396825396825,
+      "recall": 73.92857142857143,
+      "cost": 61.8,
+      "threshold": 0.5700000000000001,
+      "tp": 5.6,
+      "fp": 1.8,
+      "tn": 473.0,
+      "fn": 2.0
+    },
+    {
+      "model_name": "kfold_avg_AD",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 83.4557528586033,
+      "precision": 6.997567889339573,
+      "recall": 76.07142857142857,
+      "cost": 132.0,
+      "threshold": 0.30000000000000004,
+      "tp": 5.8,
+      "fp": 78.0,
+      "tn": 396.8,
+      "fn": 1.8
+    },
+    {
+      "model_name": "kfold_avg_AD",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 91.45838165683014,
+      "precision": 1.617224880382775,
+      "recall": 11.071428571428571,
+      "cost": 238.4,
+      "threshold": 0.55,
+      "tp": 0.8,
+      "fp": 34.4,
+      "tn": 440.4,
+      "fn": 6.8
+    },
+    {
+      "model_name": "kfold_avg_CL",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 98.09283265895209,
+      "precision": 20.666666666666668,
+      "recall": 10.357142857142858,
+      "cost": 206.4,
+      "threshold": 1.0,
+      "tp": 0.8,
+      "fp": 2.4,
+      "tn": 472.4,
+      "fn": 6.8
+    },
+    {
+      "model_name": "kfold_avg_CL",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 98.09283265895209,
+      "precision": 20.666666666666668,
+      "recall": 10.357142857142858,
+      "cost": 206.4,
+      "threshold": 1.0,
+      "tp": 0.8,
+      "fp": 2.4,
+      "tn": 472.4,
+      "fn": 6.8
+    },
+    {
+      "model_name": "AD_Decision",
+      "split": "Full",
+      "threshold_type": "base",
+      "accuracy": 31.550580431177448,
+      "precision": 2.0796197266785503,
+      "recall": 92.10526315789474,
+      "cost": 347.6,
+      "threshold": null,
+      "tp": "35",
+      "fp": "1648",
+      "tn": "726",
+      "fn": "3"
+    },
+    {
+      "model_name": "CL_Decision",
+      "split": "Full",
+      "threshold_type": "base",
+      "accuracy": 86.27694859038142,
+      "precision": 7.038123167155425,
+      "recall": 63.1578947368421,
+      "cost": 147.4,
+      "threshold": null,
+      "tp": "24",
+      "fp": "317",
+      "tn": "2057",
+      "fn": "14"
+    },
+    {
+      "model_name": "AD_or_CL_Fail",
+      "split": "Full",
+      "threshold_type": "base",
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "cost": 348.6,
+      "threshold": null,
+      "tp": "35",
+      "fp": "1653",
+      "tn": "721",
+      "fn": "3"
+    }
+  ],
+  "confusion_matrices": [
+    {
+      "model_name": "kfold_avg_XGBoost",
+      "split": "Full",
+      "threshold_type": "cost",
+      "tp": 6.4,
+      "fp": 8.2,
+      "tn": 466.6,
+      "fn": 1.2
+    },
+    {
+      "model_name": "kfold_avg_XGBoost",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "tp": 5.0,
+      "fp": 1.6,
+      "tn": 473.2,
+      "fn": 2.6
+    },
+    {
+      "model_name": "kfold_avg_RandomForest",
+      "split": "Full",
+      "threshold_type": "cost",
+      "tp": 6.6,
+      "fp": 9.6,
+      "tn": 465.2,
+      "fn": 1.0
+    },
+    {
+      "model_name": "kfold_avg_RandomForest",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "tp": 5.6,
+      "fp": 1.8,
+      "tn": 473.0,
+      "fn": 2.0
+    },
+    {
+      "model_name": "kfold_avg_AD",
+      "split": "Full",
+      "threshold_type": "cost",
+      "tp": 5.8,
+      "fp": 78.0,
+      "tn": 396.8,
+      "fn": 1.8
+    },
+    {
+      "model_name": "kfold_avg_AD",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "tp": 0.8,
+      "fp": 34.4,
+      "tn": 440.4,
+      "fn": 6.8
+    },
+    {
+      "model_name": "kfold_avg_CL",
+      "split": "Full",
+      "threshold_type": "cost",
+      "tp": 0.8,
+      "fp": 2.4,
+      "tn": 472.4,
+      "fn": 6.8
+    },
+    {
+      "model_name": "kfold_avg_CL",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "tp": 0.8,
+      "fp": 2.4,
+      "tn": 472.4,
+      "fn": 6.8
+    },
+    {
+      "model_name": "AD_Decision",
+      "split": "Full",
+      "threshold_type": "base",
+      "tp": "35",
+      "fp": "1648",
+      "tn": "726",
+      "fn": "3"
+    },
+    {
+      "model_name": "CL_Decision",
+      "split": "Full",
+      "threshold_type": "base",
+      "tp": "24",
+      "fp": "317",
+      "tn": "2057",
+      "fn": "14"
+    },
+    {
+      "model_name": "AD_or_CL_Fail",
+      "split": "Full",
+      "threshold_type": "base",
+      "tp": "35",
+      "fp": "1653",
+      "tn": "721",
+      "fn": "3"
+    }
+  ],
+  "model_summary": [
+    {
+      "model_name": "kfold_avg_XGBoost",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 98.05168251677362,
+      "precision": 51.19518162996424,
+      "recall": 84.28571428571429,
+      "cost": 44.2,
+      "threshold": 0.41000000000000003,
+      "total_samples": 482.40000000000003
+    },
+    {
+      "model_name": "kfold_avg_XGBoost",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 99.1292320644657,
+      "precision": 77.66666666666666,
+      "recall": 66.78571428571429,
+      "cost": 79.6,
+      "threshold": 0.8400000000000001,
+      "total_samples": 482.40000000000003
+    },
+    {
+      "model_name": "kfold_avg_RandomForest",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 97.80426621307011,
+      "precision": 62.58937198067633,
+      "recall": 86.78571428571429,
+      "cost": 39.6,
+      "threshold": 0.4600000000000001,
+      "total_samples": 482.4
+    },
+    {
+      "model_name": "kfold_avg_RandomForest",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 99.21221961633292,
+      "precision": 78.25396825396825,
+      "recall": 73.92857142857143,
+      "cost": 61.8,
+      "threshold": 0.5700000000000001,
+      "total_samples": 482.4
+    },
+    {
+      "model_name": "kfold_avg_AD",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 83.4557528586033,
+      "precision": 6.997567889339573,
+      "recall": 76.07142857142857,
+      "cost": 132.0,
+      "threshold": 0.30000000000000004,
+      "total_samples": 482.40000000000003
+    },
+    {
+      "model_name": "kfold_avg_AD",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 91.45838165683014,
+      "precision": 1.617224880382775,
+      "recall": 11.071428571428571,
+      "cost": 238.4,
+      "threshold": 0.55,
+      "total_samples": 482.4
+    },
+    {
+      "model_name": "kfold_avg_CL",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 98.09283265895209,
+      "precision": 20.666666666666668,
+      "recall": 10.357142857142858,
+      "cost": 206.4,
+      "threshold": 1.0,
+      "total_samples": 482.4
+    },
+    {
+      "model_name": "kfold_avg_CL",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 98.09283265895209,
+      "precision": 20.666666666666668,
+      "recall": 10.357142857142858,
+      "cost": 206.4,
+      "threshold": 1.0,
+      "total_samples": 482.4
+    },
+    {
+      "model_name": "AD_Decision",
+      "split": "Full",
+      "threshold_type": "base",
+      "accuracy": 31.550580431177448,
+      "precision": 2.0796197266785503,
+      "recall": 92.10526315789474,
+      "cost": 347.6,
+      "threshold": null,
+      "total_samples": "2412"
+    },
+    {
+      "model_name": "CL_Decision",
+      "split": "Full",
+      "threshold_type": "base",
+      "accuracy": 86.27694859038142,
+      "precision": 7.038123167155425,
+      "recall": 63.1578947368421,
+      "cost": 147.4,
+      "threshold": null,
+      "total_samples": "2412"
+    },
+    {
+      "model_name": "AD_or_CL_Fail",
+      "split": "Full",
+      "threshold_type": "base",
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "cost": 348.6,
+      "threshold": null,
+      "total_samples": "2412"
+    }
+  ]
+}

@@ -73,7 +73,7 @@ def print_performance_summary(runs, meta_model_names, splits=('Train', 'Test', '
                     print(f"    Cost:      {r.cost}")
                     print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
 
-def save_all_model_probabilities_from_structure(results_total, predictions_dir, index, y_true, SUMMARY=None):
+def save_all_model_probabilities_from_structure(results_total, predictions_dir, index, y_true, SUMMARY=None, save_csv_backup=False):
     """Store all model probabilities in data service instead of saving to CSV."""
     # Import data service
     try:
@@ -129,8 +129,8 @@ def save_all_model_probabilities_from_structure(results_total, predictions_dir, 
     # Store in data service
     data_service.set_predictions_data(predictions_data)
     
-    # Optionally save to file as backup
-    if predictions_dir:
+    # Optionally save to file as backup only if requested
+    if save_csv_backup and predictions_dir:
         import pandas as pd
         from pathlib import Path
         predictions_dir = Path(predictions_dir)

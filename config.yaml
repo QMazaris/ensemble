@@ -1,6 +1,6 @@
 costs:
-  false_negative: 30
-  false_positive: 1
+  false_negative: 30.0
+  false_positive: 1.0
 data:
   exclude_columns:
   - Image
@@ -16,7 +16,7 @@ data:
   target_column: GT_Label
   test_size: 0.2
 export:
-  export_onnx: true
+  export_onnx: false
   onnx_opset_version: 12
   save_models: true
   save_plots: true

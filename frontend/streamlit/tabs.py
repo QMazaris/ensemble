@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import plotly.graph_objects as go
 from .utils import (
     load_metrics_data, load_predictions_data, plot_confusion_matrix, plot_roc_curve,
     plot_precision_recall_curve, plot_threshold_sweep, get_plot_groups,
@@ -14,8 +15,8 @@ import ast
 import importlib.util
 
 def render_overview_tab():
-    """Render the overview tab content."""
-    st.write("### Latest Metrics")
+    """Render the enhanced overview tab with comprehensive model analysis."""
+    st.write("### 📊 Model Performance Dashboard")
     
     metrics_df, summary_df, cm_df, sweep_data = load_metrics_data()
     
@@ -26,43 +27,247 @@ def render_overview_tab():
             (summary_df['threshold_type'] == 'cost')
         ].copy()
 
-        # Filter out decision-based models
-        overview_data = overview_data[
+        # Filter out decision-based models for ML model comparison
+        ml_overview_data = overview_data[
             ~overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
         ]
         
+        # Get base models data separately
+        base_models_data = overview_data[
+            overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
+        ]
+        
         if not overview_data.empty:
-            # Model Performance Overview
-            st.write("#### Model Performance Overview (Cost-Optimal Threshold on Full Data)")
-            fig = px.bar(overview_data, 
-                        x='model_name', 
-                        y=['accuracy', 'precision', 'recall'],
-                        title='Model Performance Metrics',
-                        barmode='group',
-                        labels={'value': 'Score (%)', 'model_name': 'Model'})
-            fig.update_layout(yaxis_range=[0, 100])
-            st.plotly_chart(fig, use_container_width=True)
+            # Create tabs within the overview for different views
+            metrics_tab1, metrics_tab2, metrics_tab3, metrics_tab4 = st.tabs([
+                "🎯 Model Comparison", "📈 Performance Metrics", "💰 Cost Analysis", "🔍 Detailed Tables"
+            ])
             
-            # Cost Analysis
-            st.write("#### Cost Analysis (Cost-Optimal Threshold on Full Data)")
-            fig = px.bar(overview_data,
-                        x='model_name',
-                        y='cost',
-                        title='Model Costs',
-                        labels={'cost': 'Cost', 'model_name': 'Model'})
-            st.plotly_chart(fig, use_container_width=True)
-
-        # Display detailed metrics table
-        st.write("#### Detailed Metrics Table (All Models, Splits, Thresholds)")
-        st.dataframe(summary_df.style.format({
-            'accuracy': '{:.1f}%',
-            'precision': '{:.1f}%',
-            'recall': '{:.1f}%',
-            'cost': '{:.1f}',
-            'threshold': '{:.3f}'
-        }))
+            with metrics_tab1:
+                st.write("#### Machine Learning Models vs Base Models")
+                
+                if not ml_overview_data.empty and not base_models_data.empty:
+                    # Combined comparison chart
+                    fig = px.scatter(overview_data, 
+                                   x='precision', 
+                                   y='recall',
+                                   size='accuracy',
+                                   color='model_name',
+                                   title='Model Performance: Precision vs Recall (Size = Accuracy)',
+                                   labels={'precision': 'Precision (%)', 'recall': 'Recall (%)'},
+                                   hover_data=['accuracy', 'cost'])
+                    fig.update_layout(height=500)
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Cost vs Accuracy scatter plot
+                    fig2 = px.scatter(overview_data,
+                                    x='cost',
+                                    y='accuracy',
+                                    color='model_name',
+                                    title='Cost vs Accuracy Trade-off',
+                                    labels={'cost': 'Cost', 'accuracy': 'Accuracy (%)'},
+                                    hover_data=['precision', 'recall'])
+                    fig2.update_layout(height=500)
+                    st.plotly_chart(fig2, use_container_width=True)
+                
+            with metrics_tab2:
+                if not ml_overview_data.empty:
+                    st.write("#### ML Model Performance Comparison")
+                    
+                    # Performance metrics bar chart
+                    fig = px.bar(ml_overview_data, 
+                                x='model_name', 
+                                y=['accuracy', 'precision', 'recall'],
+                                title='ML Model Performance Metrics (Cost-Optimal Threshold)',
+                                barmode='group',
+                                labels={'value': 'Score (%)', 'model_name': 'Model'})
+                    fig.update_layout(yaxis_range=[0, 100])
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    # Radar chart for model comparison
+                    if len(ml_overview_data) > 1:
+                        fig_radar = create_radar_chart(ml_overview_data)
+                        if fig_radar:
+                            st.plotly_chart(fig_radar, use_container_width=True)
+                
+                if not base_models_data.empty:
+                    st.write("#### Base Model Performance")
+                    fig_base = px.bar(base_models_data,
+                                    x='model_name',
+                                    y=['accuracy', 'precision', 'recall'],
+                                    title='Base Model Performance',
+                                    barmode='group',
+                                    labels={'value': 'Score (%)', 'model_name': 'Model'})
+                    fig_base.update_layout(yaxis_range=[0, 100])
+                    st.plotly_chart(fig_base, use_container_width=True)
+                    
+            with metrics_tab3:
+                st.write("#### Cost Analysis")
+                
+                # Cost comparison
+                fig = px.bar(overview_data,
+                            x='model_name',
+                            y='cost',
+                            title='Model Costs (Lower is Better)',
+                            labels={'cost': 'Cost', 'model_name': 'Model'},
+                            color='cost',
+                            color_continuous_scale='RdYlGn_r')
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Cost breakdown if available
+                if 'fp' in overview_data.columns and 'fn' in overview_data.columns:
+                    # Create cost breakdown chart
+                    cost_breakdown = overview_data.copy()
+                    cost_breakdown['fp_cost'] = cost_breakdown['fp'] * 1.0  # Assuming C_FP = 1
+                    cost_breakdown['fn_cost'] = cost_breakdown['fn'] * 30.0  # Assuming C_FN = 30
+                    
+                    fig_breakdown = px.bar(cost_breakdown,
+                                         x='model_name',
+                                         y=['fp_cost', 'fn_cost'],
+                                         title='Cost Breakdown: False Positives vs False Negatives',
+                                         labels={'value': 'Cost', 'model_name': 'Model'})
+                    st.plotly_chart(fig_breakdown, use_container_width=True)
+                    
+            with metrics_tab4:
+                st.write("#### Detailed Metrics Table (All Models, Splits, Thresholds)")
+                
+                # Add filtering options
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    split_filter = st.selectbox("Filter by Split", 
+                                              options=['All'] + list(summary_df['split'].unique()),
+                                              index=0)
+                with col2:
+                    threshold_filter = st.selectbox("Filter by Threshold Type",
+                                                  options=['All'] + list(summary_df['threshold_type'].unique()),
+                                                  index=0)
+                with col3:
+                    model_filter = st.multiselect("Filter by Models",
+                                                options=summary_df['model_name'].unique(),
+                                                default=summary_df['model_name'].unique())
+                
+                # Apply filters
+                filtered_df = summary_df.copy()
+                if split_filter != 'All':
+                    filtered_df = filtered_df[filtered_df['split'] == split_filter]
+                if threshold_filter != 'All':
+                    filtered_df = filtered_df[filtered_df['threshold_type'] == threshold_filter]
+                if model_filter:
+                    filtered_df = filtered_df[filtered_df['model_name'].isin(model_filter)]
+                
+                st.dataframe(filtered_df.style.format({
+                    'accuracy': '{:.1f}%',
+                    'precision': '{:.1f}%',
+                    'recall': '{:.1f}%',
+                    'cost': '{:.1f}',
+                    'threshold': '{:.3f}'
+                }), use_container_width=True)
+                
+                # Summary statistics
+                if not filtered_df.empty:
+                    st.write("#### Summary Statistics")
+                    summary_stats = filtered_df.groupby('model_name')[['accuracy', 'precision', 'recall', 'cost']].agg(['mean', 'std']).round(2)
+                    st.dataframe(summary_stats)
+        
+        # Additional visualizations if sweep data is available
+        if sweep_data:
+            st.write("### 🔄 Threshold Analysis Dashboard")
+            render_threshold_comparison_plots(sweep_data, summary_df)
+            
     else:
-        st.info("Run the pipeline to see metrics here.")
+        st.info("🔄 Run the pipeline to see comprehensive metrics and visualizations here.")
+
+def create_radar_chart(data):
+    """Create a radar chart for model comparison."""
+    try:
+        metrics = ['accuracy', 'precision', 'recall']
+        
+        fig = go.Figure()
+        
+        for _, row in data.iterrows():
+            fig.add_trace(go.Scatterpolar(
+                r=[row[metric] for metric in metrics],
+                theta=metrics,
+                fill='toself',
+                name=row['model_name']
+            ))
+        
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 100]
+                )),
+            showlegend=True,
+            title="Model Performance Radar Chart"
+        )
+        
+        return fig
+    except Exception as e:
+        st.error(f"Error creating radar chart: {e}")
+        return None
+
+def render_threshold_comparison_plots(sweep_data, summary_df):
+    """Render threshold sweep comparison plots."""
+    if not sweep_data:
+        return
+        
+    # Model selection for threshold analysis
+    available_models = list(sweep_data.keys())
+    if not available_models:
+        return
+        
+    selected_models = st.multiselect(
+        "Select models for threshold comparison",
+        options=available_models,
+        default=available_models[:min(3, len(available_models))]  # Default to first 3 models
+    )
+    
+    if not selected_models:
+        return
+        
+    # Create threshold sweep comparison plots
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("#### Cost vs Threshold")
+        fig_cost = go.Figure()
+        
+        for model in selected_models:
+            model_data = sweep_data[model]
+            fig_cost.add_trace(go.Scatter(
+                x=model_data['thresholds'],
+                y=model_data['costs'],
+                mode='lines+markers',
+                name=model
+            ))
+        
+        fig_cost.update_layout(
+            title="Cost vs Threshold Comparison",
+            xaxis_title="Threshold",
+            yaxis_title="Cost"
+        )
+        st.plotly_chart(fig_cost, use_container_width=True)
+    
+    with col2:
+        st.write("#### Accuracy vs Threshold")
+        fig_acc = go.Figure()
+        
+        for model in selected_models:
+            model_data = sweep_data[model]
+            fig_acc.add_trace(go.Scatter(
+                x=model_data['thresholds'],
+                y=model_data['accuracies'],
+                mode='lines+markers',
+                name=model
+            ))
+        
+        fig_acc.update_layout(
+            title="Accuracy vs Threshold Comparison",
+            xaxis_title="Threshold",
+            yaxis_title="Accuracy (%)"
+        )
+        st.plotly_chart(fig_acc, use_container_width=True)
 
 def render_model_analysis_tab():
     """Render the model analysis tab content."""
@@ -112,10 +317,12 @@ def render_model_analysis_tab():
                 st.plotly_chart(plot_confusion_matrix(cm_data), use_container_width=True)
 
             # Model Curves and Threshold Analysis
-            if model in sweep_data:
+            if sweep_data and model in sweep_data:
                 render_model_curves(model, sweep_data, model_data_split)
             elif model_data_split['threshold_type'].isin(['base']).any():
                 st.info("Threshold sweep data is not available for decision-based models.")
+            else:
+                st.info("Threshold sweep data is not available. This may be because the pipeline hasn't been run yet or the model doesn't have sweep data.")
     else:
         st.info("Run the pipeline to see analysis here.")
 
@@ -174,52 +381,28 @@ def render_model_curves(model, sweep_data, model_data_split):
     except Exception as e:
         st.error(f"Error plotting curves: {str(e)}")
 
-def render_plots_gallery_tab():
-    """Render the plots gallery tab content."""
-    st.write("### Plots Gallery")
-    
-    imgs = sorted(PLOT_DIR.glob("*.png"))
-    if not imgs:
-        st.info("No static plots available. Run the pipeline to generate plots.")
-    else:
-        plot_groups = get_plot_groups(PLOT_DIR)
-        ordered_groups = ['Comparison', 'Threshold Sweep'] + sorted([g for g in plot_groups.keys() 
-                                                                    if g not in ['Comparison', 'Threshold Sweep', 'Other']]) + ['Other']
-        
-        for group in ordered_groups:
-            if group in plot_groups:
-                st.write(f"#### {group.replace('_', ' ').title()} Plots")
-                group_imgs = plot_groups[group]
-                cols_per_row = 3
-                rows = (len(group_imgs) + cols_per_row - 1) // cols_per_row
-                for r in range(rows):
-                    cols = st.columns(cols_per_row)
-                    for c in range(cols_per_row):
-                        img_index = r * cols_per_row + c
-                        if img_index < len(group_imgs):
-                            img = group_imgs[img_index]
-                            
-                            # Add error handling for truncated images
-                            try:
-                                cols[c].image(str(img), caption=img.name, use_container_width=True)
-                            except (OSError, Exception) as e:
-                                st.warning(f"Could not load plot {img.name}: {e}")
-                                # Optionally, display a placeholder or just skip
-
 def render_downloads_tab():
     """Render the downloads tab content."""
     st.write("### Download Files")
     
-    # Download predictions
-    pred_file = MODEL_DIR / "all_model_predictions.csv"
-    if pred_file.exists():
-        with open(pred_file, 'rb') as f:
+    # Download predictions - now using API/data service instead of CSV file
+    try:
+        # Try to get predictions data from utils (which will try API first, then data service)
+        predictions_df = load_predictions_data()
+        
+        if predictions_df is not None:
+            # Convert DataFrame to CSV for download
+            csv_data = predictions_df.to_csv(index=False)
             st.download_button(
                 "Download Predictions CSV",
-                f.read(),
+                csv_data.encode('utf-8'),
                 file_name="all_model_predictions.csv",
                 mime="text/csv"
             )
+        else:
+            st.info("No predictions data available. Please run the pipeline first.")
+    except Exception as e:
+        st.error(f"Error loading predictions data: {str(e)}")
     
     # Download models
     st.write("#### Download Models")
@@ -816,10 +999,10 @@ def render_model_zoo_tab():
             st.error(f"Error updating advanced configuration: {e}")
 
 def render_model_metrics_cheat_tab():
-    """Display the model metrics from model_metrics.csv and explain why using these parameters for evaluation is cheating."""
+    """Display the model metrics from API/data service and explain why using these parameters for evaluation is cheating."""
     st.write("# Model Metrics (Full Data, Cost/Accuracy-Optimal Thresholds)")
     st.write("""
-    This table shows the performance metrics for each model, split, and threshold type as exported from the pipeline's `model_metrics.csv` file.
+    This table shows the performance metrics for each model, split, and threshold type as retrieved from the pipeline's in-memory data.
     
     **What is being shown:**
     - Each row corresponds to a model evaluated on a particular split (e.g., Full, Train, Test) and at a particular threshold (cost-optimal or accuracy-optimal).
@@ -835,19 +1018,25 @@ def render_model_metrics_cheat_tab():
     **In summary:**
     - The metrics here are useful for understanding the *potential* of your models, but should not be used as the final measure of model performance for decision-making or reporting.
     """)
-    metrics_path = Path("output/streamlit_data/model_metrics.csv")
-    if not metrics_path.exists():
-        st.error("model_metrics.csv not found. Please run the pipeline first.")
-        return
-    df = pd.read_csv(metrics_path)
-    st.dataframe(df.style.format({
-        'accuracy': '{:.1f}%',
-        'precision': '{:.1f}%',
-        'recall': '{:.1f}%',
-        'cost': '{:.1f}',
-        'threshold': '{:.3f}'
-    }))
-    st.write("---")
-    st.write("**Legend:**\n- TP: True Positives\n- FP: False Positives\n- TN: True Negatives\n- FN: False Negatives")
+    
+    try:
+        # Try to load metrics data using the API/data service approach
+        metrics_df, _, _, _ = load_metrics_data()
+        
+        if metrics_df is not None and not metrics_df.empty:
+            st.dataframe(metrics_df.style.format({
+                'accuracy': '{:.1f}%',
+                'precision': '{:.1f}%',
+                'recall': '{:.1f}%',
+                'cost': '{:.1f}',
+                'threshold': '{:.3f}'
+            }))
+            st.write("---")
+            st.write("**Legend:**\n- TP: True Positives\n- FP: False Positives\n- TN: True Negatives\n- FN: False Negatives")
+        else:
+            st.error("No model metrics data found. Please run the pipeline first.")
+    except Exception as e:
+        st.error(f"Error loading model metrics: {str(e)}")
+        st.info("Please run the pipeline first to generate model metrics.")
 
 # ... rest of the file ... 
