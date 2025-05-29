@@ -1,6 +1,3 @@
-# Additions that could be made to improve the models:
-# Small Quirk: doesnt fill the AD or CL structures properly when k fold is off
-
 # Standard library imports
 import os
 import sys
@@ -163,7 +160,7 @@ def main(config):
     # This section calculates results for the original base models (AD_Decision, CL_Decision, AD_or_CL_Fail).
     # These runs will always be created here, and added to base_model_runs below.
     structured_base_model_runs = []
-    base_models_to_process = ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']
+    base_models_to_process = config.BASE_MODEL_DECISION_COLUMNS + [config.COMBINED_FAILURE_MODEL_NAME]
 
     # For K-fold, we don't need train/test indices, so pass None
     Legacy_Base(config, C_FP, C_FN, df, y, None, None, structured_base_model_runs, base_models_to_process)
@@ -221,20 +218,43 @@ def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_
     
     Always calculates cost on full dataset and divides by N_SPLITS to make it comparable to k-fold averaged costs.
     """
+    # Get configurable good/bad tags
+    good_tag = config.GOOD_TAG
+    bad_tag = config.BAD_TAG
+    combined_failure_name = config.COMBINED_FAILURE_MODEL_NAME
+    decision_columns = config.BASE_MODEL_DECISION_COLUMNS
+    
     for base in base_models_to_process:
         base_results = []
         base_probs = {}
         
-        # Get the raw decisions for this base model and convert to binary (1/0)
-        if base == 'AD_or_CL_Fail':
-            # fail if either AD or CL says "Bad"
-            decisions = (
-                (df['AD_Decision'] == 'Bad') | 
-                (df['CL_Decision'] == 'Bad')
-            ).astype(int).values
+        # Handle the combined failure model
+        if base == combined_failure_name:
+            # Check if all required decision columns exist in the dataframe
+            missing_cols = [col for col in decision_columns if col not in df.columns]
+            if missing_cols:
+                if config.SUMMARY:
+                    print(f"⚠️  Skipping {base}: Missing decision columns {missing_cols}")
+                continue
+                
+            # fail if any of the decision columns says "Bad"
+            decisions = None
+            for col in decision_columns:
+                col_decisions = (df[col] == bad_tag).astype(int)
+                if decisions is None:
+                    decisions = col_decisions
+                else:
+                    decisions = decisions | col_decisions
+            decisions = decisions.values
         else:
-            # Convert 'Bad'/'Good' to 1/0
-            decisions = (df[base] == 'Bad').astype(int).values
+            # Single decision column
+            if base not in df.columns:
+                if config.SUMMARY:
+                    print(f"⚠️  Skipping {base}: Column not found in dataframe")
+                continue
+                
+            # Convert 'Bad'/'Good' to 1/0 using configurable tags
+            decisions = (df[base] == bad_tag).astype(int).values
             
         y_true = y.values
         

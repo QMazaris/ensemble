@@ -13,6 +13,10 @@ import inspect
 import re
 import ast
 import importlib.util
+import requests
+
+# API Configuration
+API_BASE_URL = "http://localhost:8000"
 
 def render_overview_tab():
     """Render the enhanced overview tab with comprehensive model analysis."""
@@ -21,153 +25,181 @@ def render_overview_tab():
     metrics_df, summary_df, cm_df, sweep_data = load_metrics_data()
     
     if summary_df is not None and not summary_df.empty:
-        # Filter for 'Full' split and cost-optimal threshold for overview
-        overview_data = summary_df[
+        # Filter for 'Full' split with appropriate thresholds for each model type
+        # ML models use 'cost' threshold, base models use 'base' threshold
+        ml_data = summary_df[
             (summary_df['split'] == 'Full') &
-            (summary_df['threshold_type'] == 'cost')
+            (summary_df['threshold_type'] == 'cost') &
+            (~summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
         ].copy()
+        
+        base_data = summary_df[
+            (summary_df['split'] == 'Full') &
+            (summary_df['threshold_type'] == 'base') &
+            (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
+        ].copy()
+        
+        # Combine ML and base model data
+        overview_data = pd.concat([ml_data, base_data], ignore_index=True)
+        
+        # If no base models with 'base' threshold, try other threshold types for base models
+        if base_data.empty:
+            st.info("No base models found with 'base' threshold type. Checking for other threshold types...")
+            # Try to find base models with any threshold type
+            available_base_models = summary_df[
+                (summary_df['split'] == 'Full') &
+                (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
+            ]
+            
+            if not available_base_models.empty:
+                # Group by model and get the first threshold type available for each base model
+                base_data = available_base_models.groupby('model_name').first().reset_index()
+                overview_data = pd.concat([ml_data, base_data], ignore_index=True)
+                st.info(f"Found base models with threshold types: {available_base_models['threshold_type'].unique()}")
 
-        # Filter out decision-based models for ML model comparison
+        # Separate ML models and base models for visualization
         ml_overview_data = overview_data[
             ~overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
         ]
         
-        # Get base models data separately
         base_models_data = overview_data[
             overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
         ]
         
+        st.write(f"**Data Summary**: {len(ml_overview_data)} ML models, {len(base_models_data)} base models found")
+        
         if not overview_data.empty:
-            # Create tabs within the overview for different views
-            metrics_tab1, metrics_tab2, metrics_tab3, metrics_tab4 = st.tabs([
-                "🎯 Model Comparison", "📈 Performance Metrics", "💰 Cost Analysis", "🔍 Detailed Tables"
-            ])
+            # Enhanced comprehensive model comparison chart
+            st.write("#### 🎯 All Models Performance Comparison")
             
-            with metrics_tab1:
-                st.write("#### Machine Learning Models vs Base Models")
+            # Add model type for better visualization
+            overview_data_enhanced = overview_data.copy()
+            overview_data_enhanced['model_type'] = overview_data_enhanced['model_name'].apply(
+                lambda x: 'Base Model' if x in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'] else 'ML Model'
+            )
+            
+            # Debug info
+            st.write(f"**Models in visualization**: {overview_data_enhanced['model_name'].tolist()}")
+            st.write(f"**Model types**: {overview_data_enhanced['model_type'].value_counts().to_dict()}")
+            
+            # ============================================
+            # 🔥 Compact "One-Chart" Performance Overview
+            # ============================================
+
+            st.write("##### Accuracy, Precision & Recall – All Models")
+
+            # Reshape so each metric becomes its own bar
+            metric_cols = ["accuracy", "precision", "recall"]
+            plot_df = (
+                overview_data_enhanced
+                .melt(
+                    id_vars=["model_name"],
+                    value_vars=metric_cols,
+                    var_name="metric",
+                    value_name="score"
+                )
+            )
+
+            fig = px.bar(
+                plot_df,
+                x="model_name",
+                y="score",
+                color="metric",
+                barmode="group",
+                labels={
+                    "score": "Score (%)",
+                    "model_name": "Model",
+                    "metric": "Metric"
+                },
+                title="Model Performance (Grouped by Metric)",
+            )
+
+            fig.update_layout(
+                yaxis_range=[0, 100],
+                height=600,
+                legend_title_text="Metric"
+            )
+
+            st.plotly_chart(fig, use_container_width=True, key="main_performance_bar_chart")
+
+            
+            # Cost Analysis
+            st.write("#### 💰 Cost Analysis")
+            
+            # Cost comparison
+            fig_cost_bar = px.bar(overview_data_enhanced,
+                                x='model_name',
+                                y='cost',
+                                title='Model Costs (Lower is Better)',
+                                labels={'cost': 'Cost', 'model_name': 'Model'},
+                                color='model_type',
+                                color_discrete_map={'ML Model': '#1f77b4', 'Base Model': '#ff7f0e'})
+            fig_cost_bar.update_layout(height=500)
+            st.plotly_chart(fig_cost_bar, use_container_width=True, key="cost_comparison_bar_chart")
+            
+            # Cost breakdown if available
+            if 'fp' in overview_data.columns and 'fn' in overview_data.columns:
+                st.write("##### Cost Breakdown Analysis")
+                cost_breakdown = overview_data_enhanced.copy()
+                cost_breakdown['fp_cost'] = cost_breakdown['fp'] * 1.0  # Assuming C_FP = 1
+                cost_breakdown['fn_cost'] = cost_breakdown['fn'] * 30.0  # Assuming C_FN = 30
                 
-                if not ml_overview_data.empty and not base_models_data.empty:
-                    # Combined comparison chart
-                    fig = px.scatter(overview_data, 
-                                   x='precision', 
-                                   y='recall',
-                                   size='accuracy',
-                                   color='model_name',
-                                   title='Model Performance: Precision vs Recall (Size = Accuracy)',
-                                   labels={'precision': 'Precision (%)', 'recall': 'Recall (%)'},
-                                   hover_data=['accuracy', 'cost'])
-                    fig.update_layout(height=500)
-                    st.plotly_chart(fig, use_container_width=True)
-                    
-                    # Cost vs Accuracy scatter plot
-                    fig2 = px.scatter(overview_data,
-                                    x='cost',
-                                    y='accuracy',
-                                    color='model_name',
-                                    title='Cost vs Accuracy Trade-off',
-                                    labels={'cost': 'Cost', 'accuracy': 'Accuracy (%)'},
-                                    hover_data=['precision', 'recall'])
-                    fig2.update_layout(height=500)
-                    st.plotly_chart(fig2, use_container_width=True)
-                
-            with metrics_tab2:
-                if not ml_overview_data.empty:
-                    st.write("#### ML Model Performance Comparison")
-                    
-                    # Performance metrics bar chart
-                    fig = px.bar(ml_overview_data, 
-                                x='model_name', 
-                                y=['accuracy', 'precision', 'recall'],
-                                title='ML Model Performance Metrics (Cost-Optimal Threshold)',
-                                barmode='group',
-                                labels={'value': 'Score (%)', 'model_name': 'Model'})
-                    fig.update_layout(yaxis_range=[0, 100])
-                    st.plotly_chart(fig, use_container_width=True)
-                    
-                    # Radar chart for model comparison
-                    if len(ml_overview_data) > 1:
-                        fig_radar = create_radar_chart(ml_overview_data)
-                        if fig_radar:
-                            st.plotly_chart(fig_radar, use_container_width=True)
-                
-                if not base_models_data.empty:
-                    st.write("#### Base Model Performance")
-                    fig_base = px.bar(base_models_data,
-                                    x='model_name',
-                                    y=['accuracy', 'precision', 'recall'],
-                                    title='Base Model Performance',
-                                    barmode='group',
-                                    labels={'value': 'Score (%)', 'model_name': 'Model'})
-                    fig_base.update_layout(yaxis_range=[0, 100])
-                    st.plotly_chart(fig_base, use_container_width=True)
-                    
-            with metrics_tab3:
-                st.write("#### Cost Analysis")
-                
-                # Cost comparison
-                fig = px.bar(overview_data,
-                            x='model_name',
-                            y='cost',
-                            title='Model Costs (Lower is Better)',
-                            labels={'cost': 'Cost', 'model_name': 'Model'},
-                            color='cost',
-                            color_continuous_scale='RdYlGn_r')
-                st.plotly_chart(fig, use_container_width=True)
-                
-                # Cost breakdown if available
-                if 'fp' in overview_data.columns and 'fn' in overview_data.columns:
-                    # Create cost breakdown chart
-                    cost_breakdown = overview_data.copy()
-                    cost_breakdown['fp_cost'] = cost_breakdown['fp'] * 1.0  # Assuming C_FP = 1
-                    cost_breakdown['fn_cost'] = cost_breakdown['fn'] * 30.0  # Assuming C_FN = 30
-                    
-                    fig_breakdown = px.bar(cost_breakdown,
-                                         x='model_name',
-                                         y=['fp_cost', 'fn_cost'],
-                                         title='Cost Breakdown: False Positives vs False Negatives',
-                                         labels={'value': 'Cost', 'model_name': 'Model'})
-                    st.plotly_chart(fig_breakdown, use_container_width=True)
-                    
-            with metrics_tab4:
-                st.write("#### Detailed Metrics Table (All Models, Splits, Thresholds)")
-                
-                # Add filtering options
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    split_filter = st.selectbox("Filter by Split", 
-                                              options=['All'] + list(summary_df['split'].unique()),
+                fig_breakdown = px.bar(cost_breakdown,
+                                     x='model_name',
+                                     y=['fp_cost', 'fn_cost'],
+                                     title='Cost Breakdown: False Positives vs False Negatives',
+                                     labels={'value': 'Cost', 'model_name': 'Model'},
+                                     color_discrete_map={'fp_cost': '#ff9999', 'fn_cost': '#66b3ff'})
+                fig_breakdown.update_layout(height=500)
+                st.plotly_chart(fig_breakdown, use_container_width=True, key="cost_breakdown_bar_chart")
+            
+            # Radar chart for model comparison (ML models only due to complexity)
+            if not ml_overview_data.empty and len(ml_overview_data) > 1:
+                st.write("#### 📈 ML Models Radar Chart")
+                fig_radar = create_radar_chart(ml_overview_data)
+                if fig_radar:
+                    st.plotly_chart(fig_radar, use_container_width=True, key="ml_models_radar_chart")
+            
+            # Detailed tables section
+            st.write("#### 🔍 Detailed Metrics Table")
+            
+            # Add filtering options
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                split_filter = st.selectbox("Filter by Split", 
+                                          options=['All'] + list(summary_df['split'].unique()),
+                                          index=0)
+            with col2:
+                threshold_filter = st.selectbox("Filter by Threshold Type",
+                                              options=['All'] + list(summary_df['threshold_type'].unique()),
                                               index=0)
-                with col2:
-                    threshold_filter = st.selectbox("Filter by Threshold Type",
-                                                  options=['All'] + list(summary_df['threshold_type'].unique()),
-                                                  index=0)
-                with col3:
-                    model_filter = st.multiselect("Filter by Models",
-                                                options=summary_df['model_name'].unique(),
-                                                default=summary_df['model_name'].unique())
-                
-                # Apply filters
-                filtered_df = summary_df.copy()
-                if split_filter != 'All':
-                    filtered_df = filtered_df[filtered_df['split'] == split_filter]
-                if threshold_filter != 'All':
-                    filtered_df = filtered_df[filtered_df['threshold_type'] == threshold_filter]
-                if model_filter:
-                    filtered_df = filtered_df[filtered_df['model_name'].isin(model_filter)]
-                
-                st.dataframe(filtered_df.style.format({
-                    'accuracy': '{:.1f}%',
-                    'precision': '{:.1f}%',
-                    'recall': '{:.1f}%',
-                    'cost': '{:.1f}',
-                    'threshold': '{:.3f}'
-                }), use_container_width=True)
-                
-                # Summary statistics
-                if not filtered_df.empty:
-                    st.write("#### Summary Statistics")
-                    summary_stats = filtered_df.groupby('model_name')[['accuracy', 'precision', 'recall', 'cost']].agg(['mean', 'std']).round(2)
-                    st.dataframe(summary_stats)
+            with col3:
+                model_filter = st.multiselect("Filter by Models",
+                                            options=summary_df['model_name'].unique(),
+                                            default=summary_df['model_name'].unique())
+            
+            # Apply filters
+            filtered_df = summary_df.copy()
+            if split_filter != 'All':
+                filtered_df = filtered_df[filtered_df['split'] == split_filter]
+            if threshold_filter != 'All':
+                filtered_df = filtered_df[filtered_df['threshold_type'] == threshold_filter]
+            if model_filter:
+                filtered_df = filtered_df[filtered_df['model_name'].isin(model_filter)]
+            
+            st.dataframe(filtered_df.style.format({
+                'accuracy': '{:.1f}%',
+                'precision': '{:.1f}%',
+                'recall': '{:.1f}%',
+                'cost': '{:.1f}',
+                'threshold': '{:.3f}'
+            }), use_container_width=True)
+            
+            # Summary statistics
+            if not filtered_df.empty:
+                st.write("##### Summary Statistics")
+                summary_stats = filtered_df.groupby('model_name')[['accuracy', 'precision', 'recall', 'cost']].agg(['mean', 'std']).round(2)
+                st.dataframe(summary_stats)
         
         # Additional visualizations if sweep data is available
         if sweep_data:
@@ -176,6 +208,15 @@ def render_overview_tab():
             
     else:
         st.info("🔄 Run the pipeline to see comprehensive metrics and visualizations here.")
+        
+        # Show example of what will be displayed
+        st.write("#### Preview: What you'll see after running the pipeline")
+        st.write("- **All Models Performance Comparison**: Bar charts showing accuracy, precision, and recall for both ML models and base models")
+        st.write("- **Enhanced Scatter Plots**: Precision vs Recall and Cost vs Accuracy for all models with model type distinction")
+        st.write("- **Cost Analysis**: Detailed cost breakdowns and comparisons")
+        st.write("- **Interactive Filtering**: Filter by split, threshold type, and specific models")
+        st.write("- **Summary Statistics**: Statistical summaries of model performance")
+        st.write("- **Threshold Analysis**: Advanced threshold sweep visualizations")
 
 def create_radar_chart(data):
     """Create a radar chart for model comparison."""
@@ -247,7 +288,7 @@ def render_threshold_comparison_plots(sweep_data, summary_df):
             xaxis_title="Threshold",
             yaxis_title="Cost"
         )
-        st.plotly_chart(fig_cost, use_container_width=True)
+        st.plotly_chart(fig_cost, use_container_width=True, key="threshold_cost_comparison")
     
     with col2:
         st.write("#### Accuracy vs Threshold")
@@ -267,7 +308,7 @@ def render_threshold_comparison_plots(sweep_data, summary_df):
             xaxis_title="Threshold",
             yaxis_title="Accuracy (%)"
         )
-        st.plotly_chart(fig_acc, use_container_width=True)
+        st.plotly_chart(fig_acc, use_container_width=True, key="threshold_accuracy_comparison")
 
 def render_model_analysis_tab():
     """Render the model analysis tab content."""
@@ -314,7 +355,7 @@ def render_model_analysis_tab():
                                        if len(cm_threshold_options) > 1 else cm_threshold_options[0])
 
                 cm_data = model_cm_split[model_cm_split['threshold_type'] == selected_cm_threshold].iloc[0]
-                st.plotly_chart(plot_confusion_matrix(cm_data), use_container_width=True)
+                st.plotly_chart(plot_confusion_matrix(cm_data), use_container_width=True, key=f"confusion_matrix_{model}_{selected_split}_{selected_cm_threshold}")
 
             # Model Curves and Threshold Analysis
             if sweep_data and model in sweep_data:
@@ -352,11 +393,11 @@ def render_model_curves(model, sweep_data, model_data_split):
         
         with col3:
             st.write("##### ROC Curve (Full Data)")
-            st.plotly_chart(plot_roc_curve(y_true, probs), use_container_width=True)
+            st.plotly_chart(plot_roc_curve(y_true, probs), use_container_width=True, key=f"roc_curve_{model}")
         
         with col4:
             st.write("##### Precision-Recall Curve (Full Data)")
-            st.plotly_chart(plot_precision_recall_curve(y_true, probs), use_container_width=True)
+            st.plotly_chart(plot_precision_recall_curve(y_true, probs), use_container_width=True, key=f"pr_curve_{model}")
 
         # Threshold Analysis
         st.write("##### Probability Distribution and Threshold Sweep")
@@ -367,12 +408,12 @@ def render_model_curves(model, sweep_data, model_data_split):
             nbins=50,
             labels={'x': 'Probability', 'y': 'Count'}
         )
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, use_container_width=True, key=f"prob_distribution_{model}")
 
         # Threshold sweep plot
         sweep_fig = plot_threshold_sweep(sweep_data, model)
         if sweep_fig:
-            st.plotly_chart(sweep_fig, use_container_width=True)
+            st.plotly_chart(sweep_fig, use_container_width=True, key=f"threshold_sweep_{model}")
 
         # Get optimal thresholds
         cost_optimal_thr = (model_data_split[model_data_split['threshold_type'] == 'cost']['threshold'].iloc[0] 
@@ -644,182 +685,106 @@ def update_config_file(updates):
     except Exception as e:
         st.error(f"Error updating config file: {e}")
 
-def render_preprocessing_tab(config_settings):
-    """Render the data preprocessing and configuration tab."""
-    # Display success message if it exists in session state
-    if st.session_state.get('config_update_success', False):
-        st.success("Config updated successfully!")
-        # Clear the success message after displaying it
-        st.session_state.config_update_success = False
+def auto_save_data_config(config_updates, notification_container):
+    """Automatically save data configuration changes."""
+    # Initialize session state for previous data config if not exists
+    if 'previous_data_config' not in st.session_state:
+        st.session_state.previous_data_config = {}
     
-    st.write("### Data Preprocessing & Configuration")
+    # Check if configuration has changed
+    config_changed = False
+    for key, value in config_updates.items():
+        if key not in st.session_state.previous_data_config or st.session_state.previous_data_config[key] != value:
+            config_changed = True
+            break
     
-    data_dir = Path("data")
-    if not data_dir.exists():
-        st.warning("Data directory not found. Please upload data in the Data Management tab.")
-        return
-    
-    available_datasets = list(data_dir.glob("*.csv"))
-    if not available_datasets:
-        st.info("No CSV datasets found in the data directory. Please upload data first.")
-        return
+    # Save if configuration changed
+    if config_changed:
+        try:
+            update_config_file(config_updates)
+            # Update previous config in session state
+            st.session_state.previous_data_config = config_updates.copy()
+            # Show auto-save notification
+            notification_container.success("✅ Data config auto-saved!", icon="💾")
+            return True
+        except Exception as e:
+            notification_container.error(f"❌ Auto-save failed: {str(e)}")
+            return False
+    return False
 
-    st.write("#### Dataset Selection")
-    # Use file names relative to the data directory for cleaner display and saving
-    dataset_options = [f.name for f in available_datasets]
+def auto_save_base_model_config(config_data, notification_container):
+    """Automatically save base model configuration changes."""
+    # Initialize session state for previous base model config if not exists
+    if 'previous_base_model_config' not in st.session_state:
+        st.session_state.previous_base_model_config = {}
     
-    # Attempt to pre-select the currently configured dataset
-    current_data_path_name = Path(config_settings.get('DATA_PATH', '')).name
-    try:
-        default_index = dataset_options.index(current_data_path_name) if current_data_path_name in dataset_options else 0
-    except ValueError:
-        default_index = 0 # Fallback if config path is invalid or file not found
+    # Check if configuration has changed
+    config_changed = False
+    for key, value in config_data.items():
+        if key not in st.session_state.previous_base_model_config or st.session_state.previous_base_model_config[key] != value:
+            config_changed = True
+            break
+    
+    # Save if configuration changed
+    if config_changed:
+        try:
+            response = requests.post(f"{API_BASE_URL}/config/base-models", json=config_data)
+            if response.status_code == 200:
+                # Update previous config in session state
+                st.session_state.previous_base_model_config = config_data.copy()
+                # Show auto-save notification
+                notification_container.success("✅ Base model config auto-saved!", icon="💾")
+                return True
+            else:
+                notification_container.error(f"❌ Auto-save failed: {response.text}")
+                return False
+        except Exception as e:
+            notification_container.error(f"❌ Auto-save failed: {str(e)}")
+            return False
+    return False
 
-    selected_dataset_name = st.selectbox(
-        "Choose a dataset", 
-        dataset_options,
-        index=default_index
-    )
+def auto_save_model_config(selected_model, edited_params, config_content, config_path, available_models, notification_container):
+    """Automatically save model configuration changes."""
+    # Initialize session state for previous model config if not exists
+    if 'previous_model_config' not in st.session_state:
+        st.session_state.previous_model_config = {}
     
-    selected_dataset_path = data_dir / selected_dataset_name
+    # Create a unique key for this model's configuration
+    model_config_key = f"{selected_model}_config"
     
-    df = None
-    try:
-        df = pd.read_csv(selected_dataset_path, low_memory=False)
-        # Convert object columns to string for consistent handling
-        for col in df.columns:
-             if df[col].dtype == 'object':
-                 df[col] = df[col].astype(str)
-                 
-        st.write("**Selected Dataset Preview:**")
-        st.dataframe(df.head())
-        
-    except Exception as e:
-        st.error(f"Error loading dataset: {e}")
-        return # Stop if dataset can't be loaded
-        
-    st.write("#### Column Configuration")
+    # Check if configuration has changed
+    config_changed = False
+    if model_config_key not in st.session_state.previous_model_config or st.session_state.previous_model_config[model_config_key] != edited_params:
+        config_changed = True
     
-    all_columns = df.columns.tolist()
-    
-    # Target Column Selection
-    current_target = config_settings.get('TARGET', '')
-    try:
-        target_default_index = all_columns.index(current_target) if current_target and current_target in all_columns else 0
-    except ValueError:
-         target_default_index = 0
-         
-    selected_target_column = st.selectbox(
-        "Select Target Column",
-        all_columns,
-        index=target_default_index
-    )
-    
-    # Exclude Columns Selection
-    current_exclude = config_settings.get('EXCLUDE_COLS', [])
-    # Ensure current_exclude are strings for comparison
-    current_exclude_str = [str(col) for col in current_exclude]
+    # Save if configuration changed
+    if config_changed:
+        try:
+            # Construct new model definition
+            model_class = available_models[selected_model]['class']
+            param_str = ', '.join(f"{k}={repr(v)}" for k, v in edited_params.items())
+            new_model_def = f"'{selected_model}': {model_class.__name__}({param_str})"
 
-    selected_exclude_columns = st.multiselect(
-        "Select Columns to Exclude",
-        all_columns,
-        default=[col for col in all_columns if col in current_exclude_str] # Pre-select based on config
-    )
-    
-    # Ensure target column is not in excluded columns
-    if selected_target_column in selected_exclude_columns:
-        st.warning("Target column cannot be in the list of excluded columns. Removing target from excluded.")
-        selected_exclude_columns.remove(selected_target_column)
-        st.rerun()
-
-    # Save Config Button
-    st.write("#### Save Configuration")
-    if st.button("💾 Save Data & Column Config"):
-        config_updates = {
-            'DATA_PATH': selected_dataset_path.as_posix(), # Use forward slashes
-            'TARGET': selected_target_column,
-            'EXCLUDE_COLS': selected_exclude_columns
-        }
-        update_config_file(config_updates)
-        
-    # --- Preprocessing Previews ---
-    st.write("#### Preprocessing Previews")
-    
-    # Add filtering settings inputs here
-    st.write("##### Filtering Settings for Preview")
-    col_filter1, col_filter2 = st.columns(2)
-    with col_filter1:
-        # Use config settings as default values
-        preview_variance_threshold = st.number_input(
-            "Variance Threshold (>)",
-            min_value=0.0,
-            max_value=1.0,
-            step=0.001,
-            value=float(config_settings.get('VARIANCE_THRESH', 0.01)), # Ensure float for number_input
-            format="%.3f"
-        )
-    with col_filter2:
-        # Use config settings as default values
-        preview_correlation_threshold = st.number_input(
-            "Correlation Threshold (<)",
-            min_value=0.0,
-            max_value=1.0,
-            step=0.001,
-            value=float(config_settings.get('CORRELATION_THRESH', 0.95)), # Ensure float for number_input
-            format="%.3f"
-        )
-        
-    # Button to trigger preview update
-    if st.button("🔄 Update Previews"):
-        # Streamlit will automatically rerun the script from top,
-        # updating the previews based on the current widget values.
-        st.rerun()
-
-    # Data for preprocessing (excluding target and explicitly excluded columns)
-    cols_to_process = [col for col in all_columns if col != selected_target_column and col not in selected_exclude_columns]
-    df_processed = df[cols_to_process].copy()
-
-    # 1. One-Hot Encoding Preview
-    st.write("##### After One-Hot Encoding")
-    try:
-        df_ohe = pd.get_dummies(df_processed, drop_first=True)
-        st.dataframe(df_ohe.head())
-        st.write(f"Shape after OHE: {df_ohe.shape[0]} rows × {df_ohe.shape[1]} columns")
-    except Exception as e:
-        st.error(f"Error during One-Hot Encoding preview: {e}")
-        
-    # 2. Feature Filtering Preview
-    st.write("##### After Feature Filtering (Variance & Correlation)")
-    try:
-        # Feature Filtering logic (similar to your pipeline)
-        # Requires config settings for thresholds
-        # Use values from the input widgets, not config_settings directly
-        variance_threshold = preview_variance_threshold
-        correlation_threshold = preview_correlation_threshold
-        
-        df_filtered = df_ohe.copy() # Start with OHE data
-        
-        # Remove low variance features
-        variances = df_filtered.var()
-        cols_to_keep_variance = variances[variances > variance_threshold].index
-        df_filtered = df_filtered[cols_to_keep_variance]
-        
-        # Remove highly correlated features (simple approach, can be improved)
-        corr_matrix = df_filtered.corr().abs()
-        upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-        cols_to_drop_corr = [column for column in upper.columns if any(upper[column] > correlation_threshold)]
-        df_filtered = df_filtered.drop(cols_to_drop_corr, axis=1)
-        
-        st.dataframe(df_filtered.head())
-        st.write(f"Shape after Filtering: {df_filtered.shape[0]} rows × {df_filtered.shape[1]} columns")
-        st.write(f"Applied Variance Threshold: >{variance_threshold}")
-        st.write(f"Applied Correlation Threshold: <{correlation_threshold} (absolute value)")
-        
-    except Exception as e:
-        st.error(f"Error during Feature Filtering preview: {e}")
+            # Find and replace the model definition
+            model_pattern = rf"'{selected_model}':\s*{model_class.__name__}\(.*?\)"
+            new_config_content = re.sub(model_pattern, new_model_def, config_content, flags=re.DOTALL)
+            
+            # Write updated config
+            config_path.write_text(new_config_content)
+            
+            # Update previous config in session state
+            st.session_state.previous_model_config[model_config_key] = edited_params.copy()
+            
+            # Show auto-save notification
+            notification_container.success(f"✅ {selected_model} config auto-saved!", icon="💾")
+            return True
+        except Exception as e:
+            notification_container.error(f"❌ Auto-save failed: {str(e)}")
+            return False
+    return False
 
 def render_model_zoo_tab():
-    """Render the model zoo tab content."""
+    """Render the model zoo tab content with automatic saving."""
     st.write("### Model Zoo")
 
     # Import required model classes
@@ -905,7 +870,7 @@ def render_model_zoo_tab():
 
     # Model Selection
     st.write("#### Select and Configure Model")
-    selected_model = st.selectbox("Choose a model to configure", list(available_models.keys()))
+    selected_model = st.selectbox("Choose a model to configure", list(available_models.keys()), key="model_zoo_selection")
 
     if selected_model:
         st.write(f"##### Configure {selected_model} Parameters")
@@ -917,7 +882,7 @@ def render_model_zoo_tab():
             # Get parameters from the model instance
             current_config = model_instance.get_params()
 
-        # Create parameter input widgets
+        # Create parameter input widgets with unique keys
         edited_params = {}
         for param_name, param_info in available_models[selected_model]['params'].items():
             current_value = current_config.get(param_name, param_info['default'])
@@ -926,7 +891,8 @@ def render_model_zoo_tab():
                 edited_params[param_name] = st.selectbox(
                     param_name,
                     options=param_info['options'],
-                    index=param_info['options'].index(current_value) if current_value in param_info['options'] else 0
+                    index=param_info['options'].index(current_value) if current_value in param_info['options'] else 0,
+                    key=f"model_zoo_{selected_model}_{param_name}_select"
                 )
             elif param_info['type'] == 'number':
                 # Convert all numeric values to float for consistency
@@ -936,32 +902,17 @@ def render_model_zoo_tab():
                     min_value=float(param_info['min']),
                     max_value=float(param_info['max']),
                     step=float(param_info.get('step', 1.0)),
-                    value=current_value
+                    value=current_value,
+                    key=f"model_zoo_{selected_model}_{param_name}_number"
                 )
 
         # Display current configuration
         st.write("##### Current Configuration")
         st.json(edited_params)
 
-        # Save button
-        if st.button("💾 Save Model Configuration"):
-            # Construct new model definition
-            model_class = available_models[selected_model]['class']
-            param_str = ', '.join(f"{k}={repr(v)}" for k, v in edited_params.items())
-            new_model_def = f"'{selected_model}': {model_class.__name__}({param_str})"
-
-            # Update config file
-            try:
-                # Find and replace the model definition
-                model_pattern = rf"'{selected_model}':\s*{model_class.__name__}\(.*?\)"
-                new_config_content = re.sub(model_pattern, new_model_def, config_content, flags=re.DOTALL)
-                
-                # Write updated config
-                config_path.write_text(new_config_content)
-                st.success(f"Configuration for {selected_model} updated successfully!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error updating configuration: {e}")
+        # Auto-save model configuration
+        model_config_notification = st.empty()
+        auto_save_model_config(selected_model, edited_params, config_content, config_path, available_models, model_config_notification)
 
     # Advanced Configuration Editor
     st.write("#### Advanced Configuration Editor")
@@ -974,14 +925,23 @@ def render_model_zoo_tab():
     st.write("##### Model Definitions")
     # Now using AST extracted code, no need for cleaning here
     st.code(models_code, language='python')
-    edited_models_code = st.text_area("Edit MODELS", models_code, height=300)
+    edited_models_code = st.text_area("Edit MODELS", models_code, height=300, key="advanced_models_editor")
 
     st.write("##### Hyperparameter Search Space")
     # Now using AST extracted code, no need for cleaning here
     st.code(hyperparams_code, language='python')
-    edited_hyperparams_code = st.text_area("Edit HYPERPARAM_SPACE", hyperparams_code, height=200)
+    edited_hyperparams_code = st.text_area("Edit HYPERPARAM_SPACE", hyperparams_code, height=200, key="advanced_hyperparams_editor")
 
-    if st.button("💾 Save Advanced Configuration"):
+    # Auto-save advanced configuration
+    if 'previous_advanced_config' not in st.session_state:
+        st.session_state.previous_advanced_config = {'models': '', 'hyperparams': ''}
+    
+    advanced_config_changed = (
+        st.session_state.previous_advanced_config['models'] != edited_models_code or
+        st.session_state.previous_advanced_config['hyperparams'] != edited_hyperparams_code
+    )
+    
+    if advanced_config_changed and edited_models_code and edited_hyperparams_code:
         try:
             # Replace the sections in the config file while preserving the rest
             new_config_content = config_content
@@ -993,10 +953,16 @@ def render_model_zoo_tab():
                 new_config_content = re.sub(r"HYPERPARAM_SPACE\s*=\s*\{[^}]*\}", new_hyperparams_section, new_config_content, flags=re.DOTALL)
             
             config_path.write_text(new_config_content)
-            st.success("Advanced configuration updated successfully! You may need to restart the app to see the changes take effect.")
-            st.rerun()
+            
+            # Update previous config in session state
+            st.session_state.previous_advanced_config = {
+                'models': edited_models_code,
+                'hyperparams': edited_hyperparams_code
+            }
+            
+            st.success("✅ Advanced configuration auto-saved! You may need to restart the app to see the changes take effect.", icon="💾")
         except Exception as e:
-            st.error(f"Error updating advanced configuration: {e}")
+            st.error(f"❌ Auto-save failed: {str(e)}")
 
 def render_model_metrics_cheat_tab():
     """Display the model metrics from API/data service and explain why using these parameters for evaluation is cheating."""
@@ -1039,4 +1005,259 @@ def render_model_metrics_cheat_tab():
         st.error(f"Error loading model metrics: {str(e)}")
         st.info("Please run the pipeline first to generate model metrics.")
 
-# ... rest of the file ... 
+def render_preprocessing_tab(config_settings):
+    """Render the data preprocessing and configuration tab with automatic saving."""
+    # Display success message if it exists in session state
+    if st.session_state.get('config_update_success', False):
+        st.success("Config updated successfully!")
+        # Clear the success message after displaying it
+        st.session_state.config_update_success = False
+    
+    st.write("### Data Preprocessing & Configuration")
+    
+    data_dir = Path("data")
+    if not data_dir.exists():
+        st.warning("Data directory not found. Please upload data in the Data Management tab.")
+        return
+    
+    available_datasets = list(data_dir.glob("*.csv"))
+    if not available_datasets:
+        st.info("No CSV datasets found in the data directory. Please upload data first.")
+        return
+
+    st.write("#### Dataset Selection")
+    # Use file names relative to the data directory for cleaner display and saving
+    dataset_options = [f.name for f in available_datasets]
+    
+    # Attempt to pre-select the currently configured dataset
+    current_data_path_name = Path(config_settings.get('DATA_PATH', '')).name
+    try:
+        default_index = dataset_options.index(current_data_path_name) if current_data_path_name in dataset_options else 0
+    except ValueError:
+        default_index = 0 # Fallback if config path is invalid or file not found
+
+    selected_dataset_name = st.selectbox(
+        "Choose a dataset", 
+        dataset_options,
+        index=default_index,
+        key="dataset_selection"
+    )
+    
+    selected_dataset_path = data_dir / selected_dataset_name
+    
+    df = None
+    try:
+        df = pd.read_csv(selected_dataset_path, low_memory=False)
+        # Convert object columns to string for consistent handling
+        for col in df.columns:
+             if df[col].dtype == 'object':
+                 df[col] = df[col].astype(str)
+                 
+        st.write("**Selected Dataset Preview:**")
+        st.dataframe(df.head())
+        
+    except Exception as e:
+        st.error(f"Error loading dataset: {e}")
+        return # Stop if dataset can't be loaded
+        
+    st.write("#### Column Configuration")
+    
+    all_columns = df.columns.tolist()
+    
+    # Target Column Selection
+    current_target = config_settings.get('TARGET', '')
+    try:
+        target_default_index = all_columns.index(current_target) if current_target and current_target in all_columns else 0
+    except ValueError:
+         target_default_index = 0
+         
+    selected_target_column = st.selectbox(
+        "Select Target Column",
+        all_columns,
+        index=target_default_index,
+        key="target_column_selection"
+    )
+    
+    # Exclude Columns Selection
+    current_exclude = config_settings.get('EXCLUDE_COLS', [])
+    # Ensure current_exclude are strings for comparison
+    current_exclude_str = [str(col) for col in current_exclude]
+
+    selected_exclude_columns = st.multiselect(
+        "Select Columns to Exclude",
+        all_columns,
+        default=[col for col in all_columns if col in current_exclude_str], # Pre-select based on config
+        key="exclude_columns_selection"
+    )
+    
+    # Ensure target column is not in excluded columns
+    if selected_target_column in selected_exclude_columns:
+        st.warning("Target column cannot be in the list of excluded columns. Removing target from excluded.")
+        selected_exclude_columns.remove(selected_target_column)
+        st.rerun()
+
+    # Auto-save data configuration
+    config_updates = {
+        'DATA_PATH': selected_dataset_path.as_posix(), # Use forward slashes
+        'TARGET': selected_target_column,
+        'EXCLUDE_COLS': selected_exclude_columns
+    }
+    
+    # Also get and save the good/bad tags from base model config to main config
+    try:
+        response = requests.get(f"{API_BASE_URL}/config/base-models")
+        if response.status_code == 200:
+            base_config = response.json()['config']
+            config_updates.update({
+                'GOOD_TAG': base_config.get('good_tag', 'Good'),
+                'BAD_TAG': base_config.get('bad_tag', 'Bad'),
+                'BASE_MODEL_DECISION_COLUMNS': base_config.get('enabled_columns', ['AD_Decision', 'CL_Decision']),
+                'COMBINED_FAILURE_MODEL_NAME': base_config.get('combined_failure_model', 'AD_or_CL_Fail')
+            })
+    except Exception as e:
+        # If API call fails, use defaults to ensure config is still saved
+        config_updates.update({
+            'GOOD_TAG': 'Good',
+            'BAD_TAG': 'Bad', 
+            'BASE_MODEL_DECISION_COLUMNS': ['AD_Decision', 'CL_Decision'],
+            'COMBINED_FAILURE_MODEL_NAME': 'AD_or_CL_Fail'
+        })
+    
+    # Create notification container for auto-save messages
+    data_config_notification = st.empty()
+    auto_save_data_config(config_updates, data_config_notification)
+    
+    # --- Base Model Decision Configuration ---
+    st.write("#### Base Model Decision Configuration")
+    st.write("Configure which columns contain base model decisions and the tags used for good/bad classifications.")
+    
+    try:
+        # Get current base model configuration from API
+        response = requests.get(f"{API_BASE_URL}/config/base-models")
+        if response.status_code == 200:
+            base_model_config_data = response.json()
+            current_config = base_model_config_data['config']
+            available_columns = base_model_config_data['available_columns']
+            
+            # Decision Columns Selection
+            st.write("##### Decision Columns")
+            st.write("Select columns that contain base model decisions (e.g., AD_Decision, CL_Decision):")
+            
+            selected_decision_columns = st.multiselect(
+                "Decision Columns",
+                available_columns,
+                default=current_config.get('enabled_columns', []),
+                help="These columns will be excluded from training features and used as base models for comparison",
+                key="decision_columns_selection"
+            )
+            
+            # Good/Bad Tags Configuration
+            st.write("##### Good/Bad Tags")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                good_tag = st.text_input(
+                    "Good Tag",
+                    value=current_config.get('good_tag', 'Good'),
+                    help="The value in decision columns that represents a 'good' classification",
+                    key="good_tag_input"
+                )
+            
+            with col2:
+                bad_tag = st.text_input(
+                    "Bad Tag", 
+                    value=current_config.get('bad_tag', 'Bad'),
+                    help="The value in decision columns that represents a 'bad' classification",
+                    key="bad_tag_input"
+                )
+            
+            # Combined Failure Model Name
+            st.write("##### Combined Failure Model")
+            combined_failure_model = st.text_input(
+                "Combined Failure Model Name",
+                value=current_config.get('combined_failure_model', 'AD_or_CL_Fail'),
+                help="Name for the model that combines all decision columns (fails if any column says 'bad')",
+                key="combined_failure_model_input"
+            )
+            
+            # Auto-save base model configuration
+            base_model_config_data = {
+                "enabled_columns": selected_decision_columns,
+                "good_tag": good_tag,
+                "bad_tag": bad_tag,
+                "combined_failure_model": combined_failure_model
+            }
+            
+            # Create notification container for base model auto-save messages
+            base_model_notification = st.empty()
+            auto_save_base_model_config(base_model_config_data, base_model_notification)
+            
+            # Show current configuration
+            with st.expander("Current Base Model Configuration"):
+                st.json(current_config)
+                
+        else:
+            st.error(f"Failed to load base model configuration: {response.text}")
+            
+    except Exception as e:
+        st.error(f"Error loading base model configuration: {str(e)}")
+        
+    # --- Preprocessing Previews ---
+    st.write("#### Preprocessing Previews")
+    
+    # ————————————————————————————————————————————————————————————————
+    #  Drop-in replacement: show ONLY the column headers for each preview
+    # ————————————————————————————————————————————————————————————————
+
+    # 1. Filtering settings inputs (unchanged)
+    st.write("##### Filtering Settings for Preview")
+    col_filter1, col_filter2 = st.columns(2)
+    with col_filter1:
+        preview_variance_threshold = st.number_input(
+            "Variance Threshold (>)",
+            min_value=0.0, max_value=1.0, step=0.001,
+            value=float(config_settings.get('VARIANCE_THRESH', 0.01)),
+            format="%.3f", key="preview_variance_threshold"
+        )
+    with col_filter2:
+        preview_correlation_threshold = st.number_input(
+            "Correlation Threshold (<)",
+            min_value=0.0, max_value=1.0, step=0.001,
+            value=float(config_settings.get('CORRELATION_THRESH', 0.95)),
+            format="%.3f", key="preview_correlation_threshold"
+        )
+
+    # 2. Update button
+    if st.button("🔄 Update Previews"):
+        st.rerun()
+
+    # 3. Prepare data
+    cols_to_process = [
+        c for c in all_columns
+        if c != selected_target_column and c not in selected_exclude_columns
+    ]
+    df_processed = df[cols_to_process].copy()
+
+    # 4. One-Hot Encoding — headers only
+    st.write("##### After One-Hot Encoding")
+    try:
+        df_ohe = pd.get_dummies(df_processed, drop_first=True)
+        st.write("Columns:", ", ".join(df_ohe.columns.tolist()))
+    except Exception as e:
+        st.error(f"Error during OHE preview: {e}")
+
+    # 5. Variance & Correlation Filtering — headers only
+    st.write("##### After Variance & Correlation Filtering")
+    try:
+        df_filt = df_ohe.copy()
+        # variance filter
+        df_filt = df_filt.loc[:, df_filt.var() > preview_variance_threshold]
+        # correlation filter
+        corr = df_filt.corr().abs()
+        upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
+        drop_cols = [col for col in upper.columns if any(upper[col] > preview_correlation_threshold)]
+        df_filt = df_filt.drop(columns=drop_cols)
+
+        st.write("Columns:", ", ".join(df_filt.columns.tolist()))
+    except Exception as e:
+        st.error(f"Error during filtering preview: {e}")

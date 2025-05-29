@@ -20,3 +20,1570 @@
 2025-05-29 13:12:32 - ensemble_api - INFO - 📤 API RESPONSE: POST /pipeline/run - Status: 200 - Time: 0.098s
 2025-05-29 13:12:32 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
 2025-05-29 13:12:32 - ensemble_api - INFO - ✅ Returning metrics data: 3 model metrics, 3 summaries, 3 confusion matrices
+2025-05-29 13:20:24,051 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:20:24,053 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:20:24,055 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:20:24,063 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.012s
+2025-05-29 13:20:28,070 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:20:28,076 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:20:28,077 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:20:28,079 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 13:20:30,203 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:20:30,205 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:20:30,217 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:20:30,277 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.074s
+2025-05-29 13:20:32,539 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:20:32,540 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:20:32,541 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:20:32,585 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.046s
+2025-05-29 13:21:33,520 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:21:33,520 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:21:33,521 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:21:33,522 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 13:21:36,204 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:21:36,205 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:21:36,206 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:21:36,208 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 13:21:38,326 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:21:38,327 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:21:38,328 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:21:38,358 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.032s
+2025-05-29 13:21:40,488 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:21:40,490 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:21:40,490 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:21:40,522 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.034s
+2025-05-29 13:21:42,307 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:21:42,308 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:21:42,309 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:21:42,311 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 13:21:43,366 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:21:43,367 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:21:43,368 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:21:43,370 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 13:21:46,020 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:21:46,022 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:21:46,022 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:21:46,024 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 13:21:47,441 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:21:47,442 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:21:47,443 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:21:47,445 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 13:21:49,959 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:21:49,961 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:21:49,961 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:21:49,970 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.011s
+2025-05-29 13:21:52,081 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:21:52,083 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:21:52,084 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:21:52,124 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.042s
+2025-05-29 13:21:54,276 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:21:54,277 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:21:54,278 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:21:54,306 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.030s
+2025-05-29 13:22:29,454 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:22:29,454 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:22:29,455 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:22:29,456 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 13:22:32,024 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:22:32,025 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:22:32,026 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:22:32,027 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 13:22:34,147 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:22:34,147 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:22:34,148 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:22:34,186 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-29 13:22:36,289 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:22:36,290 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:22:36,291 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:22:36,332 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.043s
+2025-05-29 13:32:29,298 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:32:29,300 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:32:29,301 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:32:29,306 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 13:32:31,908 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:32:31,909 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:32:31,909 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:32:31,911 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 13:32:33,998 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:32:34,000 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:32:34,001 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:32:34,074 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.076s
+2025-05-29 13:32:36,218 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:32:36,220 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:32:36,221 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:32:36,259 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.041s
+2025-05-29 13:32:46,502 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:32:46,503 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:32:46,504 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:32:46,505 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 13:32:49,029 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:32:49,031 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:32:49,032 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:32:49,035 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 13:32:51,221 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:32:51,222 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:32:51,223 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:32:51,260 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-29 13:33:22,997 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:33:22,998 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:33:22,999 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:33:23,002 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 13:33:25,543 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:33:25,545 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:33:25,545 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:33:25,549 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:33:27,642 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:33:27,644 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:33:27,644 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:33:27,683 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.041s
+2025-05-29 13:33:55,576 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:33:55,578 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:33:55,579 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:33:55,584 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 13:33:58,210 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:33:58,212 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:33:58,213 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:33:58,217 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:33:59,796 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:33:59,798 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:33:59,799 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:33:59,804 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 13:34:02,394 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:02,395 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:02,396 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:02,401 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 13:34:04,975 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:04,978 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:04,979 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:04,986 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 13:34:07,102 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:34:07,105 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:34:07,105 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:34:07,162 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.059s
+2025-05-29 13:34:12,257 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:12,259 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:12,259 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:12,264 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:13,510 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:13,512 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:13,512 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:13,517 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:16,029 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:16,030 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:16,032 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:16,036 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 13:34:18,175 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:34:18,177 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:34:18,178 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:34:18,227 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.052s
+2025-05-29 13:34:25,579 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:25,581 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:25,582 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:25,587 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 13:34:27,877 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:27,879 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:27,879 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:27,884 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:30,026 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:34:30,028 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:34:30,029 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:34:30,083 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.057s
+2025-05-29 13:34:31,494 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:31,496 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:31,497 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:31,501 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:33,810 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:33,811 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:33,812 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:33,814 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 13:34:34,025 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:34,027 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:34,028 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:34,032 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:35,710 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:35,712 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:35,713 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:35,718 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:38,006 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:38,007 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:38,008 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:38,013 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 13:34:39,678 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:39,679 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:39,680 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:39,681 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 13:34:40,646 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:40,648 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:40,649 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:40,653 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:42,940 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:42,941 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:42,942 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:42,946 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 13:34:45,046 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:34:45,048 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:34:45,049 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:34:45,087 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-29 13:34:47,960 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:47,962 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:47,962 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:47,967 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:34:50,291 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:34:50,292 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:34:50,293 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:34:50,297 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 13:34:52,412 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:34:52,413 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:34:52,414 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:34:52,465 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.054s
+2025-05-29 13:49:12,223 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:49:12,268 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.045s
+2025-05-29 13:49:20,719 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 13:49:20,727 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 13:49:20,728 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.009s
+2025-05-29 13:49:28,920 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 13:49:28,936 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 13:49:28,939 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.018s
+2025-05-29 13:49:41,295 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:49:41,325 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.030s
+2025-05-29 13:49:43,337 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 13:49:43,357 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 13:49:43,359 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.022s
+2025-05-29 13:51:01,161 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 13:51:01,179 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Pass', 'models.base_model_decisions.bad_tag': 'Fail', 'models.base_model_decisions.combined_failure_model': 'Any_Fail'}
+2025-05-29 13:51:01,181 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-29 13:51:03,200 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:51:03,241 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.041s
+2025-05-29 13:51:34,222 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 13:51:34,233 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 13:51:34,235 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.013s
+2025-05-29 13:51:39,866 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:51:39,889 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.023s
+2025-05-29 13:51:43 - ensemble_api - INFO - 🔌 API CALL: GET /results/metrics - Status: ✅ 200 - Time: 0.123s - Data: 3 models, 15 metrics
+2025-05-29 13:51:43 - ensemble_api - INFO - 🔌 API CALL: GET /results/predictions - Status: ✅ 200 - Time: 0.087s - Data: 1000 predictions
+2025-05-29 13:51:43 - ensemble_api - INFO - 🔌 API CALL: GET /results/threshold-sweep - Params: {'model_name': 'XGBoost', 'data_type': 'costs'} - Status: ✅ 200 - Time: 0.234s
+2025-05-29 13:51:43 - ensemble_api - INFO - 🔌 API CALL: GET /results/metrics - Status: ❌ 404 - Time: 0.045s
+2025-05-29 13:51:43 - ensemble_api - INFO - 📊 DATA: FETCH metrics_data - Count: 15 - Source: data_service - Result: ✅
+2025-05-29 13:51:43 - ensemble_api - INFO - 📊 DATA: FETCH predictions_data - Source: data_service - Result: ❌
+2025-05-29 13:51:43 - ensemble_api - INFO - 🚀 Starting pipeline run...
+2025-05-29 13:51:43 - ensemble_api - INFO - 📥 API CALL: POST /pipeline/run
+2025-05-29 13:51:43 - ensemble_api - INFO - 📤 API RESPONSE: POST /pipeline/run - Status: 200 - Time: 0.098s
+2025-05-29 13:51:43 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:51:43 - ensemble_api - INFO - ✅ Returning metrics data: 3 model metrics, 3 summaries, 3 confusion matrices
+2025-05-29 13:51:50,196 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:51:50,197 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:51:50,199 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:51:50,203 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:51:53 - ensemble_api - INFO - 📥 API CALL: GET http://testserver/
+2025-05-29 13:51:53 - ensemble_api - INFO - 📤 API RESPONSE: GET http://testserver/ - Status: 200 - Time: 0.000s
+2025-05-29 13:51:53 - ensemble_api - INFO - 📥 API CALL: GET http://testserver/health
+2025-05-29 13:51:53 - ensemble_api - INFO - 📤 API RESPONSE: GET http://testserver/health - Status: 200 - Time: 0.000s
+2025-05-29 13:51:53 - ensemble_api - INFO - 📥 API CALL: GET http://testserver/pipeline/status
+2025-05-29 13:51:53 - ensemble_api - INFO - 📤 API RESPONSE: GET http://testserver/pipeline/status - Status: 200 - Time: 0.014s
+2025-05-29 13:51:53 - ensemble_api - INFO - 📥 API CALL: GET http://testserver/config
+2025-05-29 13:51:53 - ensemble_api - INFO - 📤 API RESPONSE: GET http://testserver/config - Status: 200 - Time: 0.000s
+2025-05-29 13:51:53 - ensemble_api - INFO - 📥 API CALL: GET http://testserver/models/list
+2025-05-29 13:51:53 - ensemble_api - INFO - 📤 API RESPONSE: GET http://testserver/models/list - Status: 200 - Time: 0.000s
+2025-05-29 13:51:53 - ensemble_api - INFO - 📥 API CALL: GET http://testserver/files/list
+2025-05-29 13:51:53 - ensemble_api - INFO - 📤 API RESPONSE: GET http://testserver/files/list - Status: 200 - Time: 0.021s
+2025-05-29 13:52:17,165 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:52:17,167 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:52:17,168 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:52:17,172 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 13:52:19,532 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:52:19,550 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.018s
+2025-05-29 13:52:21,963 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:52:21,964 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:52:21,965 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:52:21,966 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 13:52:24,072 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:52:24,082 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:52:24,092 - ensemble_api - WARNING - ❌ No predictions data available
+2025-05-29 13:52:24,095 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 404 - Time: 0.023s
+2025-05-29 13:52:26,131 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:52:26,132 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:52:26,133 - ensemble_api - WARNING - ❌ No predictions data available
+2025-05-29 13:52:26,133 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 404 - Time: 0.002s
+2025-05-29 13:52:52,328 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:52:52,332 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:52:52,333 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-05-29 13:52:52,334 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.006s
+2025-05-29 13:52:54,472 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:52:54,503 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.031s
+2025-05-29 13:52:56,816 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:52:56,817 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:52:56,817 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-05-29 13:52:56,818 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.003s
+2025-05-29 13:52:58,868 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:52:58,870 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:52:58,871 - ensemble_api - WARNING - ❌ No predictions data available
+2025-05-29 13:52:58,872 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 404 - Time: 0.004s
+2025-05-29 13:53:08,169 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:53:08,171 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:53:08,172 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-05-29 13:53:08,173 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.004s
+2025-05-29 13:53:10,316 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:53:10,343 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.027s
+2025-05-29 13:53:12,667 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:53:12,668 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:53:12,669 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-05-29 13:53:12,671 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.004s
+2025-05-29 13:53:14,723 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:53:14,725 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:53:14,726 - ensemble_api - WARNING - ❌ No predictions data available
+2025-05-29 13:53:14,728 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 404 - Time: 0.005s
+2025-05-29 13:53:16,234 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:53:16,237 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:53:16,238 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-05-29 13:53:16,239 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.005s
+2025-05-29 13:53:17,450 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:53:17,451 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:53:17,452 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-05-29 13:53:17,452 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.003s
+2025-05-29 13:53:44,623 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:53:44,624 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:53:44,625 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:53:44,627 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 13:53:46,917 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 13:53:46,953 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.036s
+2025-05-29 13:53:49,461 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 13:53:49,462 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 13:53:49,463 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 13:53:49,473 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.012s
+2025-05-29 13:53:51,604 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:53:51,605 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:53:51,613 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:53:51,644 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-29 13:53:53,767 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 13:53:53,769 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 13:53:53,769 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 13:53:53,805 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.038s
+2025-05-29 14:00:45,256 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:00:45,260 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:00:45,262 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:00:45,266 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 14:00:47,590 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:00:47,619 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.029s
+2025-05-29 14:00:50,008 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:00:50,010 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:00:50,011 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:00:50,019 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.011s
+2025-05-29 14:00:52,106 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:00:52,107 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:00:52,122 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:00:52,152 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.046s
+2025-05-29 14:00:54,259 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:00:54,260 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:00:54,261 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:00:54,290 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.031s
+2025-05-29 14:01:06,054 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:01:06,056 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:01:06,057 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:01:06,114 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.060s
+2025-05-29 14:01:18,510 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:01:18,513 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:01:18,513 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:01:18,575 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.065s
+2025-05-29 14:01:37,418 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:01:37,420 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:01:37,421 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:01:37,426 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:01:39,710 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:01:39,735 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.026s
+2025-05-29 14:01:42,038 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:01:42,040 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:01:42,041 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:01:42,046 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:01:44,158 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:01:44,159 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:01:44,160 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:01:44,197 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.039s
+2025-05-29 14:01:46,307 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:01:46,309 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:01:46,310 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:01:46,354 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.047s
+2025-05-29 14:01:51,945 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:01:51,947 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:01:51,947 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:01:51,949 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:02:12,221 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:02:12,223 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:02:12,224 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:02:12,228 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:02:14,545 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:02:14,575 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.030s
+2025-05-29 14:02:16,885 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:02:16,887 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:02:16,888 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:02:16,892 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:02:18,988 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:02:18,989 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:02:18,990 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:02:19,021 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.033s
+2025-05-29 14:02:21,136 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:02:21,138 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:02:21,139 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:02:21,186 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.050s
+2025-05-29 14:02:25,026 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:02:25,027 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:02:25,028 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:02:25,032 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:02:27,300 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:02:27,317 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.017s
+2025-05-29 14:02:29,638 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:02:29,639 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:02:29,641 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:02:29,645 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:02:31,757 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:02:31,758 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:02:31,759 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:02:31,788 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.031s
+2025-05-29 14:02:33,899 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:02:33,900 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:02:33,902 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:02:33,939 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-29 14:02:44,422 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:02:44,424 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:02:44,424 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:02:44,426 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:02:46,719 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:02:46,738 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.018s
+2025-05-29 14:02:49,040 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:02:49,041 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:02:49,042 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:02:49,044 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:02:51,127 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:02:51,128 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:02:51,128 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:02:51,169 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.042s
+2025-05-29 14:02:53,277 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:02:53,278 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:02:53,279 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:02:53,325 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.049s
+2025-05-29 14:03:32,333 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:03:32,336 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:03:32,337 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:03:32,340 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:03:33,020 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:03:33,022 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:03:33,022 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:03:33,025 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:03:34,812 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:03:34,831 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.019s
+2025-05-29 14:03:37,136 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:03:37,137 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:03:37,138 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:03:37,140 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:03:39,219 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:03:39,220 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:03:39,221 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:03:39,251 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.033s
+2025-05-29 14:03:41,355 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:03:41,357 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:03:41,358 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:03:41,409 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.054s
+2025-05-29 14:03:59,732 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:03:59,733 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:03:59,734 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:03:59,738 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:04:02,070 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:04:02,089 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.018s
+2025-05-29 14:04:04,421 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:04:04,422 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:04:04,423 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:04:04,425 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:04:06,509 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:04:06,510 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:04:06,511 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:04:06,542 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.033s
+2025-05-29 14:04:08,671 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:04:08,673 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:04:08,674 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:04:08,722 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.051s
+2025-05-29 14:05:53,690 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:05:53,692 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:05:53,692 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:05:53,695 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:05:55,964 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:05:55,993 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.029s
+2025-05-29 14:05:58,330 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:05:58,331 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:05:58,331 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:05:58,333 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 14:06:00,344 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:00,345 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:00,345 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:00,347 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 14:06:00,500 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:00,501 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:00,502 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:00,550 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.050s
+2025-05-29 14:06:02,722 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:02,723 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:02,724 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:02,773 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.050s
+2025-05-29 14:06:02,829 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:06:02,851 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.022s
+2025-05-29 14:06:05,273 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:05,274 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:05,275 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:05,277 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:06:07,355 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:07,356 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:07,357 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:07,385 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.030s
+2025-05-29 14:06:08,187 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:08,189 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:08,189 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:08,192 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:06:10,489 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:06:10,509 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-29 14:06:10,639 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:10,641 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:10,642 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:10,645 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:06:13,071 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:06:13,099 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.028s
+2025-05-29 14:06:13,184 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:13,185 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:13,186 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:13,188 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:06:14,071 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:14,072 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:14,073 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:14,074 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 14:06:15,289 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:15,290 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:15,291 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:15,318 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.029s
+2025-05-29 14:06:16,357 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:06:16,396 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.039s
+2025-05-29 14:06:17,054 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:17,056 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:17,056 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:17,059 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:06:18,775 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:18,776 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:18,778 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:18,781 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:06:19,343 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:06:19,381 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.038s
+2025-05-29 14:06:19,937 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:19,938 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:19,938 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:19,941 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:06:21,721 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:21,722 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:21,723 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:21,727 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:06:22,183 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:06:22,217 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.035s
+2025-05-29 14:06:23,823 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:23,824 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:23,825 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:23,861 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.039s
+2025-05-29 14:06:24,528 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:24,530 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:24,531 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:24,535 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:06:25,955 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:25,957 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:25,958 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:25,998 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.043s
+2025-05-29 14:06:26,645 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:26,646 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:26,648 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:26,685 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-29 14:06:28,776 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:28,778 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:28,779 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:28,829 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.053s
+2025-05-29 14:06:38,379 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:38,382 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:38,383 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:38,388 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:06:39,505 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:39,506 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:39,508 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:39,511 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:06:41,739 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:41,741 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:41,742 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:41,747 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:06:44,007 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:06:44,039 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.032s
+2025-05-29 14:06:46,322 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:06:46,324 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:06:46,325 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:06:46,329 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:06:48,417 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:48,424 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:48,424 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:48,461 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.044s
+2025-05-29 14:06:50,578 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:06:50,580 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:06:50,582 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:06:50,633 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.054s
+2025-05-29 14:11:53,259 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:11:53,261 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:11:53,263 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:11:53,265 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:11:55,354 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:11:55,355 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:11:55,357 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:12:28,872 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:12:28,876 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:12:28,879 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:12:28,883 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.012s
+2025-05-29 14:12:30,904 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:12:30,905 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:12:30,909 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:12:32,953 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:12:32,984 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.031s
+2025-05-29 14:12:42,591 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:12:42,593 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:12:42,594 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:12:42,598 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:12:44,692 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:12:44,693 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:12:44,696 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:14:22,666 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:14:22,668 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:14:22,670 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:14:22,673 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:14:24,749 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:14:24,750 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:14:24,751 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:14:25,141 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:14:25,143 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:14:25,143 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:14:25,145 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:14:41,391 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:14:41,393 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:14:41,394 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:14:41,398 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:14:43,494 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:14:43,495 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:14:43,498 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:16:05,809 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:16:05,811 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:16:05,813 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:16:05,816 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:16:07,903 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:16:07,903 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:16:07,905 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.002s
+2025-05-29 14:17:17,656 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:17:17,661 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:17:17,664 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:17:17,667 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.011s
+2025-05-29 14:17:19,730 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:17:19,731 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:17:19,735 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:17:22,109 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:17:22,131 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.022s
+2025-05-29 14:17:24,560 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:17:24,561 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:17:24,562 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:17:24,565 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:17:26,693 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:17:26,694 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:17:26,702 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:17:26,739 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.046s
+2025-05-29 14:17:28,860 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:17:28,862 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:17:28,864 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:17:28,920 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.060s
+2025-05-29 14:17:47,098 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:17:47,100 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:17:47,102 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:17:47,104 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:17:49,180 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:17:49,181 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:17:49,183 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:17:51,598 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:17:51,618 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-29 14:17:53,959 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:17:53,960 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:17:53,961 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:17:53,963 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:17:56,043 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:17:56,045 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:17:56,052 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:17:56,091 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.048s
+2025-05-29 14:17:58,226 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:17:58,227 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:17:58,228 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:17:58,260 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.034s
+2025-05-29 14:18:46,517 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:18:46,519 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:18:46,521 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:18:46,523 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:18:48,745 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:18:48,747 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:18:48,748 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:18:48,752 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:18:49,745 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:18:49,748 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:18:49,749 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:18:49,753 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:18:51,827 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:18:51,829 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:18:51,832 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:18:54,167 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:18:54,195 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.029s
+2025-05-29 14:18:56,261 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:18:56,263 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:18:56,265 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:18:56,269 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:18:58,383 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:18:58,384 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:18:58,396 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:18:58,448 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.065s
+2025-05-29 14:19:00,575 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:19:00,577 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:19:00,577 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:19:00,605 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.030s
+2025-05-29 14:19:03,562 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:03,564 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:03,564 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:03,569 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:19:04,318 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:04,321 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:04,322 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:04,328 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:19:06,461 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:19:06,462 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:19:06,464 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:19:08,842 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:08,843 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:08,844 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:08,846 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:19:10,493 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:10,494 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:10,495 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:10,497 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:19:11,016 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:11,019 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:11,020 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:11,026 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 14:19:13,138 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:19:13,139 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:19:13,142 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:19:15,494 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:19:15,532 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.038s
+2025-05-29 14:19:17,596 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:17,597 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:17,598 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:17,600 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:19:19,677 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:19:19,679 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:19:19,680 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:19:19,723 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.045s
+2025-05-29 14:19:21,843 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:19:21,844 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:19:21,845 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:19:21,897 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.055s
+2025-05-29 14:19:40,827 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:40,829 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:40,830 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:40,837 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 14:19:42,928 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:19:42,930 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:19:42,933 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:19:45,292 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:19:45,317 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.024s
+2025-05-29 14:19:47,365 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 14:19:47,383 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 14:19:47,385 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-29 14:19:49,550 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:49,552 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:49,554 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:49,558 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:19:51,666 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:19:51,667 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:19:51,670 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:19:54,004 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:19:54,038 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.034s
+2025-05-29 14:19:56,108 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:19:56,110 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:19:56,111 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:19:56,115 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:19:58,227 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:19:58,229 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:19:58,231 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:19:58,304 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.076s
+2025-05-29 14:20:00,450 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:20:00,452 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:20:00,453 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:20:00,457 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:20:02,550 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:20:02,551 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:20:02,554 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:20:04,888 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:20:04,911 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.022s
+2025-05-29 14:20:06,970 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:20:06,971 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:20:06,972 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:20:06,976 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:20:09,080 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:20:09,082 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:20:09,083 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:20:09,126 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.046s
+2025-05-29 14:20:11,227 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:20:11,229 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:20:11,230 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:20:11,269 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.042s
+2025-05-29 14:21:19,909 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:21:19,910 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:21:19,911 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:21:19,916 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:21:37,034 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:21:37,036 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:21:37,037 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:21:37,041 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:21:39,129 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:21:39,130 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:21:39,131 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.002s
+2025-05-29 14:21:41,445 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:21:41,482 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.037s
+2025-05-29 14:21:43,550 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:21:43,553 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:21:43,554 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:21:43,559 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:21:45,668 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:21:45,671 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:21:45,673 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:21:45,731 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.062s
+2025-05-29 14:21:47,861 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:21:47,862 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:21:47,863 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:21:47,894 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.033s
+2025-05-29 14:22:41,711 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:22:41,712 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:22:41,713 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:22:41,715 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:22:43,797 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:22:43,799 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:22:43,801 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:22:46,138 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:22:46,175 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.036s
+2025-05-29 14:22:48,243 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:22:48,244 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:22:48,244 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:22:48,246 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:22:50,340 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:22:50,342 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:22:50,343 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:22:50,384 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.044s
+2025-05-29 14:23:13,986 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:23:13,988 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:23:13,989 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:23:13,994 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:23:16,095 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:23:16,096 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:23:16,099 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:23:18,434 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:23:18,459 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.025s
+2025-05-29 14:23:20,499 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:23:20,501 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:23:20,502 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:23:20,506 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:23:22,278 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:23:22,279 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:23:22,279 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:23:22,281 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:23:22,644 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:23:22,645 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:23:22,646 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:23:22,677 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.033s
+2025-05-29 14:24:06,667 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:24:06,669 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:24:06,670 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:24:06,674 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:24:08,754 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:24:08,755 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:24:08,757 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:24:11,061 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:24:11,097 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.035s
+2025-05-29 14:24:13,161 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:24:13,163 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:24:13,163 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:24:13,165 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:24:15,245 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:24:15,246 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:24:15,247 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:24:15,284 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.039s
+2025-05-29 14:27:18,269 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:27:18,271 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:27:18,273 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:27:18,275 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:27:31,182 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:27:31,185 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:27:31,186 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:27:31,190 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:27:37,036 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:27:37,037 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:27:37,041 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:27:39,070 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:27:39,071 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:27:39,099 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.029s
+2025-05-29 14:27:41,413 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:27:41,435 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.022s
+2025-05-29 14:27:43,833 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:27:43,836 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:27:43,837 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:27:43,841 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-29 14:27:45,980 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:27:45,982 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:27:45,992 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:27:46,030 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.050s
+2025-05-29 14:27:48,132 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:27:48,134 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:27:48,135 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:27:48,181 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.049s
+2025-05-29 14:29:32,882 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:29:32,887 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:29:32,890 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:29:32,894 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.012s
+2025-05-29 14:29:35,019 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:29:35,020 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:29:35,023 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:29:37,072 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:29:37,074 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:29:37,092 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.020s
+2025-05-29 14:29:39,384 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:29:39,405 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 14:29:41,750 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:29:41,753 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:29:41,754 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:29:41,759 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:29:43,873 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:29:43,874 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:29:43,882 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:29:43,908 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.035s
+2025-05-29 14:29:46,033 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:29:46,035 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:29:46,036 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:29:46,077 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.044s
+2025-05-29 14:31:34,904 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:31:34,908 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:31:34,911 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:31:34,918 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.014s
+2025-05-29 14:31:36,999 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:31:37,000 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:31:37,003 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:31:39,033 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:31:39,035 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:31:39,047 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.014s
+2025-05-29 14:31:41,364 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:31:41,385 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 14:31:43,411 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 14:31:43,422 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 14:31:43,424 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.012s
+2025-05-29 14:31:45,779 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:31:45,781 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:31:45,781 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:31:45,784 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:31:47,882 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:31:47,883 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:31:47,890 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:31:47,923 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.041s
+2025-05-29 14:31:50,051 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:31:50,053 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:31:50,055 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:31:50,098 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.047s
+2025-05-29 14:32:00,398 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:32:00,399 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:32:00,399 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:32:00,402 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:32:01,266 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:32:01,267 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:32:01,267 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:32:01,270 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:32:03,349 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:32:03,350 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:32:03,352 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.002s
+2025-05-29 14:32:05,412 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:32:05,413 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:32:05,422 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.010s
+2025-05-29 14:32:07,704 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:32:07,748 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.044s
+2025-05-29 14:32:10,051 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:32:10,053 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:32:10,053 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:32:10,056 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:32:12,149 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:32:12,150 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:32:12,151 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:32:12,180 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.031s
+2025-05-29 14:32:14,301 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:32:14,303 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:32:14,303 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:32:14,338 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.037s
+2025-05-29 14:32:15,766 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:32:15,767 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:32:15,768 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:32:15,770 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:32:17,850 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:32:17,851 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:32:17,855 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:32:18,684 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:32:18,687 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:32:18,688 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:32:18,693 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:32:19,884 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:32:19,886 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:32:19,906 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.022s
+2025-05-29 14:32:20,768 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:32:20,769 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:32:20,770 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.002s
+2025-05-29 14:32:22,799 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:32:22,800 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:32:22,809 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.011s
+2025-05-29 14:32:25,115 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:32:25,136 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 14:32:27,499 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:32:27,500 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:32:27,500 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:32:27,503 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:32:29,615 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:32:29,616 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:32:29,617 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:32:29,646 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.031s
+2025-05-29 14:32:31,799 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:32:31,801 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:32:31,802 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:32:31,834 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.034s
+2025-05-29 14:33:40,924 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/docs
+2025-05-29 14:33:40,925 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/docs - Status: 200 - Time: 0.001s
+2025-05-29 14:33:41,174 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/openapi.json
+2025-05-29 14:33:41,213 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/openapi.json - Status: 200 - Time: 0.040s
+2025-05-29 14:34:03,034 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-29 14:34:03,082 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.048s
+2025-05-29 14:34:32,422 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/files/list
+2025-05-29 14:34:32,443 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/files/list - Status: 200 - Time: 0.020s
+2025-05-29 14:34:50,571 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config
+2025-05-29 14:34:50,574 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config - Status: 200 - Time: 0.003s
+2025-05-29 14:38:02,524 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:38:02,526 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:38:02,528 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:38:02,531 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:38:04,638 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:38:04,639 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:38:04,640 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.002s
+2025-05-29 14:38:06,660 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:38:06,661 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:38:06,671 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.011s
+2025-05-29 14:38:09,007 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:38:09,033 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.026s
+2025-05-29 14:38:11,084 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 14:38:11,093 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 14:38:11,095 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.011s
+2025-05-29 14:38:13,451 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:38:13,452 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:38:13,453 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:38:13,456 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:38:15,551 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:38:15,552 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:38:15,560 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:38:15,608 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.057s
+2025-05-29 14:38:17,728 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:38:17,729 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:38:17,730 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:38:17,770 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.042s
+2025-05-29 14:38:57,187 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/health
+2025-05-29 14:38:57,190 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/health - Status: 200 - Time: 0.003s
+2025-05-29 14:39:38,234 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:38,235 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:38,236 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:38,238 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:39:40,318 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:39:40,318 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:39:40,320 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.002s
+2025-05-29 14:39:41,919 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:41,920 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:41,921 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:41,924 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:39:42,339 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:39:42,340 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:39:42,346 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.008s
+2025-05-29 14:39:44,015 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:39:44,016 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:39:44,018 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:39:46,068 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:39:46,069 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:39:46,079 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.012s
+2025-05-29 14:39:46,470 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:46,471 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:46,472 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:46,474 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:39:48,565 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:39:48,566 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:39:48,569 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:39:48,742 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:48,743 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:48,743 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:48,745 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:39:50,586 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:39:50,587 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:39:50,593 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.007s
+2025-05-29 14:39:50,723 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:50,724 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:50,725 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:50,729 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:39:52,358 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:52,360 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:52,360 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:52,364 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:39:52,868 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:52,869 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:52,869 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:52,871 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 14:39:54,384 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:54,385 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:54,386 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:54,390 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:39:56,468 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:39:56,469 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:39:56,470 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.003s
+2025-05-29 14:39:56,751 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:56,752 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:56,753 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:56,755 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:39:57,267 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:57,268 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:57,269 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:57,271 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:39:58,156 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:39:58,158 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:39:58,159 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:39:58,163 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:39:58,494 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:39:58,495 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:39:58,504 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.010s
+2025-05-29 14:40:00,257 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:40:00,258 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:40:00,261 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:40:00,651 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:40:00,653 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:40:00,654 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:40:00,658 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:40:02,300 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:40:02,301 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:40:02,315 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.015s
+2025-05-29 14:40:02,736 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:40:02,737 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:40:02,739 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:40:04,768 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:40:04,769 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:40:04,783 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.015s
+2025-05-29 14:40:07,022 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:40:07,047 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.025s
+2025-05-29 14:40:09,085 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 14:40:09,103 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 14:40:09,106 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 14:40:11,468 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:40:11,469 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:40:11,469 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:40:11,471 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 14:40:13,353 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:40:13,356 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:40:13,357 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:40:13,363 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 14:40:15,482 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:40:15,482 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:40:15,484 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.002s
+2025-05-29 14:40:17,521 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:40:17,522 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:40:17,536 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.015s
+2025-05-29 14:40:19,838 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:40:19,840 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:40:19,841 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:40:19,845 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:40:21,998 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:40:21,999 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:40:22,001 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:40:24,052 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:40:24,053 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:40:24,068 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.016s
+2025-05-29 14:40:26,368 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:40:26,395 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.026s
+2025-05-29 14:40:28,722 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:40:28,723 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:40:28,724 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:40:28,726 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:40:30,830 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:40:30,831 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:40:30,831 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:40:30,923 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.094s
+2025-05-29 14:40:33,134 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:40:33,135 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:40:33,136 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:40:33,170 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.036s
+2025-05-29 14:40:42,100 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:40:42,102 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:40:42,104 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:40:42,109 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 14:40:44,203 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:40:44,204 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:40:44,207 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:40:45,352 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:40:45,371 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.018s
+2025-05-29 14:40:46,236 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:40:46,237 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:40:46,252 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.016s
+2025-05-29 14:40:48,514 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:40:48,546 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.032s
+2025-05-29 14:40:50,887 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:40:50,889 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:40:50,891 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:40:50,897 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 14:40:53,067 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:40:53,068 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:40:53,068 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:40:53,105 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.038s
+2025-05-29 14:40:55,218 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:40:55,219 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:40:55,220 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:40:55,252 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.034s
+2025-05-29 14:41:03,438 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:41:03,439 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:41:03,440 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:41:03,442 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:41:05,536 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:41:05,537 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:41:05,540 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:41:07,569 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:41:07,570 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:41:07,579 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.011s
+2025-05-29 14:41:09,838 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:41:09,881 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.044s
+2025-05-29 14:41:12,323 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:41:12,326 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:41:12,328 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:41:12,337 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.014s
+2025-05-29 14:41:14,457 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:41:14,460 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:41:14,462 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:41:14,520 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.062s
+2025-05-29 14:41:16,646 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:41:16,648 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:41:16,650 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:41:16,743 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.097s
+2025-05-29 14:47:48,644 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:47:48,646 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:47:48,648 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:47:48,650 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:47:50,719 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:47:50,720 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:47:50,723 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:47:52,770 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:47:52,771 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:47:52,782 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.011s
+2025-05-29 14:47:54,887 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:47:54,914 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.027s
+2025-05-29 14:47:56,970 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 14:47:56,989 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 14:47:56,991 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 14:47:59,321 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:47:59,323 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:47:59,324 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:47:59,328 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 14:48:01,422 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:48:01,424 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:48:01,444 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:48:01,479 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.057s
+2025-05-29 14:48:03,612 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:48:03,614 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:48:03,615 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:48:03,652 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-29 14:49:35,553 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:49:35,554 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:49:35,555 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:49:35,558 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 14:49:37,638 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:49:37,640 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:49:37,643 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.005s
+2025-05-29 14:49:39,672 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:49:39,673 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:49:39,687 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.015s
+2025-05-29 14:49:41,774 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:49:41,811 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.038s
+2025-05-29 14:49:43,850 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 14:49:43,865 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 14:49:43,867 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.017s
+2025-05-29 14:49:46,254 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:49:46,255 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:49:46,256 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:49:46,257 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:49:48,321 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:49:48,322 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:49:48,323 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:49:48,358 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.037s
+2025-05-29 14:49:50,472 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:49:50,474 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:49:50,476 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:49:50,552 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.080s
+2025-05-29 14:49:51,705 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:49:51,706 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:49:51,706 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:49:51,709 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 14:49:53,805 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full
+2025-05-29 14:49:53,807 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'cost', 'split': 'Full'}
+2025-05-29 14:49:53,809 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=cost&split=Full - Status: 200 - Time: 0.004s
+2025-05-29 14:49:55,855 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full
+2025-05-29 14:49:55,856 - ensemble_api - INFO - 📥 Query Params: {'threshold_type': 'base', 'split': 'Full'}
+2025-05-29 14:49:55,872 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison?threshold_type=base&split=Full - Status: 500 - Time: 0.017s
+2025-05-29 14:49:58,002 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 14:49:58,027 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.025s
+2025-05-29 14:50:00,055 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 14:50:00,063 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 14:50:00,065 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.010s
+2025-05-29 14:50:02,374 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 14:50:02,376 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 14:50:02,377 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 14:50:02,380 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 14:50:04,479 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:50:04,481 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:50:04,482 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:50:04,517 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.038s
+2025-05-29 14:50:06,611 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 14:50:06,613 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 14:50:06,614 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 14:50:06,663 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.053s
+2025-05-29 15:19:04,827 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:19:04,832 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:19:04,836 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:19:04,841 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.014s
+2025-05-29 15:19:07,067 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:19:07,099 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.032s
+2025-05-29 15:19:09,129 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:19:09,148 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:19:09,150 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 15:19:11,486 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:19:11,488 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:19:11,489 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:19:11,495 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 15:19:13,595 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:19:13,597 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:19:13,615 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:19:13,648 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.053s
+2025-05-29 15:19:15,741 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:19:15,743 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:19:15,744 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:19:15,795 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.054s
+2025-05-29 15:19:33,413 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:19:33,415 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:19:33,416 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:19:33,420 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 15:19:35,669 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:19:35,710 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.041s
+2025-05-29 15:19:38,027 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:19:38,028 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:19:38,029 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:19:38,031 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 15:19:40,307 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:19:40,309 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:19:40,310 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:19:40,314 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 15:19:42,568 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:19:42,596 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.027s
+2025-05-29 15:19:44,628 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:19:44,645 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:19:44,647 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.019s
+2025-05-29 15:19:46,978 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:19:46,980 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:19:46,981 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:19:46,985 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 15:19:49,099 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:19:49,101 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:19:49,102 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:19:49,144 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.045s
+2025-05-29 15:19:51,253 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:19:51,255 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:19:51,256 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:19:51,296 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.043s
+2025-05-29 15:28:27,198 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:28:27,199 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:28:27,200 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:28:27,202 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 15:28:29,449 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:28:29,481 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.032s
+2025-05-29 15:28:31,502 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:28:31,519 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:28:31,521 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-29 15:28:33,857 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:28:33,859 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:28:33,861 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:28:33,867 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 15:28:35,965 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:28:35,967 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:28:35,967 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:28:35,995 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.029s
+2025-05-29 15:28:38,098 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:28:38,100 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:28:38,101 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:28:38,163 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.065s
+2025-05-29 15:28:38,273 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:28:38,274 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:28:38,275 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:28:38,277 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 15:28:40,480 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:28:40,512 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.032s
+2025-05-29 15:28:42,582 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:28:42,584 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:28:42,585 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:28:42,589 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 15:28:44,666 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:28:44,667 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:28:44,668 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:28:44,716 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.050s
+2025-05-29 15:28:46,807 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:28:46,809 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:28:46,810 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:28:46,850 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.043s
+2025-05-29 15:33:24,801 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:33:24,802 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:33:24,802 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:33:24,804 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 15:33:27,074 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:33:27,114 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.040s
+2025-05-29 15:33:29,137 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:33:29,157 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:33:29,159 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.023s
+2025-05-29 15:33:31,516 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:33:31,517 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:33:31,518 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:33:31,520 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 15:33:33,617 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:33:33,619 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:33:33,621 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:33:33,664 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.047s
+2025-05-29 15:33:35,781 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:33:35,783 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:33:35,784 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:33:35,826 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.045s
+2025-05-29 15:33:39,598 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:33:39,600 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:33:39,602 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:33:39,606 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 15:33:41,869 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:33:41,911 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.042s
+2025-05-29 15:33:43,933 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:33:43,943 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:33:43,945 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.012s
+2025-05-29 15:33:46,286 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:33:46,288 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:33:46,290 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:33:46,296 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 15:33:48,390 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:33:48,392 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:33:48,393 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:33:48,432 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.042s
+2025-05-29 15:33:50,540 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:33:50,543 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:33:50,544 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:33:50,587 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.047s
+2025-05-29 15:38:07,060 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:38:07,062 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:38:07,063 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:38:07,067 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-29 15:38:09,344 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:38:09,384 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.040s
+2025-05-29 15:38:11,428 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:38:11,444 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:38:11,447 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-29 15:38:13,803 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:38:13,805 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:38:13,807 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:38:13,812 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 15:38:15,937 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:38:15,939 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:38:15,940 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:38:15,990 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.053s
+2025-05-29 15:38:18,103 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:38:18,105 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:38:18,106 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:38:18,142 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.038s
+2025-05-29 15:38:30,613 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:38:30,616 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:38:30,619 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:38:30,623 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-29 15:38:32,876 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:38:32,911 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.035s
+2025-05-29 15:38:34,953 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:38:34,972 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:38:34,974 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 15:38:37,819 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:38:37,820 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:38:37,821 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:38:37,823 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-29 15:38:39,903 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:38:39,905 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:38:39,923 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:38:39,962 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.059s
+2025-05-29 15:38:42,069 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:38:42,071 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:38:42,072 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:38:42,122 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.053s
+2025-05-29 15:40:16,126 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:40:16,129 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:40:16,130 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:40:16,132 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-29 15:40:18,384 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:40:18,402 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.018s
+2025-05-29 15:40:20,437 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:40:20,460 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:40:20,462 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.025s
+2025-05-29 15:40:22,656 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:40:22,658 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:40:22,659 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:40:22,664 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 15:40:24,758 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:40:24,760 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:40:24,778 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:40:24,826 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.068s
+2025-05-29 15:40:26,941 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:40:26,942 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:40:26,943 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:40:26,972 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.031s
+2025-05-29 15:43:38,864 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:43:38,884 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-29 15:43:55,438 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:43:55,439 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:43:55,440 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:43:55,442 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 15:43:56,260 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:43:56,274 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Pass', 'models.base_model_decisions.bad_tag': 'Fail', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:43:56,275 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.015s
+2025-05-29 15:43:57,737 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:43:57,757 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 15:43:59,788 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:43:59,839 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.051s
+2025-05-29 15:44:01,858 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-29 15:44:01,867 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Pass', 'models.base_model_decisions.bad_tag': 'Fail', 'models.base_model_decisions.combined_failure_model': 'AD_or_CL_Fail'}
+2025-05-29 15:44:01,869 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.011s
+2025-05-29 15:44:04,068 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:44:04,070 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:44:04,071 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:44:04,074 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-29 15:44:05,101 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:44:05,104 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:44:05,106 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:44:05,110 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-29 15:44:06,103 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:44:06,122 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.019s
+2025-05-29 15:44:07,392 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:44:07,413 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-29 15:44:09,453 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:44:09,480 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.027s
+2025-05-29 15:44:10,793 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-29 15:44:10,818 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.025s
+2025-05-29 15:44:11,677 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-29 15:44:11,678 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-29 15:44:11,678 - ensemble_api - INFO - ✅ Returning metrics data: 11 model metrics, 11 summaries, 11 confusion matrices
+2025-05-29 15:44:11,680 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-29 15:44:13,773 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-29 15:44:13,774 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-29 15:44:13,788 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-29 15:44:13,835 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.062s

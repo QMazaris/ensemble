@@ -107,6 +107,16 @@ class ModelComparisonResponse(BaseModel):
     cost: List[float]
     thresholds: List[float]
 
+class BaseModelDecisionConfig(BaseModel):
+    enabled_columns: List[str]
+    good_tag: str
+    bad_tag: str
+    combined_failure_model: str
+
+class BaseModelDecisionResponse(BaseModel):
+    config: BaseModelDecisionConfig
+    available_columns: List[str]  # All columns in the dataset that could be decision columns
+
 # Global variables for pipeline status
 pipeline_status = {"status": "idle", "message": "Ready to run", "progress": 0.0}
 
@@ -464,6 +474,65 @@ def save_csv_backup():
         return {"message": "CSV backup files saved successfully", "output_dir": str(output_dir)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save CSV backup: {str(e)}")
+
+@app.get("/config/base-models", response_model=BaseModelDecisionResponse)
+def get_base_model_config():
+    """Get the current base model decision configuration and available columns."""
+    try:
+        # Get current configuration
+        base_model_decisions = config.BASE_MODEL_DECISIONS
+        
+        # Get available columns from the dataset if it exists
+        available_columns = []
+        try:
+            if os.path.exists(config.DATA_PATH):
+                df = pd.read_csv(config.DATA_PATH)
+                # Look for columns that might be decision columns (contain common decision keywords)
+                decision_keywords = ['decision', 'class', 'label', 'prediction', 'result']
+                available_columns = [col for col in df.columns 
+                                   if any(keyword.lower() in col.lower() for keyword in decision_keywords)]
+                # Sort for consistent ordering
+                available_columns.sort()
+        except Exception as e:
+            api_logger.warning(f"Could not load dataset to get available columns: {e}")
+        
+        return BaseModelDecisionResponse(
+            config=BaseModelDecisionConfig(**base_model_decisions),
+            available_columns=available_columns
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get base model config: {str(e)}")
+
+@app.post("/config/base-models")
+def update_base_model_config(base_model_config: BaseModelDecisionConfig):
+    """Update base model decision configuration."""
+    try:
+        # Update the configuration using the config manager
+        from shared.config_manager import config_manager
+        
+        config_updates = {
+            'models.base_model_decisions.enabled_columns': base_model_config.enabled_columns,
+            'models.base_model_decisions.good_tag': base_model_config.good_tag,
+            'models.base_model_decisions.bad_tag': base_model_config.bad_tag,
+            'models.base_model_decisions.combined_failure_model': base_model_config.combined_failure_model
+        }
+        
+        config_manager.update(config_updates)
+        config_manager.save()
+        
+        # Reload the config adapter to pick up the changes
+        config._adapter.config = config_manager
+        
+        api_logger.info(f"Updated base model decision configuration: {config_updates}")
+        
+        return {
+            "message": "Base model decision configuration updated successfully",
+            "updated_config": base_model_config.dict()
+        }
+        
+    except Exception as e:
+        api_logger.error(f"Failed to update base model config: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update base model config: {str(e)}")
 
 @app.get("/config")
 def get_config():

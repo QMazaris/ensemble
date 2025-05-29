@@ -9,10 +9,30 @@ def prepare_data(df, config):
     """Prepare data for modeling by encoding categorical variables and handling the target."""
     df = df.copy()
     target = config.TARGET
-    y = df[target].map({"Good": 0, "Bad": 1})
+    
+    # Get configurable good/bad tags
+    good_tag = getattr(config, 'GOOD_TAG', 'Good')
+    bad_tag = getattr(config, 'BAD_TAG', 'Bad')
+    
+    # Handle target mapping with configurable tags
+    y = df[target].map({good_tag: 0, bad_tag: 1})
     if y.isnull().any():
-        raise ValueError(f"Found unmapped values in {target}")
-    exclude_cols = config.EXCLUDE_COLS + [config.TARGET]
+        raise ValueError(f"Found unmapped values in {target}. Expected values: '{good_tag}' or '{bad_tag}'")
+    
+    # Automatically exclude decision columns from training if they exist
+    decision_columns = getattr(config, 'BASE_MODEL_DECISION_COLUMNS', [])
+    decision_columns_in_data = [col for col in decision_columns if col in df.columns]
+    
+    # Only exclude columns that actually exist in the dataframe
+    exclude_cols_config = getattr(config, 'EXCLUDE_COLS', [])
+    exclude_cols_existing = [col for col in exclude_cols_config if col in df.columns]
+    
+    # Combine regular exclude columns with decision columns and target
+    exclude_cols = exclude_cols_existing + [config.TARGET] + decision_columns_in_data
+    
+    if config.SUMMARY and decision_columns_in_data:
+        print(f"📊 Automatically excluding decision columns from training: {decision_columns_in_data}")
+    
     X = df.drop(columns=exclude_cols)
 
     if config.SUMMARY:
@@ -21,12 +41,9 @@ def prepare_data(df, config):
         for feat in features_before_encoding:
             print(f"  • {feat}")
 
-    y_raw = df[config.TARGET]
-    if y_raw.dtype == object or y_raw.dtype.name == 'category':
-        y = y_raw.map({'Good': 0, 'Bad': 1})
-    else:
-        y = y_raw
+    # Ensure y is properly formatted
     y = y.astype(int)
+    
     numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = X.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
     X_encoded = pd.get_dummies(X, columns=categorical_cols, drop_first=True)

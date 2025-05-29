@@ -63,25 +63,20 @@ def main():
     st.title("🚀 AI Pipeline Dashboard")
     st.markdown("---")
     
-    # Sidebar
-    config_updates = render_sidebar() # Get latest config settings
+    # Sidebar with automatic config saving
+    config_updates = render_sidebar() # Config is now automatically saved
     
-    # Sidebar buttons
+    # Sidebar controls
     st.sidebar.markdown("---")
-    col1, col2 = st.sidebar.columns(2)
     
-    with col1:
-        if st.button("💾 Save Config", use_container_width=True):
-            save_config(config_updates)
-    
-    with col2:
-        if st.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
-            run_pipeline()
+    # Only keep the Run Pipeline button - config saves automatically
+    if st.sidebar.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
+        run_pipeline()
 
     # Load config settings for the app
     current_config_settings = load_config_settings()
 
-    # Tabs - Removed Plots Gallery tab
+    # Tabs - Restored with enhanced overview
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Overview", "📁 Data Management", "⚙️ Preprocessing Config", 
         "🎯 Model Zoo", "📈 Model Analysis", "📥 Downloads"

@@ -9,8 +9,36 @@ if root_dir not in sys.path:
 
 from shared.config_manager import get_config
 
+def auto_save_config(config_updates):
+    """Automatically save configuration if changes are detected."""
+    # Initialize session state for previous config if not exists
+    if 'previous_config' not in st.session_state:
+        st.session_state.previous_config = {}
+    
+    # Check if configuration has changed
+    config_changed = False
+    for key, value in config_updates.items():
+        if key not in st.session_state.previous_config or st.session_state.previous_config[key] != value:
+            config_changed = True
+            break
+    
+    # Save if configuration changed
+    if config_changed:
+        config = get_config()
+        config.update(config_updates)
+        config.save()
+        
+        # Update previous config in session state
+        st.session_state.previous_config = config_updates.copy()
+        
+        # Show brief auto-save notification
+        st.sidebar.success("✅ Config auto-saved!", icon="💾")
+        
+        return True
+    return False
+
 def render_sidebar():
-    """Render the sidebar configuration."""
+    """Render the sidebar configuration with automatic saving."""
     st.sidebar.header("⚙️ Pipeline Settings")
     
     # Get current config
@@ -22,13 +50,15 @@ def render_sidebar():
         "Cost of False-Positive", 
         value=float(config.cost_fp),
         min_value=0.0,
-        help="Cost penalty for false positive predictions"
+        help="Cost penalty for false positive predictions",
+        key="cost_fp"
     )
     C_FN = st.sidebar.number_input(
         "Cost of False-Negative", 
         value=float(config.cost_fn),
         min_value=0.0,
-        help="Cost penalty for false negative predictions (usually higher)"
+        help="Cost penalty for false negative predictions (usually higher)",
+        key="cost_fn"
     )
     
     # Training Settings
@@ -39,7 +69,8 @@ def render_sidebar():
         min_value=2, 
         max_value=10,
         step=1,
-        help="Number of folds for cross-validation (K-fold is always enabled)"
+        help="Number of folds for cross-validation (K-fold is always enabled)",
+        key="n_splits"
     )
 
     # Feature Settings
@@ -47,7 +78,8 @@ def render_sidebar():
     FilterData = st.sidebar.checkbox(
         "Apply Feature Filtering", 
         value=config.get('features.filter_data', False),
-        help="Enable feature filtering to remove low-variance and highly-correlated features"
+        help="Enable feature filtering to remove low-variance and highly-correlated features",
+        key="filter_data"
     )
     VARIANCE_THRESH = None
     CORRELATION_THRESH = None
@@ -102,7 +134,8 @@ def render_sidebar():
     OPTIMIZE_HYPERPARAMS = st.sidebar.checkbox(
         "Optimize Hyperparameters", 
         value=config.get('optimization.enabled', False),
-        help="Enable hyperparameter optimization using Optuna"
+        help="Enable hyperparameter optimization using Optuna",
+        key="optimize_hyperparams"
     )
     HYPERPARAM_ITER = None
     if OPTIMIZE_HYPERPARAMS:
@@ -112,12 +145,14 @@ def render_sidebar():
             min_value=10, 
             max_value=500, 
             step=10,
-            help="Number of trials for hyperparameter optimization"
+            help="Number of trials for hyperparameter optimization",
+            key="hyperparam_iter"
         )
     OPTIMIZE_FINAL_MODEL = st.sidebar.checkbox(
         "Optimize Final Model", 
         value=config.get('optimization.optimize_final_model', False),
-        help="Apply hyperparameter optimization to the final production model"
+        help="Apply hyperparameter optimization to the final production model",
+        key="optimize_final_model"
     )
 
     # Export Settings
@@ -125,7 +160,8 @@ def render_sidebar():
     EXPORT_ONNX = st.sidebar.checkbox(
         "Export Models as ONNX",
         value=config.get('export.export_onnx', False),
-        help="When enabled, models will be exported in ONNX format for deployment"
+        help="When enabled, models will be exported in ONNX format for deployment",
+        key="export_onnx"
     )
     ONNX_OPSET_VERSION = None
     if EXPORT_ONNX:
@@ -135,11 +171,12 @@ def render_sidebar():
             max_value=15,
             value=config.get('export.onnx_opset_version', 12),
             step=1,
-            help="ONNX opset version to use for model export"
+            help="ONNX opset version to use for model export",
+            key="onnx_opset_version"
         )
 
-    # Return the configuration updates
-    return {
+    # Build configuration updates
+    config_updates = {
         'costs.false_positive': C_FP,
         'costs.false_negative': C_FN,
         'training.use_kfold': True,
@@ -153,9 +190,14 @@ def render_sidebar():
         'export.export_onnx': EXPORT_ONNX,
         'export.onnx_opset_version': int(ONNX_OPSET_VERSION) if EXPORT_ONNX and ONNX_OPSET_VERSION is not None else config.get('export.onnx_opset_version', 12)
     }
+    
+    # Auto-save configuration changes
+    auto_save_config(config_updates)
+    
+    return config_updates
 
 def save_config(config_updates):
-    """Save updated configuration."""
+    """Manual save configuration function (kept for compatibility)."""
     config = get_config()
     
     # Update the configuration

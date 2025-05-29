@@ -117,6 +117,13 @@ models:
   base_model_columns:
     AD: AnomalyScore
     CL: CL_ConfMax
+  base_model_decisions:
+    bad_tag: Fail
+    combined_failure_model: AD_or_CL_Fail
+    enabled_columns:
+    - AD_Decision
+    - CL_Decision
+    good_tag: Pass
   enabled:
   - XGBoost
   - RandomForest
