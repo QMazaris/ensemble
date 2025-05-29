@@ -143,7 +143,7 @@ C_FP = 1
 C_FN = 30
 
 # ===== Cross-Validation Settings =====
-USE_KFOLD = False
+USE_KFOLD = True
 N_SPLITS = 5
 
 # ===== Hyperparameter Optimization =====
