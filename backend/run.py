@@ -5,12 +5,10 @@
 import os
 import sys
 from pathlib import Path
+import pickle
 
 # Third-party imports
 import joblib
-import matplotlib
-matplotlib.use('Agg')  # Use a non-GUI backend to prevent Tkinter errors
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import xgboost as xgb
@@ -31,10 +29,10 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 
-import config  # Import the config module
+from . import config  # Import the config module
 
 # Import from helpers package
-from helpers import (
+from .helpers import (
     # Data preparation
     prepare_data,
     apply_variance_filter,
@@ -73,10 +71,10 @@ from helpers import (
 )
 
 # Import model export functionality
-from helpers.model_export import export_model
+from .helpers.model_export import export_model
 
 # Explicit import for FinalModelCreateAndAnalyize
-from helpers.modeling import FinalModelCreateAndAnalyize
+from .helpers.modeling import FinalModelCreateAndAnalyize
 
 # ---------- Main Function ----------
 def main(config):
@@ -123,7 +121,6 @@ def main(config):
         print(X.describe())
 
     # Save the exact feature info for inference
-    import pickle
     feature_mapping = {
         'feature_columns': list(X.columns),
         'feature_count': X.shape[1],
@@ -145,13 +142,10 @@ def main(config):
         print(f"Saved exact training features to '{feature_info_path}'")
         print()
 
-    # Plot class balance if SAVE_PLOTS is enabled
+    # Generate class balance data if SAVE_PLOTS is enabled
     if SAVE_PLOTS:
-        plot_class_balance(
-            y,
-            output_path=os.path.join(config.PLOT_DIR, 'class_balance.png'),
-            SUMMARY=SUMMARY
-        )
+        class_balance_data = plot_class_balance(y, SUMMARY=SUMMARY)
+        # Store data for potential frontend use
 
     # 1) Only one split for single-split path
     X_train, y_train, train_idx, test_idx, single_splits = Split_No_KFold(config, MODELS, X, y)
@@ -180,7 +174,6 @@ def main(config):
 
     Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_model_runs, base_models_to_process)
 
-
     base_model_runs.extend(structured_base_model_runs)
 
     # Make the final structure
@@ -194,28 +187,25 @@ def main(config):
 
     if SAVE_PREDICTIONS:
         y_full = y.loc[df.index].values # Get true y for the full dataset
-        save_all_model_probabilities_from_structure(results_total, config.PREDICTIONS_DIR, df.index, y_full, SUMMARY = config.SUMMARY)
+        predictions_data = save_all_model_probabilities_from_structure(results_total, config.PREDICTIONS_DIR, df.index, y_full, SUMMARY = config.SUMMARY)
       
-
     if SAVE_PLOTS:
         # Use Test split for single split mode, Full split for k-fold mode
         comparison_split = 'Full' if config.USE_KFOLD else 'Test'
         
-        plot_runs_at_threshold(
+        cost_comparison_data = plot_runs_at_threshold(
             runs=results_total,
             threshold_type='cost',
             split_name=comparison_split,
             C_FP=C_FP,
-            C_FN=C_FN,
-            output_path=os.path.join(config.PLOT_DIR, 'model_comparison_cost_optimized.png')
+            C_FN=C_FN
         )
-        plot_runs_at_threshold(
+        accuracy_comparison_data = plot_runs_at_threshold(
             runs=results_total,
             threshold_type='accuracy',
             split_name=comparison_split,
             C_FP=C_FP,
-            C_FN=C_FN,
-            output_path=os.path.join(config.PLOT_DIR, 'model_comparison_accuracy_optimized.png')
+            C_FN=C_FN
         )
 
     # ========== FINAL PRODUCTION MODELS SECTION ==========
@@ -224,10 +214,7 @@ def main(config):
     # When using single-split, the final model is trained on the training split and evaluated on the test split.
     FinalModelCreateAndAnalyize(config, config.MODEL_DIR, config.PLOT_DIR, C_FP, C_FN, SAVE_PLOTS, X, y)
 
-    
-
     print("\nPipeline complete")
-
 
     streamlit_output_dir = Path("output") / "streamlit_data"
     export_metrics_for_streamlit(results_total, streamlit_output_dir, meta_model_names=set(MODELS.keys()))
@@ -291,16 +278,15 @@ def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_
                 )
             )
             base_probs['Full'] = decisions
-            
         else:
-            # For single split, calculate costs separately for train and test
-            for split_name, idx in [('Train', train_idx), ('Test', test_idx)]:
-                split_decisions = decisions[idx]
-                split_y = y_true[idx]
+            # For single-split, calculate on train and test separately
+            for split_name, split_idx in [('Train', train_idx), ('Test', test_idx)]:
+                y_split = y_true[split_idx]
+                decisions_split = decisions[split_idx]
                 
-                tn, fp, fn, tp = confusion_matrix(split_y, split_decisions).ravel()
+                tn, fp, fn, tp = confusion_matrix(y_split, decisions_split).ravel()
                 cost = C_FP * fp + C_FN * fn
-                metrics = compute_metrics(split_y, split_decisions, C_FP, C_FN)
+                metrics = compute_metrics(y_split, decisions_split, C_FP, C_FN)
                 metrics.update({
                     'cost': cost,
                     'tp': tp,
@@ -314,7 +300,7 @@ def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_
                         model_name=base,
                         split=split_name,
                         threshold_type='base',
-                        threshold=None,  # No threshold concept for decision-based base models
+                        threshold=None,
                         precision=metrics['precision'],
                         recall=metrics['recall'],
                         accuracy=metrics['accuracy'],
@@ -326,37 +312,40 @@ def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_
                         is_base_model=True
                     )
                 )
-                base_probs[split_name] = split_decisions
+                base_probs[split_name] = decisions_split
             
-            # Calculate Full split as sum of train and test costs
-            full_cost = sum(r.cost for r in base_results)
-            full_tp = sum(r.tp for r in base_results)
-            full_fp = sum(r.fp for r in base_results)
-            full_tn = sum(r.tn for r in base_results)
-            full_fn = sum(r.fn for r in base_results)
+            # Calculate Full split as combination of train and test
+            tn, fp, fn, tp = confusion_matrix(y_true, decisions).ravel()
+            cost = C_FP * fp + C_FN * fn
+            metrics = compute_metrics(y_true, decisions, C_FP, C_FN)
+            metrics.update({
+                'cost': cost,
+                'tp': tp,
+                'fp': fp,
+                'tn': tn,
+                'fn': fn
+            })
             
-            # Calculate metrics for full dataset
-            full_metrics = compute_metrics(y_true, decisions, C_FP, C_FN)
             base_results.append(
                 ModelEvaluationResult(
                     model_name=base,
                     split='Full',
                     threshold_type='base',
                     threshold=None,
-                    precision=full_metrics['precision'],
-                    recall=full_metrics['recall'],
-                    accuracy=full_metrics['accuracy'],
-                    cost=full_cost,
-                    tp=full_tp,
-                    fp=full_fp,
-                    tn=full_tn,
-                    fn=full_fn,
+                    precision=metrics['precision'],
+                    recall=metrics['recall'],
+                    accuracy=metrics['accuracy'],
+                    cost=cost,
+                    tp=tp,
+                    fp=fp,
+                    tn=tn,
+                    fn=fn,
                     is_base_model=True
                 )
             )
             base_probs['Full'] = decisions
-
-        # Add the structured base model run
+        
+        # Create the run for this base model
         structured_base_model_runs.append(
             ModelEvaluationRun(
                 model_name=base,
@@ -366,150 +355,108 @@ def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_
         )
 
 def Core_Standard(config, C_FP, C_FN, base_cols, SAVE_PLOTS, SAVE_MODEL, MODELS, df, y, X_train, y_train, train_idx, test_idx, single_splits, model_zoo_runs):
-    for model_name, model in MODELS.items():
-        split_preds, _ = train_and_evaluate_model(
-                model, X_train, y_train,
-                splits=single_splits,
-                model_name=f"meta_model_v2.1_{model_name}",
-                model_dir=config.MODEL_DIR,
-                save_model=SAVE_MODEL,
-                SUMMARY=config.SUMMARY,
-                config=config
-            )
-
-        single_results = []
-        single_probs = {}
-        single_sweeps = {}  # Store sweep data for each split
-
-        for split_name, (proba, y_eval) in split_preds.items():
-            sweep, best_cost, best_acc = threshold_sweep_with_cost(
-                    proba, y_eval, C_FP=C_FP, C_FN=C_FN, 
-                    SUMMARY=config.SUMMARY, split_name=split_name
-                )
-
-            if SAVE_PLOTS:
-                plot_threshold_sweep(
-                        sweep, C_FP, C_FN,
-                        cost_optimal_thr=best_cost['threshold'],
-                        accuracy_optimal_thr=best_acc['threshold'],
-                        output_path=os.path.join(
-                            config.PLOT_DIR,
-                            f"{model_name}_{split_name.lower()}_threshold_sweep.png"),
-                        SUMMARY=config.SUMMARY
-                    )
-
-            single_results.extend([
-                    _mk_result(model_name, split_name, best_cost, 'cost'),
-                    _mk_result(model_name, split_name, best_acc, 'accuracy')
-                ])
-            single_probs[split_name] = proba
-            single_sweeps[split_name] = sweep  # Store sweep data
-
-        model_zoo_runs.append(
-                ModelEvaluationRun(
-                    model_name=model_name,
-                    results=single_results,
-                    probabilities=single_probs,
-                    sweep_data=single_sweeps  # Include sweep data
-                )
-            )
-
-    # Process AD and CL scores for single split
+    """Core logic for standard (non-k-fold) evaluation."""
     base_model_runs = []
     
-    # Get scores for all splits
-    ad_scores = {
-        'Train': df.loc[train_idx, base_cols["AD"]].values,
-        'Test': df.loc[test_idx, base_cols["AD"]].values,
-        'Full': df.loc[df.index, base_cols["AD"]].values
-    }
-    
-    cl_scores = {
-        'Train': df.loc[train_idx, base_cols["CL"]].values,
-        'Test': df.loc[test_idx, base_cols["CL"]].values,
-        'Full': df.loc[df.index, base_cols["CL"]].values
-    }
-    
-    # Get corresponding y values
-    y_values = {
-        'Train': y.loc[train_idx].values,
-        'Test': y.loc[test_idx].values,
-        'Full': y.loc[df.index].values
-    }
-    
-    # Process AD scores
-    ad_results = []
-    ad_probs = {}
-    ad_sweeps = {}  # Store sweep data for AD
-    
-    for split_name in ['Train', 'Test', 'Full']:
-        sweep_ad, bc_ad, ba_ad = threshold_sweep_with_cost(
-            ad_scores[split_name], y_values[split_name], C_FP, C_FN,
-            SUMMARY=config.SUMMARY, split_name=f"AD_{split_name}"
+    for model_name, prototype in MODELS.items():
+        if config.SUMMARY:
+            print(f"\n{'='*40}\nTraining → {model_name}\n{'='*40}")
+
+        # Train and evaluate the model
+        split_preds, trained_model = train_and_evaluate_model(
+            prototype, X_train, y_train,
+            splits=single_splits,
+            model_name=model_name,
+            model_dir=config.MODEL_DIR if SAVE_MODEL else None,
+            save_model=SAVE_MODEL,
+            SUMMARY=config.SUMMARY,
+            config=config
         )
+
+        # Perform threshold sweeps and collect results
+        model_results = []
+        model_probs = {}
+        model_sweeps = {}
         
-        if SAVE_PLOTS:
-            plot_threshold_sweep(
-                sweep_ad, C_FP, C_FN,
-                cost_optimal_thr=bc_ad["threshold"],
-                accuracy_optimal_thr=ba_ad["threshold"],
-                output_path=os.path.join(
-                    config.PLOT_DIR, f"AD_{split_name.lower()}_threshold_sweep.png"),
-                SUMMARY=config.SUMMARY
+        for split_name, (proba, y_eval) in split_preds.items():
+            sweep, bc, ba = threshold_sweep_with_cost(
+                proba, y_eval, C_FP=C_FP, C_FN=C_FN,
+                SUMMARY=config.SUMMARY, split_name=split_name
             )
-        
-        ad_results.extend([
-            _mk_result('AD', split_name, bc_ad, 'cost'),
-            _mk_result('AD', split_name, ba_ad, 'accuracy')
-        ])
-        ad_probs[split_name] = ad_scores[split_name]
-        ad_sweeps[split_name] = sweep_ad  # Store sweep data
-    
-    base_model_runs.append(
-        ModelEvaluationRun(
-            model_name='AD',
-            results=ad_results,
-            probabilities=ad_probs,
-            sweep_data=ad_sweeps  # Include sweep data
-        )
-    )
-    
-    # Process CL scores
-    cl_results = []
-    cl_probs = {}
-    cl_sweeps = {}  # Store sweep data for CL
-    
-    for split_name in ['Train', 'Test', 'Full']:
-        sweep_cl, bc_cl, ba_cl = threshold_sweep_with_cost(
-            cl_scores[split_name], y_values[split_name], C_FP, C_FN,
-            SUMMARY=config.SUMMARY, split_name=f"CL_{split_name}"
-        )
-        
-        if SAVE_PLOTS:
-            plot_threshold_sweep(
-                sweep_cl, C_FP, C_FN,
-                cost_optimal_thr=bc_cl["threshold"],
-                accuracy_optimal_thr=ba_cl["threshold"],
-                output_path=os.path.join(
-                    config.PLOT_DIR, f"CL_{split_name.lower()}_threshold_sweep.png"),
-                SUMMARY=config.SUMMARY
+            
+            model_results.extend([
+                _mk_result(model_name, split_name, bc, 'cost'),
+                _mk_result(model_name, split_name, ba, 'accuracy')
+            ])
+            model_probs[split_name] = proba
+            model_sweeps[split_name] = sweep
+            
+            # Optional per-split sweep plot
+            if SAVE_PLOTS:
+                sweep_data = plot_threshold_sweep(
+                    sweep, C_FP, C_FN,
+                    cost_optimal_thr=bc['threshold'],
+                    accuracy_optimal_thr=ba['threshold'],
+                    SUMMARY=config.SUMMARY
+                )
+
+        # Store the run for this model
+        model_zoo_runs.append(
+            ModelEvaluationRun(
+                model_name=model_name,
+                results=model_results,
+                probabilities=model_probs,
+                sweep_data=model_sweeps
             )
-        
-        cl_results.extend([
-            _mk_result('CL', split_name, bc_cl, 'cost'),
-            _mk_result('CL', split_name, ba_cl, 'accuracy')
-        ])
-        cl_probs[split_name] = cl_scores[split_name]
-        cl_sweeps[split_name] = sweep_cl  # Store sweep data
-    
-    base_model_runs.append(
-        ModelEvaluationRun(
-            model_name='CL',
-            results=cl_results,
-            probabilities=cl_probs,
-            sweep_data=cl_sweeps  # Include sweep data
         )
-    )
+
+    # Process base models (AD, CL) for single-split
+    for base_name in ["AD", "CL"]:
+        base_results = []
+        base_probs = {}
+        base_sweeps = {}
+        
+        for split_name, (X_eval, y_eval) in single_splits.items():
+            # Get base model scores for this split
+            if split_name == 'Train':
+                split_df = df.loc[train_idx]
+            elif split_name == 'Test':
+                split_df = df.loc[test_idx]
+            else:  # Full
+                split_df = df
+                
+            base_scores = split_df[base_cols[base_name]].values
+            
+            sweep, bc, ba = threshold_sweep_with_cost(
+                base_scores, y_eval, C_FP, C_FN,
+                SUMMARY=config.SUMMARY, split_name=f"{base_name}_{split_name}"
+            )
+            
+            base_results.extend([
+                _mk_result(base_name, split_name, bc, 'cost'),
+                _mk_result(base_name, split_name, ba, 'accuracy')
+            ])
+            base_probs[split_name] = base_scores
+            base_sweeps[split_name] = sweep
+            
+            # Optional per-split sweep plot
+            if SAVE_PLOTS:
+                sweep_data = plot_threshold_sweep(
+                    sweep, C_FP, C_FN,
+                    cost_optimal_thr=bc['threshold'],
+                    accuracy_optimal_thr=ba['threshold'],
+                    SUMMARY=config.SUMMARY
+                )
+
+        # Store the run for this base model
+        base_model_runs.append(
+            ModelEvaluationRun(
+                model_name=base_name,
+                results=base_results,
+                probabilities=base_probs,
+                sweep_data=base_sweeps
+            )
+        )
     
     return base_model_runs
 
@@ -536,7 +483,7 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
         fold_cost_ad, fold_acc_ad, fold_probs_ad = [], [], []
         fold_sweeps_ad = []  # Store AD sweep data
         fold_cost_cl, fold_acc_cl, fold_probs_cl = [], [], []
-        fold_sweeps_cl = []  # Store CL sweep data
+        fold_sweeps_cl = []
 
         # ── Outer folds ──
         for fold_idx, (tr_idx, te_idx) in enumerate(outer_cv.split(X, y), start=1):
@@ -601,17 +548,13 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
 
             # optional: plot them
             if SAVE_PLOTS:
-                plot_threshold_sweep(sweep_ad, C_FP, C_FN,
+                ad_sweep_data = plot_threshold_sweep(sweep_ad, C_FP, C_FN,
                                         cost_optimal_thr=bc_ad["threshold"],
                                         accuracy_optimal_thr=ba_ad["threshold"],
-                                        output_path=os.path.join(
-                                            config.PLOT_DIR, f"AD_fold{fold_idx}_threshold_sweep.png"),
                                         SUMMARY=config.SUMMARY)
-                plot_threshold_sweep(sweep_cl, C_FP, C_FN,
+                cl_sweep_data = plot_threshold_sweep(sweep_cl, C_FP, C_FN,
                                         cost_optimal_thr=bc_cl["threshold"],
                                         accuracy_optimal_thr=ba_cl["threshold"],
-                                        output_path=os.path.join(
-                                            config.PLOT_DIR, f"CL_fold{fold_idx}_threshold_sweep.png"),
                                         SUMMARY=config.SUMMARY)
 
             # stash their results/probs in parallel arrays
@@ -627,13 +570,10 @@ def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, mode
 
             # Optional per-fold sweep plot for meta model
             if SAVE_PLOTS:
-                plot_threshold_sweep(
+                sweep_data = plot_threshold_sweep(
                         sweep, C_FP, C_FN,
                         cost_optimal_thr=bc['threshold'],
                         accuracy_optimal_thr=ba['threshold'],
-                        output_path=os.path.join(
-                            config.PLOT_DIR,
-                            f"{model_name}_fold{fold_idx}_threshold_sweep.png"),
                         SUMMARY=config.SUMMARY
                     )
 
@@ -733,34 +673,30 @@ def Split_No_KFold(config, MODELS, X, y):
 
 def Initalize(config, SAVE_MODEL):
     # Load data
-    if config.SUMMARY:
-        print(f"Loading data from {config.DATA_PATH}...")
     df = pd.read_csv(config.DATA_PATH)
     
     # Prepare data
-    if config.SUMMARY:
-        print("Preparing data...")
-    X, y, feature_cols, encoded_cols = prepare_data(df, config)
-
+    X, y, numeric_cols, encoded_cols = prepare_data(df, config)
+    
+    # Apply feature filtering if enabled
     if config.FilterData:
-        # Apply 1.1: Variance Filter
-        X = apply_variance_filter(X, threshold=config.VARIANCE_THRESH, SUMMARY=config.SUMMARY)
-
-        # Apply 1.2: Correlation Filter
-        X = apply_correlation_filter(X, threshold=config.CORRELATION_THRESH, SUMMARY=config.SUMMARY)
-
         if config.SUMMARY:
-            print("📋 Feature Names:")
-            for i, col in enumerate(X.columns, 1):
-                print(f"  {i:2d}. {col}")
-
-    # Save feature columns for later use only if SAVE_MODEL is True
+            print(f"Original feature count: {X.shape[1]}")
+        
+        # Apply variance filter
+        X = apply_variance_filter(X, threshold=config.VARIANCE_THRESH, SUMMARY=config.SUMMARY)
+        
+        # Apply correlation filter
+        X = apply_correlation_filter(X, threshold=config.CORRELATION_THRESH, SUMMARY=config.SUMMARY)
+        
+        if config.SUMMARY:
+            print(f"Final feature count after filtering: {X.shape[1]}")
+    
+    # Save feature information if model saving is enabled
     if SAVE_MODEL:
-        Save_Feature_Info(config.MODEL_DIR, df, feature_cols, encoded_cols)
-    return df,X,y
+        Save_Feature_Info(config.MODEL_DIR, df, numeric_cols, encoded_cols)
+    
+    return df, X, y
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        main(config)
-    else:
-        main(config)
+    main(config) 

@@ -96,4 +96,4 @@ def Save_Feature_Info(model_path, df, feature_cols, encoded_cols):
         'encoded_cols': encoded_cols,  # One-hot encoded columns
         'encoding': encoding_info
     }
-    joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl"))
+    joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl")) 

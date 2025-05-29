@@ -161,4 +161,4 @@ def calculate_final_production_thresholds(model, X, y, C_FP, C_FN, model_name, S
         print(f"  • Confusion Matrix: [[TN={best_acc['tn']} FP={best_acc['fp']}], [FN={best_acc['fn']} TP={best_acc['tp']}]]")
         print(f"{'='*80}\n")
     
-    return best_cost['threshold'], best_acc['threshold'], sweep_results
+    return best_cost['threshold'], best_acc['threshold'], sweep_results 

@@ -74,12 +74,10 @@ def print_performance_summary(runs, meta_model_names, splits=('Train', 'Test', '
                     print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
 
 def save_all_model_probabilities_from_structure(results_total, predictions_dir, index, y_true, SUMMARY=None):
-    """Save all model probabilities to a wide-format CSV file."""
-    os.makedirs(predictions_dir, exist_ok=True)
-    wide_df = pd.DataFrame(index=index)
+    """Return all model probabilities as structured data instead of saving to CSV."""
     if not results_total:
         raise ValueError("results_total is empty")
-    wide_df['GT'] = y_true
+    
     def pick_oof_or_full_or_longest(probas):
         if not probas:
             return None
@@ -91,17 +89,34 @@ def save_all_model_probabilities_from_structure(results_total, predictions_dir, 
         if not non_empty:
             return None
         return max(non_empty, key=lambda arr: arr.shape[0])
+    
+    # Build structured data instead of CSV
+    predictions_data = {
+        'GT': y_true.tolist() if hasattr(y_true, 'tolist') else y_true,
+        'index': index.tolist() if hasattr(index, 'tolist') else index
+    }
+    
     for run in results_total:
         model_col = run.model_name
         probas = pick_oof_or_full_or_longest(run.probabilities)
         if probas is None:
             print(f"[WARN] No probabilities found for model {model_col}, skipping.")
             continue
-        if len(probas) == len(index):
-            wide_df[model_col] = probas
+        
+        # Convert to list for JSON serialization
+        if hasattr(probas, 'tolist'):
+            probas_list = probas.tolist()
         else:
-            wide_df[model_col] = pd.Series(probas, index=index[:len(probas)])
-    out_path = os.path.join(predictions_dir, 'all_model_predictions.csv')
-    wide_df.to_csv(out_path, index=False)
+            probas_list = list(probas)
+            
+        if len(probas_list) == len(index):
+            predictions_data[model_col] = probas_list
+        else:
+            # Pad with None values if shorter
+            padded_probas = probas_list + [None] * (len(index) - len(probas_list))
+            predictions_data[model_col] = padded_probas
+    
     if SUMMARY:
-        print(f"Saved GT as first column + one prob‐column per model to {out_path}")
+        print(f"Generated predictions data structure with {len(predictions_data)-2} models")
+    
+    return predictions_data 

@@ -3,23 +3,22 @@ import subprocess
 import os
 import sys
 from pathlib import Path
-# import config # Import config to pass its settings - REMOVED
 
 # Add the root directory to Python path
-root_dir = str(Path(__file__).parent.parent)
+root_dir = str(Path(__file__).parent.parent.parent)
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 # Import from the same directory
-from utils import ensure_directories
-from tabs import (
+from .utils import ensure_directories
+from .tabs import (
     render_overview_tab, render_model_analysis_tab,
     render_plots_gallery_tab, render_downloads_tab,
     render_data_management_tab,
     render_preprocessing_tab,
     render_model_zoo_tab
 )
-from sidebar import render_sidebar, save_config
+from .sidebar import render_sidebar, save_config
 
 # Page config
 st.set_page_config(
@@ -32,10 +31,10 @@ st.set_page_config(
 ensure_directories()
 
 def load_config_settings():
-    """Loads config settings by reading the config.py file."""
+    """Loads config settings by reading the backend/config.py file."""
     config_settings = {}
     try:
-        config_path = Path(root_dir) / "config.py"
+        config_path = Path(root_dir) / "backend" / "config.py"
         if config_path.exists():
             # Safely execute the config file to load settings into a dictionary
             # This is a simple approach; for complex configs, a dedicated parser is better
@@ -54,12 +53,13 @@ def run_pipeline():
                 st.error("Virtual environment Python not found. Please ensure venv is set up correctly.")
                 return
                 
-            subprocess.run([venv_python, "run.py"], check=True)
+            # Run the backend pipeline
+            subprocess.run([venv_python, "-m", "backend.run"], check=True, cwd=root_dir)
             st.success("Pipeline complete and metrics exported!")
         except subprocess.CalledProcessError as e:
             st.error(f"Pipeline failed with error: {str(e)}")
         except FileNotFoundError:
-            st.error("Error: run.py not found. Please ensure run.py exists in the root directory.")
+            st.error("Error: backend/run.py not found. Please ensure backend/run.py exists.")
 
 def main():
     """Main application entry point."""

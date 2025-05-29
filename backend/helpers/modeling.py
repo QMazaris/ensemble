@@ -234,4 +234,4 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
             if config.SUMMARY:
                 print(f"✅ Saved production model: {out_path}")
                 print(f"   • Cost-optimal threshold: {best_cost['threshold']:.3f}")
-                print(f"   • Accuracy-optimal threshold: {best_acc['threshold']:.3f}")
+                print(f"   • Accuracy-optimal threshold: {best_acc['threshold']:.3f}") 

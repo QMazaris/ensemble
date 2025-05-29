@@ -198,20 +198,4 @@ if __name__ == "__main__":
     # This script is now intended to be called from run.py after pipeline completion
     # The code below is primarily for standalone testing if needed, but the primary
     # use case is being called by run.py
-    
-    # For standalone testing, you would need to somehow load or generate a sample
-    # 'runs' object here.
-    
-    print("This script is intended to be called from run.py. No action taken when run directly.")
-    # Example of how you *could* load if needed for testing, but not the primary flow:
-    # import pickle
-    # results_file = Path("output") / "latest_results.pkl"
-    # if results_file.exists():
-    #     try:
-    #         with open(results_file, 'rb') as f:
-    #             results_total = pickle.load(f)
-    #         export_metrics_for_streamlit(results_total, 'output/streamlit_data')
-    #     except Exception as e:
-    #         print(f"Error loading results for standalone test: {str(e)}")
-    # else:
-    #     print("No saved results found for standalone test. Run the pipeline first.") 
+    pass # Placeholder for potential standalone testing 

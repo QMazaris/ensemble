@@ -194,4 +194,4 @@ SUMMARY = True
 
 # ===== Model Export Configuration =====
 EXPORT_ONNX = True
-ONNX_OPSET_VERSION = 12
+ONNX_OPSET_VERSION = 12 
