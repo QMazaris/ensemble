@@ -25,27 +25,44 @@ def render_overview_tab():
     metrics_df, summary_df, cm_df, sweep_data = load_metrics_data()
     
     if summary_df is not None and not summary_df.empty:
-        # Filter for 'Full' split with appropriate thresholds for each model type
-        # ML models use 'cost' threshold, base models use 'base' threshold
+        # Enhanced comprehensive model comparison chart
+        
+        # Threshold type selector
+        available_threshold_types = summary_df['threshold_type'].unique()
+        selected_threshold_type = st.selectbox(
+            "Select Threshold Type for Analysis",
+            options=available_threshold_types,
+            index=0 if 'cost' not in available_threshold_types else list(available_threshold_types).index('cost'),
+            help="Choose which threshold optimization method to display",
+            key="overview_threshold_selector"
+        )
+        
+        # Filter for 'Full' split with selected threshold type
+        # Handle both ML models and base models with the selected threshold type
         ml_data = summary_df[
             (summary_df['split'] == 'Full') &
-            (summary_df['threshold_type'] == 'cost') &
+            (summary_df['threshold_type'] == selected_threshold_type) &
             (~summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
         ].copy()
         
         base_data = summary_df[
             (summary_df['split'] == 'Full') &
-            (summary_df['threshold_type'] == 'base') &
+            (summary_df['threshold_type'] == selected_threshold_type) &
             (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
         ].copy()
         
-        # Combine ML and base model data
-        overview_data = pd.concat([ml_data, base_data], ignore_index=True)
+        # If no data found with selected threshold type for base models, try 'base' threshold
+        if base_data.empty and selected_threshold_type != 'base':
+            base_data = summary_df[
+                (summary_df['split'] == 'Full') &
+                (summary_df['threshold_type'] == 'base') &
+                (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
+            ].copy()
+            if not base_data.empty:
+                st.info(f"No base models found with '{selected_threshold_type}' threshold. Using 'base' threshold for base models.")
         
-        # If no base models with 'base' threshold, try other threshold types for base models
+        # If still no base models, try any available threshold type for base models
         if base_data.empty:
-            st.info("No base models found with 'base' threshold type. Checking for other threshold types...")
-            # Try to find base models with any threshold type
             available_base_models = summary_df[
                 (summary_df['split'] == 'Full') &
                 (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
@@ -54,9 +71,11 @@ def render_overview_tab():
             if not available_base_models.empty:
                 # Group by model and get the first threshold type available for each base model
                 base_data = available_base_models.groupby('model_name').first().reset_index()
-                overview_data = pd.concat([ml_data, base_data], ignore_index=True)
-                st.info(f"Found base models with threshold types: {available_base_models['threshold_type'].unique()}")
+                st.info(f"Using available threshold types for base models: {available_base_models['threshold_type'].unique()}")
 
+        # Combine ML and base model data
+        overview_data = pd.concat([ml_data, base_data], ignore_index=True)
+        
         # Separate ML models and base models for visualization
         ml_overview_data = overview_data[
             ~overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
@@ -66,63 +85,69 @@ def render_overview_tab():
             overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
         ]
         
-        st.write(f"**Data Summary**: {len(ml_overview_data)} ML models, {len(base_models_data)} base models found")
         
         if not overview_data.empty:
-            # Enhanced comprehensive model comparison chart
-            st.write("#### 🎯 All Models Performance Comparison")
-            
             # Add model type for better visualization
             overview_data_enhanced = overview_data.copy()
             overview_data_enhanced['model_type'] = overview_data_enhanced['model_name'].apply(
                 lambda x: 'Base Model' if x in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'] else 'ML Model'
             )
             
-            # Debug info
-            st.write(f"**Models in visualization**: {overview_data_enhanced['model_name'].tolist()}")
-            st.write(f"**Model types**: {overview_data_enhanced['model_type'].value_counts().to_dict()}")
-            
             # ============================================
-            # 🔥 Compact "One-Chart" Performance Overview
+            # 🔥 Enhanced Performance Overview with F1 Score and Thresholds
             # ============================================
 
-            st.write("##### Accuracy, Precision & Recall – All Models")
+            overview_data_enhanced['model_display'] = overview_data_enhanced.apply(
+                lambda row: f"{row['model_name']} (τ={row['threshold']:.2f})", axis=1
+            )
 
-            # Reshape so each metric becomes its own bar
-            metric_cols = ["accuracy", "precision", "recall"]
+            # Reshape so each metric becomes its own bar - now including F1 score
+            metric_cols = ["accuracy", "precision", "recall", "f1_score"]
             plot_df = (
                 overview_data_enhanced
                 .melt(
-                    id_vars=["model_name"],
+                    id_vars=["model_name","model_display", "threshold"],
                     value_vars=metric_cols,
                     var_name="metric",
                     value_name="score"
                 )
             )
 
+            # Create the main performance chart
             fig = px.bar(
                 plot_df,
-                x="model_name",
+                x="model_display",
                 y="score",
                 color="metric",
                 barmode="group",
                 labels={
                     "score": "Score (%)",
-                    "model_name": "Model",
+                    "model_display": "Model (with Threshold)",
                     "metric": "Metric"
                 },
-                title="Model Performance (Grouped by Metric)",
+                title=f"Model Performance with {selected_threshold_type.title()} Threshold",
+                hover_data={"threshold": True}
             )
 
             fig.update_layout(
                 yaxis_range=[0, 100],
-                height=600,
+                height=700,
                 legend_title_text="Metric"
             )
 
-            st.plotly_chart(fig, use_container_width=True, key="main_performance_bar_chart")
+            st.plotly_chart(fig, use_container_width=True, key=f"main_performance_bar_chart_{selected_threshold_type}")
 
+            # Add threshold information table
+            st.write("##### Threshold Values Used")
+            threshold_info = overview_data_enhanced[['model_name', 'threshold', 'threshold_type', 'model_type']].copy()
+            threshold_info['threshold'] = threshold_info['threshold'].round(4)
             
+            st.dataframe(
+                threshold_info.style.format({'threshold': '{:.4f}'}),
+                use_container_width=True,
+                hide_index=True
+            )
+
             # Cost Analysis
             st.write("#### 💰 Cost Analysis")
             
@@ -191,6 +216,7 @@ def render_overview_tab():
                 'accuracy': '{:.1f}%',
                 'precision': '{:.1f}%',
                 'recall': '{:.1f}%',
+                'f1_score': '{:.1f}%',
                 'cost': '{:.1f}',
                 'threshold': '{:.3f}'
             }), use_container_width=True)
@@ -198,7 +224,7 @@ def render_overview_tab():
             # Summary statistics
             if not filtered_df.empty:
                 st.write("##### Summary Statistics")
-                summary_stats = filtered_df.groupby('model_name')[['accuracy', 'precision', 'recall', 'cost']].agg(['mean', 'std']).round(2)
+                summary_stats = filtered_df.groupby('model_name')[['accuracy', 'precision', 'recall', 'f1_score', 'cost']].agg(['mean', 'std']).round(2)
                 st.dataframe(summary_stats)
         
         # Additional visualizations if sweep data is available
@@ -221,7 +247,7 @@ def render_overview_tab():
 def create_radar_chart(data):
     """Create a radar chart for model comparison."""
     try:
-        metrics = ['accuracy', 'precision', 'recall']
+        metrics = ['accuracy', 'precision', 'recall', 'f1_score']
         
         fig = go.Figure()
         
@@ -310,6 +336,27 @@ def render_threshold_comparison_plots(sweep_data, summary_df):
         )
         st.plotly_chart(fig_acc, use_container_width=True, key="threshold_accuracy_comparison")
 
+    # Add F1 Score vs Threshold plot
+    st.write("#### F1 Score vs Threshold")
+    fig_f1 = go.Figure()
+    
+    for model in selected_models:
+        model_data = sweep_data[model]
+        if 'f1_scores' in model_data:  # Check if F1 scores are available
+            fig_f1.add_trace(go.Scatter(
+                x=model_data['thresholds'],
+                y=model_data['f1_scores'],
+                mode='lines+markers',
+                name=model
+            ))
+    
+    fig_f1.update_layout(
+        title="F1 Score vs Threshold Comparison",
+        xaxis_title="Threshold",
+        yaxis_title="F1 Score (%)"
+    )
+    st.plotly_chart(fig_f1, use_container_width=True, key="threshold_f1_comparison")
+
 def render_model_analysis_tab():
     """Render the model analysis tab content."""
     st.write("### Model Analysis")
@@ -339,11 +386,12 @@ def render_model_analysis_tab():
             
             with col1:
                 st.write(f"#### Performance Metrics ({selected_split} Split)")
-                metrics_display = model_data_split[['threshold_type', 'accuracy', 'precision', 'recall', 'cost', 'threshold']]
+                metrics_display = model_data_split[['threshold_type', 'accuracy', 'precision', 'recall', 'f1_score', 'cost', 'threshold']]
                 st.dataframe(metrics_display.style.format({
                     'accuracy': '{:.1f}%',
                     'precision': '{:.1f}%',
                     'recall': '{:.1f}%',
+                    'f1_score': '{:.1f}%',
                     'cost': '{:.1f}',
                     'threshold': '{:.3f}'
                 }))

@@ -55,6 +55,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                     'accuracy': result.accuracy,
                     'precision': result.precision,
                     'recall': result.recall,
+                    'f1_score': result.f1_score,
                     'cost': result.cost,
                     'threshold': result.threshold,
                     'tp': result.tp,
@@ -71,6 +72,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                     'accuracy': result.accuracy,
                     'precision': result.precision,
                     'recall': result.recall,
+                    'f1_score': result.f1_score,
                     'cost': result.cost,
                     'threshold': result.threshold,
                     'tp': result.tp,
@@ -100,6 +102,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
             thresholds = [float(t) for t in sweep.keys()]  # Convert to float
             costs = [float(sweep[t]['cost']) for t in sweep.keys()]  # Convert to float
             accuracies = [float(sweep[t]['accuracy']) for t in sweep.keys()]  # Convert to float
+            f1_scores = [float(sweep[t]['f1_score']) for t in sweep.keys()]  # Convert to float
             
             # Get probabilities for the same split
             if 'oof' in run.probabilities:
@@ -122,7 +125,8 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                 'probabilities': probs,
                 'thresholds': thresholds,
                 'costs': costs,
-                'accuracies': accuracies
+                'accuracies': accuracies,
+                'f1_scores': f1_scores
             }
     
     # 3. Prepare confusion matrices data
@@ -163,6 +167,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                     'accuracy': result.accuracy,
                     'precision': result.precision,
                     'recall': result.recall,
+                    'f1_score': result.f1_score,
                     'cost': result.cost,
                     'threshold': result.threshold,
                     'total_samples': (result.tp + result.fp + result.tn + result.fn)
@@ -176,6 +181,7 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
                     'accuracy': result.accuracy,
                     'precision': result.precision,
                     'recall': result.recall,
+                    'f1_score': result.f1_score,
                     'cost': result.cost,
                     'threshold': result.threshold,
                     'total_samples': (result.tp + result.fp + result.tn + result.fn)

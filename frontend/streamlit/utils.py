@@ -366,6 +366,7 @@ def plot_threshold_sweep(sweep_data, model_name):
     thresholds = data['thresholds']
     costs = data['costs']
     accuracies = data['accuracies']
+    f1_scores = data.get('f1_scores', [])  # Get F1 scores if available
     
     fig = go.Figure()
     
@@ -387,11 +388,21 @@ def plot_threshold_sweep(sweep_data, model_name):
         line=dict(color='blue')
     ))
     
+    # Add F1 score curve if available
+    if f1_scores:
+        fig.add_trace(go.Scatter(
+            x=thresholds, y=f1_scores,
+            mode='lines+markers',
+            name='F1 Score',
+            yaxis='y2',
+            line=dict(color='green')
+        ))
+    
     fig.update_layout(
         title=f'Threshold Sweep - {model_name}',
         xaxis_title='Threshold',
         yaxis=dict(title='Cost', side='left'),
-        yaxis2=dict(title='Accuracy', side='right', overlaying='y'),
+        yaxis2=dict(title='Accuracy / F1 Score (%)', side='right', overlaying='y'),
         showlegend=True
     )
     

@@ -94,6 +94,7 @@ class ThresholdSweepResponse(BaseModel):
     thresholds: List[float]
     precision: List[float]
     recall: List[float]
+    f1_score: List[float]
     accuracy: List[float]
     cost: List[float]
     cost_optimal_threshold: Optional[float]
@@ -103,6 +104,7 @@ class ModelComparisonResponse(BaseModel):
     model_names: List[str]
     precision: List[float]
     recall: List[float]
+    f1_score: List[float]
     accuracy: List[float]
     cost: List[float]
     thresholds: List[float]
@@ -133,7 +135,7 @@ def fix_numeric_types(data):
                     for item in data['results'][section_name]:
                         if isinstance(item, dict):
                             # Convert numeric fields to proper types
-                            numeric_fields = ['accuracy', 'precision', 'recall', 'cost', 'threshold', 
+                            numeric_fields = ['accuracy', 'precision', 'recall', 'f1_score', 'cost', 'threshold', 
                                             'tp', 'fp', 'tn', 'fn', 'total_samples']
                             for field in numeric_fields:
                                 if field in item and item[field] is not None:
@@ -394,6 +396,7 @@ def get_model_comparison(threshold_type: str = "cost", split: str = "Full"):
         model_names = [metric['model_name'] for metric in filtered_metrics]
         precision = [metric['precision'] for metric in filtered_metrics]
         recall = [metric['recall'] for metric in filtered_metrics]
+        f1_score = [metric['f1_score'] for metric in filtered_metrics]
         accuracy = [metric['accuracy'] for metric in filtered_metrics]
         cost = [metric['cost'] for metric in filtered_metrics]
         thresholds = [metric['threshold'] for metric in filtered_metrics]
@@ -402,6 +405,7 @@ def get_model_comparison(threshold_type: str = "cost", split: str = "Full"):
             model_names=model_names,
             precision=precision,
             recall=recall,
+            f1_score=f1_score,
             accuracy=accuracy,
             cost=cost,
             thresholds=thresholds

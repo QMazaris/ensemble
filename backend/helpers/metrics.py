@@ -11,6 +11,7 @@ class ModelEvaluationResult:
     threshold: float = None   # None for base models
     precision: float = None
     recall: float = None
+    f1_score: float = None    # Add F1 score field
     accuracy: float = None
     cost: float = None
     tp: int = None
@@ -27,16 +28,21 @@ class ModelEvaluationRun:
     sweep_data: Optional[dict] = None  # Dict of split_name -> sweep_results from threshold_sweep_with_cost
 
 def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
-    """Compute precision, recall, accuracy, and cost metrics."""
+    """Compute precision, recall, F1 score, accuracy, and cost metrics."""
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     precision = 100 * tp / (tp + fp) if (tp + fp) > 0 else 0
     recall = 100 * tp / (tp + fn) if (tp + fn) > 0 else 0
+    # Calculate F1 score using precision and recall values (not percentages)
+    precision_raw = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall_raw = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1_score = 100 * (2 * precision_raw * recall_raw) / (precision_raw + recall_raw) if (precision_raw + recall_raw) > 0 else 0
     accuracy = 100 * (tp + tn) / (tp + tn + fp + fn)
     cost = C_FP * fp + C_FN * fn
     if as_dict:
         return {
             'precision': precision,
             'recall': recall,
+            'f1_score': f1_score,
             'accuracy': accuracy,
             'tp': tp,
             'fp': fp,
@@ -45,7 +51,7 @@ def compute_metrics(y_true, y_pred, C_FP, C_FN, as_dict=True):
             'cost': cost
         }
     else:
-        return precision, recall, accuracy, cost
+        return precision, recall, f1_score, accuracy, cost
 
 def threshold_sweep_with_cost(proba, y_true, C_FP, C_FN, thresholds=None, SUMMARY=None, split_name=None):
     """Perform a sweep over thresholds to find optimal cost and accuracy."""
@@ -92,6 +98,7 @@ def _mk_result(model_name, split_name, best, thr_type):
         threshold=best['threshold'],
         precision=best['precision'],
         recall=best['recall'],
+        f1_score=best['f1_score'],
         accuracy=best['accuracy'],
         cost=best['cost'],
         tp=best['tp'], fp=best['fp'],
@@ -101,7 +108,7 @@ def _mk_result(model_name, split_name, best, thr_type):
 
 def _average_results(res_list, model_name):
     """Average results across folds."""
-    fields = ['precision', 'recall', 'accuracy', 'cost', 'tp', 'fp', 'tn', 'fn']
+    fields = ['precision', 'recall', 'f1_score', 'accuracy', 'cost', 'tp', 'fp', 'tn', 'fn']
     avg = {f: float(np.mean([getattr(r, f) for r in res_list])) for f in fields}
     return ModelEvaluationResult(
         model_name=f'kfold_avg_{model_name}',
@@ -138,7 +145,7 @@ def _average_sweep_data(fold_sweeps):
     for thr in all_thresholds:
         # For each threshold, average the metrics across folds
         metrics = {}
-        for metric in ['cost', 'accuracy', 'precision', 'recall', 'tp', 'fp', 'tn', 'fn']:
+        for metric in ['cost', 'accuracy', 'precision', 'recall', 'f1_score', 'tp', 'fp', 'tn', 'fn']:
             values = [s[thr][metric] for s in fold_sweeps if thr in s]
             if values:  # Only average if we have values for this threshold
                 metrics[metric] = float(np.mean(values))
@@ -180,12 +187,14 @@ def calculate_final_production_thresholds(model, X, y, C_FP, C_FN, model_name, S
         print(f"  • Accuracy: {best_cost['accuracy']:.1f}%")
         print(f"  • Precision: {best_cost['precision']:.1f}%")
         print(f"  • Recall: {best_cost['recall']:.1f}%")
+        print(f"  • F1 Score: {best_cost['f1_score']:.1f}%")
         print(f"  • Confusion Matrix: [[TN={best_cost['tn']} FP={best_cost['fp']}], [FN={best_cost['fn']} TP={best_cost['tp']}]]")
         print(f"\nAccuracy-optimal threshold: {best_acc['threshold']:.3f}")
         print(f"  • Accuracy: {best_acc['accuracy']:.1f}%")
         print(f"  • Expected cost: {best_acc['cost']:.1f}")
         print(f"  • Precision: {best_acc['precision']:.1f}%")
         print(f"  • Recall: {best_acc['recall']:.1f}%")
+        print(f"  • F1 Score: {best_acc['f1_score']:.1f}%")
         print(f"  • Confusion Matrix: [[TN={best_acc['tn']} FP={best_acc['fp']}], [FN={best_acc['fn']} TP={best_acc['tp']}]]")
         print(f"{'='*80}\n")
     

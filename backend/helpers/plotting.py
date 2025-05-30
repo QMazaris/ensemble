@@ -8,6 +8,7 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
     thresholds = list(sweep_results.keys())
     precision = [sweep_results[t]['precision'] for t in thresholds]
     recall = [sweep_results[t]['recall'] for t in thresholds]
+    f1_score = [sweep_results[t]['f1_score'] for t in thresholds]
     accuracy = [sweep_results[t]['accuracy'] for t in thresholds]
     cost = [sweep_results[t].get('cost', 0) for t in thresholds]
     
@@ -16,6 +17,7 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
         'thresholds': thresholds,
         'precision': precision,
         'recall': recall,
+        'f1_score': f1_score,
         'accuracy': accuracy,
         'cost': cost,
         'cost_optimal_threshold': cost_optimal_thr,
@@ -35,7 +37,7 @@ def plot_runs_at_threshold(runs, threshold_type, split_name='Test', C_FP=1.0, C_
     if threshold_type not in ('cost','accuracy'):
         raise ValueError("threshold_type must be 'cost' or 'accuracy'")
     
-    labels, precisions, recalls, accuracies, costs, thresholds = [], [], [], [], [], []
+    labels, precisions, recalls, f1_scores, accuracies, costs, thresholds = [], [], [], [], [], [], []
     for run in runs:
         match = next((r for r in run.results if r.split == split_name and r.threshold_type == threshold_type), None)
         if not match:
@@ -45,6 +47,7 @@ def plot_runs_at_threshold(runs, threshold_type, split_name='Test', C_FP=1.0, C_
         labels.append(run.model_name)
         precisions.append(match.precision or 0.0)
         recalls.append(match.recall or 0.0)
+        f1_scores.append(match.f1_score or 0.0)
         accuracies.append(match.accuracy or 0.0)
         costs.append(match.cost or 0.0)
         thresholds.append(match.threshold if match.threshold is not None else np.nan)
@@ -57,6 +60,7 @@ def plot_runs_at_threshold(runs, threshold_type, split_name='Test', C_FP=1.0, C_
         'model_names': labels,
         'precision': precisions,
         'recall': recalls,
+        'f1_score': f1_scores,
         'accuracy': accuracies,
         'cost': costs,
         'thresholds': thresholds,

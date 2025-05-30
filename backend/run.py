@@ -100,7 +100,6 @@ def main(config):
     # Define model zoo
     MODELS = config.MODELS
     
-    
     df, X, y = Initalize(config, SAVE_MODEL)
 
     # Add detailed feature information logging and saving
@@ -211,74 +210,53 @@ def main(config):
     print("\nPipeline complete")
 
     streamlit_output_dir = Path("output") / "streamlit_data"
+
     export_metrics_for_streamlit(results_total, streamlit_output_dir, meta_model_names=set(MODELS.keys()))
 
 def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_model_runs, base_models_to_process):
-    """Process legacy base models (AD_Decision, CL_Decision, AD_or_CL_Fail) with K-fold cost calculation.
-    
-    Always calculates cost on full dataset and divides by N_SPLITS to make it comparable to k-fold averaged costs.
-    """
-    # Get configurable good/bad tags
+    """Process legacy decision-based base models using defined decision columns and configurable good/bad tags."""
+
     good_tag = config.GOOD_TAG
     bad_tag = config.BAD_TAG
-    combined_failure_name = config.COMBINED_FAILURE_MODEL_NAME
-    decision_columns = config.BASE_MODEL_DECISION_COLUMNS
-    
-    for base in base_models_to_process:
+    decision_columns = config.BASE_MODEL_DECISION_COLUMNS  # list of column names
+
+    for column in decision_columns:
         base_results = []
         base_probs = {}
-        
-        # Handle the combined failure model
-        if base == combined_failure_name:
-            # Check if all required decision columns exist in the dataframe
-            missing_cols = [col for col in decision_columns if col not in df.columns]
-            if missing_cols:
-                if config.SUMMARY:
-                    print(f"⚠️  Skipping {base}: Missing decision columns {missing_cols}")
-                continue
-                
-            # fail if any of the decision columns says "Bad"
-            decisions = None
-            for col in decision_columns:
-                col_decisions = (df[col] == bad_tag).astype(int)
-                if decisions is None:
-                    decisions = col_decisions
-                else:
-                    decisions = decisions | col_decisions
-            decisions = decisions.values
-        else:
-            # Single decision column
-            if base not in df.columns:
-                if config.SUMMARY:
-                    print(f"⚠️  Skipping {base}: Column not found in dataframe")
-                continue
-                
-            # Convert 'Bad'/'Good' to 1/0 using configurable tags
-            decisions = (df[base] == bad_tag).astype(int).values
-            
+
+        model_name = column  # use column name as model name
+
+        if column not in df.columns:
+            raise ValueError(f"🚨 Column '{column}' not found in dataframe.")
+
+        # Validate the column only contains good/bad tags
+        invalid_values = df[column][~df[column].isin([good_tag, bad_tag])]
+        if not invalid_values.empty:
+            raise ValueError(
+                f"🚨 Column '{column}' contains invalid values: {invalid_values.unique().tolist()}.\n"
+                f"Expected only: [{good_tag}, {bad_tag}]"
+            )
+
+        # Convert to binary: 1 for bad, 0 for good
+        decisions = (df[column] == bad_tag).astype(int).values
         y_true = y.values
-        
-        # For k-fold, calculate on full dataset but divide cost by N_SPLITS
-        # to make it comparable to k-fold averaged costs
+
+        # Compute metrics and cost (normalized over N_SPLITS)
         tn, fp, fn, tp = confusion_matrix(y_true, decisions).ravel()
-        cost = (C_FP * fp + C_FN * fn) / config.N_SPLITS  # Divide by number of folds
+        cost = (C_FP * fp + C_FN * fn) / config.N_SPLITS
         metrics = compute_metrics(y_true, decisions, C_FP, C_FN)
-        metrics.update({
-            'cost': cost,
-            'tp': tp,
-            'fp': fp,
-            'tn': tn,
-            'fn': fn
-        })
-        
+        metrics.update({'cost': cost, 'tp': tp, 'fp': fp, 'tn': tn, 'fn': fn})
+
+        # Store result
         base_results.append(
             ModelEvaluationResult(
-                model_name=base,
-                split='Full',  # Only use Full split for k-fold
+                model_name=model_name,
+                split='Full',
                 threshold_type='base',
-                threshold=None,  # No threshold concept for decision-based base models
+                threshold=None,
                 precision=metrics['precision'],
                 recall=metrics['recall'],
+                f1_score=metrics['f1_score'],
                 accuracy=metrics['accuracy'],
                 cost=cost,
                 tp=tp,
@@ -288,16 +266,17 @@ def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_
                 is_base_model=True
             )
         )
+
         base_probs['Full'] = decisions
-        
-        # Create the run for this base model
+
         structured_base_model_runs.append(
             ModelEvaluationRun(
-                model_name=base,
+                model_name=model_name,
                 results=base_results,
                 probabilities=base_probs
             )
         )
+
 
 def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, model_zoo_runs):
     """Core logic for K-fold cross-validation with improved structure."""
