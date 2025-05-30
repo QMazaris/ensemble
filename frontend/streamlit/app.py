@@ -9,19 +9,22 @@ root_dir = str(Path(__file__).parent.parent.parent)
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
+# Import from individual tab files
+from tabs.overview import render_overview_tab
+from tabs.model_analysis import render_model_analysis_tab
+from tabs.model_zoo import render_model_zoo_tab
+from tabs.data_management import render_data_management_tab
+from tabs.preprocessing import render_preprocessing_tab
+from tabs.downloads import render_downloads_tab
+
 # Import from the same directory
 from frontend.streamlit.utils import ensure_directories
-from frontend.streamlit.tabs import (
-    render_overview_tab, render_model_analysis_tab,
-    render_downloads_tab, render_data_management_tab,
-    render_preprocessing_tab, render_model_zoo_tab
-)
-from frontend.streamlit.sidebar import render_sidebar, save_config
+from frontend.streamlit.sidebar import render_sidebar
 from shared.config_manager import get_config
 
 # Page config
 st.set_page_config(
-    page_title="🚀 AI Pipeline Dashboard",
+    page_title="AI Pipeline Dashboard",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"

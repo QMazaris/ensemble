@@ -115,7 +115,6 @@ class BaseModelDecisionConfig(BaseModel):
     enabled_columns: List[str]
     good_tag: str
     bad_tag: str
-    combined_failure_model: str
 
 class BaseModelDecisionResponse(BaseModel):
     config: BaseModelDecisionConfig
@@ -497,30 +496,62 @@ def save_csv_backup():
 
 @app.get("/config/base-models", response_model=BaseModelDecisionResponse)
 def get_base_model_config():
-    """Get the current base model decision configuration and available columns."""
+    """Get the current base model decision configuration and available decision columns."""
     try:
-        # Get current configuration
-        base_model_decisions = config.BASE_MODEL_DECISIONS
+        # Get current configuration from config manager
+        from shared.config_manager import config_manager
         
-        # Get available columns from the dataset if it exists
+        # Get base model config (with defaults if not present)
+        base_model_config = config_manager.get('models.base_model_decisions', {
+            'enabled_columns': [],
+            'good_tag': 'Good',
+            'bad_tag': 'Bad'
+        })
+        
+        # Dynamically detect available columns from the dataset
         available_columns = []
         try:
-            if os.path.exists(config.DATA_PATH):
-                df = pd.read_csv(config.DATA_PATH)
-                # Look for columns that might be decision columns (contain common decision keywords)
-                decision_keywords = ['decision', 'class', 'label', 'prediction', 'result']
-                available_columns = [col for col in df.columns 
-                                   if any(keyword.lower() in col.lower() for keyword in decision_keywords)]
-                # Sort for consistent ordering
-                available_columns.sort()
+            # Try to load the current dataset to get available columns
+            data_path = config_manager.get('data.path', 'data/training_data.csv')
+            if os.path.exists(data_path):
+                df = pd.read_csv(data_path, nrows=5)  # Just read a few rows to get column names
+                
+                # Exclude target and feature columns, focusing on potential decision columns
+                target_column = config_manager.get('data.target_column', 'GT_Label')
+                exclude_columns = config_manager.get('data.exclude_columns', [])
+                
+                # Look for columns that might be decision columns (typically containing Decision, decision, etc.)
+                potential_decision_cols = [col for col in df.columns 
+                                         if col != target_column 
+                                         and col not in exclude_columns
+                                         and ('decision' in col.lower() or 'Decision' in col)]
+                
+                # If no decision columns found, include all categorical columns as potential options
+                if not potential_decision_cols:
+                    for col in df.columns:
+                        if col != target_column and col not in exclude_columns:
+                            # Check if it's a categorical column or has few unique values
+                            try:
+                                unique_values = df[col].nunique()
+                                if unique_values <= 10:  # Likely categorical
+                                    potential_decision_cols.append(col)
+                            except:
+                                continue
+                
+                available_columns = potential_decision_cols
+                
         except Exception as e:
-            api_logger.warning(f"Could not load dataset to get available columns: {e}")
+            api_logger.warning(f"Could not detect available columns from dataset: {e}")
+            # Fallback to any currently configured columns
+            available_columns = base_model_config.get('enabled_columns', [])
         
         return BaseModelDecisionResponse(
-            config=BaseModelDecisionConfig(**base_model_decisions),
+            config=BaseModelDecisionConfig(**base_model_config),
             available_columns=available_columns
         )
+        
     except Exception as e:
+        api_logger.error(f"Failed to get base model config: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get base model config: {str(e)}")
 
 @app.post("/config/base-models")
@@ -534,7 +565,6 @@ def update_base_model_config(base_model_config: BaseModelDecisionConfig):
             'models.base_model_decisions.enabled_columns': base_model_config.enabled_columns,
             'models.base_model_decisions.good_tag': base_model_config.good_tag,
             'models.base_model_decisions.bad_tag': base_model_config.bad_tag,
-            'models.base_model_decisions.combined_failure_model': base_model_config.combined_failure_model
         }
         
         config_manager.update(config_updates)
@@ -669,7 +699,7 @@ def get_bitwise_logic_config():
             api_logger.warning(f"Could not get available models from metrics: {e}")
         
         # Add base models that should always be available
-        base_decision_models = config.BASE_MODEL_DECISION_COLUMNS + [config.COMBINED_FAILURE_MODEL_NAME]
+        base_decision_models = config.BASE_MODEL_DECISION_COLUMNS
         available_models.extend(base_decision_models)
         
         # Remove duplicates and sort

@@ -194,17 +194,4 @@ def render_sidebar():
     # Auto-save configuration changes
     auto_save_config(config_updates)
     
-    return config_updates
-
-def save_config(config_updates):
-    """Manual save configuration function (kept for compatibility)."""
-    config = get_config()
-    
-    # Update the configuration
-    config.update(config_updates)
-    
-    # Save to file
-    config.save()
-    
-    st.success("✅ Configuration saved successfully!")
-    st.rerun() 
+    return config_updates 

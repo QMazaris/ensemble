@@ -2,15 +2,7 @@ costs:
   false_negative: 30.0
   false_positive: 1.0
 data:
-  exclude_columns:
-  - Image
-  - AD_Decision
-  - CL_Decision
-  - AD_ClassID
-  - CL_ClassID
-  - GT_Label_Num
-  - ClassThresh
-  - SegThresh
+  exclude_columns: []
   path: data/training_data.csv
   random_state: 42
   target_column: GT_Label
@@ -119,7 +111,7 @@ models:
     CL: CL_ConfMax
   base_model_decisions:
     bad_tag: Bad
-    combined_failure_model: yo mama
+    combined_failure_model: AD_or_CL_Fail
     enabled_columns:
     - AD_Decision
     - CL_Decision

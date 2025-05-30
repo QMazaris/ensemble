@@ -3602,3 +3602,558 @@ AttributeError: 'DataService' object has no attribute 'store_metrics_data'. Did 
 2025-05-30 10:21:52,295 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
 2025-05-30 10:21:52,312 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
 2025-05-30 10:21:52,314 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.019s
+2025-05-30 10:28:11,331 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 10:28:11,334 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 10:28:11,337 - ensemble_api - INFO - ✅ Returning metrics data: 10 model metrics, 10 summaries, 10 confusion matrices
+2025-05-30 10:28:11,341 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-30 10:28:13,380 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 10:28:13,441 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.061s
+2025-05-30 10:28:15,812 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 10:28:15,833 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-30 10:28:17,878 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 10:28:17,898 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-30 10:28:19,960 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 10:28:19,964 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.004s
+2025-05-30 10:28:20,802 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 10:28:20,832 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.029s
+2025-05-30 10:28:22,898 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 10:28:22,899 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 10:28:25,145 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 10:28:25,146 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 10:28:25,147 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 10:28:25,182 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.037s
+2025-05-30 10:36:22,960 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 10:36:22,964 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 10:36:22,967 - ensemble_api - INFO - ✅ Returning metrics data: 10 model metrics, 10 summaries, 10 confusion matrices
+2025-05-30 10:36:22,972 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.012s
+2025-05-30 10:36:25,023 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 10:36:25,072 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.049s
+2025-05-30 10:36:27,378 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 10:36:27,420 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.042s
+2025-05-30 10:36:29,487 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 10:36:29,491 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.004s
+2025-05-30 10:36:31,750 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 10:36:31,752 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 10:36:31,753 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 10:36:31,795 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.045s
+2025-05-30 10:38:25,064 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 10:38:25,090 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 10:38:25,091 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.027s
+2025-05-30 10:38:27,231 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 10:38:27,234 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 10:38:27,235 - ensemble_api - INFO - ✅ Returning metrics data: 10 model metrics, 10 summaries, 10 confusion matrices
+2025-05-30 10:38:27,239 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-30 10:38:29,587 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 10:38:29,589 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 10:38:29,589 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 10:38:29,616 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.028s
+2025-05-30 10:38:33,180 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 10:38:33,188 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 10:38:33,189 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.009s
+2025-05-30 10:38:35,321 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 10:38:35,323 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 10:38:35,324 - ensemble_api - INFO - ✅ Returning metrics data: 10 model metrics, 10 summaries, 10 confusion matrices
+2025-05-30 10:38:35,328 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-30 10:38:37,870 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 10:38:37,873 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 10:38:37,874 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 10:38:37,932 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.062s
+2025-05-30 10:42:54,193 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 10:42:54,196 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 10:42:54,199 - ensemble_api - INFO - ✅ Returning metrics data: 10 model metrics, 10 summaries, 10 confusion matrices
+2025-05-30 10:42:54,203 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-30 10:42:56,264 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 10:42:56,307 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.044s
+2025-05-30 10:42:58,600 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 10:42:58,631 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.030s
+2025-05-30 10:43:00,696 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 10:43:00,699 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 10:43:02,837 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 10:43:02,839 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 10:43:02,840 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 10:43:02,879 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.042s
+2025-05-30 11:04:16,546 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:04:16,548 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:04:16,550 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:04:16,552 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-30 11:04:18,624 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:04:18,659 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.035s
+2025-05-30 11:04:20,972 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:04:20,993 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-30 11:04:23,035 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:04:23,040 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.004s
+2025-05-30 11:04:25,240 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:04:25,242 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:04:25,243 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:04:25,267 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.026s
+2025-05-30 11:05:05,545 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:05:05,547 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:05:05,549 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:05:05,550 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-30 11:05:07,576 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:05:07,619 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.044s
+2025-05-30 11:05:35,355 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/health
+2025-05-30 11:05:35,359 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/health - Status: 200 - Time: 0.004s
+2025-05-30 11:05:37,423 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:05:37,425 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:05:37,428 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:05:37,431 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-05-30 11:05:45,593 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:05:45,594 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:05:45,595 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:05:45,597 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-30 11:05:47,643 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:05:47,681 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.038s
+2025-05-30 11:05:49,968 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:05:49,995 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.027s
+2025-05-30 11:05:52,031 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:05:52,036 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.005s
+2025-05-30 11:05:54,188 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:05:54,189 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:05:54,190 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:05:54,228 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.041s
+2025-05-30 11:05:55,041 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:05:55,043 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:05:55,044 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:05:55,077 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.036s
+2025-05-30 11:05:56,492 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:05:56,496 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:05:56,497 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:05:56,554 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.062s
+2025-05-30 11:06:19,610 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:06:19,613 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:06:19,616 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:06:19,620 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.011s
+2025-05-30 11:06:49,364 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:06:49,366 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:06:49,367 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:06:49,369 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-30 11:06:51,410 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:06:51,448 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.038s
+2025-05-30 11:06:53,672 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:06:53,691 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.019s
+2025-05-30 11:06:55,750 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:06:55,752 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:06:57,908 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:06:57,910 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:06:57,911 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:06:57,943 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.035s
+2025-05-30 11:07:28,146 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:07:28,147 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:07:28,149 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:07:28,151 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-30 11:07:42,438 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:07:42,442 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.004s
+2025-05-30 11:07:44,561 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:07:44,562 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:07:44,571 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:07:44,597 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.036s
+2025-05-30 11:08:15,349 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:08:15,351 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:08:15,353 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:08:15,354 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-30 11:08:17,426 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:08:17,470 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.044s
+2025-05-30 11:08:19,751 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:08:19,789 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.037s
+2025-05-30 11:08:21,868 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:08:21,871 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:08:24,011 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:08:24,012 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:08:24,013 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:08:24,043 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.032s
+2025-05-30 11:08:38,695 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:08:38,718 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:08:38,719 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.024s
+2025-05-30 11:08:40,827 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:08:40,829 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:08:40,831 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:08:40,835 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-05-30 11:08:43,195 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:08:43,197 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:08:43,198 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:08:43,229 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.034s
+2025-05-30 11:08:52,876 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:08:52,885 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 11:08:52,886 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.010s
+2025-05-30 11:08:55,031 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:08:55,032 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:08:55,033 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:08:55,034 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.003s
+2025-05-30 11:08:57,428 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:08:57,430 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:08:57,431 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:08:57,462 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.034s
+2025-05-30 11:09:15,280 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:09:15,283 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:09:15,284 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:09:15,288 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-30 11:09:17,329 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:09:17,351 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.022s
+2025-05-30 11:09:19,643 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:09:19,663 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.020s
+2025-05-30 11:09:21,718 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:09:21,721 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:09:23,885 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:09:23,887 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:09:23,888 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:09:23,922 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.036s
+2025-05-30 11:10:15,734 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:10:15,736 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:10:15,737 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:10:15,739 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-30 11:10:17,796 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:10:17,853 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.057s
+2025-05-30 11:10:20,119 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:10:20,157 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.038s
+2025-05-30 11:10:22,227 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:10:22,231 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.004s
+2025-05-30 11:10:24,383 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:10:24,385 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:10:24,386 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:10:24,423 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.040s
+2025-05-30 11:15:21,166 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:15:21,168 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:15:21,170 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:15:21,172 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-30 11:15:23,215 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:15:23,263 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.049s
+2025-05-30 11:15:25,614 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:15:25,654 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.040s
+2025-05-30 11:15:27,712 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:15:27,714 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:15:29,947 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:15:29,948 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:15:29,949 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:15:29,984 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.038s
+2025-05-30 11:15:42,705 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:15:42,707 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:15:42,709 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:15:42,711 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-30 11:15:44,736 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:15:44,784 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.048s
+2025-05-30 11:15:47,150 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:15:47,190 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.040s
+2025-05-30 11:15:49,274 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:15:49,276 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:15:51,492 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:15:51,493 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:15:51,494 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:15:51,517 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.026s
+2025-05-30 11:15:57,336 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:15:57,338 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:15:57,340 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:15:57,342 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-05-30 11:15:58,804 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:15:58,806 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:15:59,412 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:15:59,478 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.066s
+2025-05-30 11:16:00,844 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:00,861 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:16:00,863 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.019s
+2025-05-30 11:16:01,777 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:16:01,814 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.037s
+2025-05-30 11:16:02,889 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:02,892 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:16:03,912 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:03,915 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:16:04,946 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:04,961 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 11:16:04,963 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.016s
+2025-05-30 11:16:06,164 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:16:06,165 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:16:06,166 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:16:06,205 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.041s
+2025-05-30 11:16:07,005 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:07,007 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:16:09,029 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:09,036 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: False
+2025-05-30 11:16:09,037 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.008s
+2025-05-30 11:16:13,384 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:13,386 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:16:19,094 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:19,106 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:16:19,107 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.012s
+2025-05-30 11:16:21,146 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:21,149 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:16:23,196 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:23,205 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 11:16:23,206 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.010s
+2025-05-30 11:16:25,230 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:25,232 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:16:27,267 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:27,275 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: False
+2025-05-30 11:16:27,277 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.010s
+2025-05-30 11:16:50,312 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:16:50,314 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:16:50,315 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:16:50,319 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-30 11:16:52,392 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:16:52,443 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.051s
+2025-05-30 11:16:54,694 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:16:54,733 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.039s
+2025-05-30 11:16:56,782 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:56,784 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:16:58,827 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:16:58,842 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: False
+2025-05-30 11:16:58,844 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.017s
+2025-05-30 11:17:01,067 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:17:01,068 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:17:01,069 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:17:01,089 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.022s
+2025-05-30 11:18:32,216 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:18:32,218 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:18:32,219 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:18:32,223 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-30 11:19:20,540 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:19:20,556 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 11:19:20,557 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.017s
+2025-05-30 11:19:34,271 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:19:34,299 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:19:34,301 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.030s
+2025-05-30 11:19:36,352 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic/apply
+2025-05-30 11:19:36,364 - ensemble_api - ERROR - Failed to apply bitwise logic: Missing runs for models: ['AD_Decision', 'CL_Decision']
+Traceback: Traceback (most recent call last):
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\helpers\stacked_logic.py", line 56, in generate_combined_runs
+    name_to_run[col].probabilities['Full'].astype(int)
+    ~~~~~~~~~~~^^^^^
+KeyError: 'AD_Decision'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\api\main.py", line 820, in apply_bitwise_logic
+    new_runs = generate_combined_runs(
+        runs=runs,
+    ...<4 lines>...
+        N_SPLITS=config.N_SPLITS
+    )
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\helpers\stacked_logic.py", line 61, in generate_combined_runs
+    raise ValueError(f"Missing runs for models: {missing}") from e
+ValueError: Missing runs for models: ['AD_Decision', 'CL_Decision']
+
+2025-05-30 11:19:36,372 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic/apply - Status: 500 - Time: 0.021s
+2025-05-30 11:19:53,163 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:19:53,181 - ensemble_api - INFO - Updated bitwise logic configuration: 2 rules, enabled: True
+2025-05-30 11:19:53,183 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.020s
+2025-05-30 11:19:54,751 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:19:54,769 - ensemble_api - INFO - Updated bitwise logic configuration: 2 rules, enabled: True
+2025-05-30 11:19:54,772 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.020s
+2025-05-30 11:19:56,803 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic/apply
+2025-05-30 11:19:56,807 - ensemble_api - ERROR - Failed to apply bitwise logic: Missing runs for models: ['AD_Decision', 'CL_Decision']
+Traceback: Traceback (most recent call last):
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\helpers\stacked_logic.py", line 56, in generate_combined_runs
+    name_to_run[col].probabilities['Full'].astype(int)
+    ~~~~~~~~~~~^^^^^
+KeyError: 'AD_Decision'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\api\main.py", line 820, in apply_bitwise_logic
+    new_runs = generate_combined_runs(
+        runs=runs,
+    ...<4 lines>...
+        N_SPLITS=config.N_SPLITS
+    )
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\helpers\stacked_logic.py", line 61, in generate_combined_runs
+    raise ValueError(f"Missing runs for models: {missing}") from e
+ValueError: Missing runs for models: ['AD_Decision', 'CL_Decision']
+
+2025-05-30 11:19:56,813 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic/apply - Status: 500 - Time: 0.010s
+2025-05-30 11:20:18,982 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:20:19,007 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:20:19,009 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.027s
+2025-05-30 11:20:21,112 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:20:21,114 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:20:21,114 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:20:21,116 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-05-30 11:20:23,054 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:20:23,056 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:20:23,057 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:20:23,060 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-30 11:20:25,322 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:20:25,336 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 11:20:25,338 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.016s
+2025-05-30 11:20:27,496 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:20:27,498 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:20:27,499 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:20:27,503 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-30 11:20:29,918 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:20:29,920 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:20:29,922 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:20:29,961 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.043s
+2025-05-30 11:20:31,453 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:20:31,479 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:20:31,481 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.027s
+2025-05-30 11:20:33,969 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:20:33,971 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:20:33,971 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:20:34,001 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.031s
+2025-05-30 11:20:34,690 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:20:34,707 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:20:34,709 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.019s
+2025-05-30 11:20:36,764 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic/apply
+2025-05-30 11:20:36,773 - ensemble_api - ERROR - Failed to apply bitwise logic: too many values to unpack (expected 4)
+Traceback: Traceback (most recent call last):
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\api\main.py", line 820, in apply_bitwise_logic
+    new_runs = generate_combined_runs(
+        runs=runs,
+    ...<4 lines>...
+        N_SPLITS=config.N_SPLITS
+    )
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\helpers\stacked_logic.py", line 70, in generate_combined_runs
+    tn, fp, fn, tp = confusion_matrix(y_true, combined).ravel()
+    ^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 4)
+
+2025-05-30 11:20:36,779 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic/apply - Status: 500 - Time: 0.016s
+2025-05-30 11:20:39,016 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:20:39,019 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:20:39,020 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:20:39,063 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.047s
+2025-05-30 11:22:08,569 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:22:08,575 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.006s
+2025-05-30 11:22:22,177 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:22:22,217 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.040s
+2025-05-30 11:22:22,793 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:22:22,795 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:22:24,363 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:22:24,406 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.043s
+2025-05-30 11:22:26,479 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:22:26,483 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.004s
+2025-05-30 11:22:28,703 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:22:28,705 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:22:28,706 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:22:28,747 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.044s
+2025-05-30 11:22:40,420 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:22:40,425 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.005s
+2025-05-30 11:23:27,120 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:23:27,130 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: False
+2025-05-30 11:23:27,132 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.012s
+2025-05-30 11:23:29,168 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:23:29,172 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.005s
+2025-05-30 11:23:31,199 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:23:31,207 - ensemble_api - INFO - Updated bitwise logic configuration: 1 rules, enabled: True
+2025-05-30 11:23:31,208 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.009s
+2025-05-30 11:23:33,246 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic/apply
+2025-05-30 11:23:33,265 - ensemble_api - ERROR - Failed to apply bitwise logic: Missing runs for models: ['AD_Decision', 'CL_Decision']
+Traceback: Traceback (most recent call last):
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\helpers\stacked_logic.py", line 56, in generate_combined_runs
+    name_to_run[col].probabilities['Full'].astype(int)
+    ~~~~~~~~~~~^^^^^
+KeyError: 'AD_Decision'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\api\main.py", line 820, in apply_bitwise_logic
+    new_runs = generate_combined_runs(
+        runs=runs,
+    ...<4 lines>...
+        N_SPLITS=config.N_SPLITS
+    )
+  File "C:\Users\QuinnMazaris\Desktop\ensamble_pipelineV2\backend\helpers\stacked_logic.py", line 61, in generate_combined_runs
+    raise ValueError(f"Missing runs for models: {missing}") from e
+ValueError: Missing runs for models: ['AD_Decision', 'CL_Decision']
+
+2025-05-30 11:23:33,270 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic/apply - Status: 500 - Time: 0.025s
+2025-05-30 11:23:35,282 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:23:35,289 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: False
+2025-05-30 11:23:35,291 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.009s
+2025-05-30 11:24:07,729 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:24:07,733 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:24:07,735 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:24:07,739 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-30 11:24:09,814 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:24:09,871 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.057s
+2025-05-30 11:24:12,170 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:24:12,209 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.039s
+2025-05-30 11:24:14,291 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:24:14,294 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:24:16,534 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:24:16,536 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:24:16,538 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:24:16,589 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.054s
+2025-05-30 11:24:17,382 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:24:17,385 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:24:17,386 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:24:17,436 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.054s
+2025-05-30 11:24:43,194 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:24:43,196 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:24:43,197 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:24:43,201 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-05-30 11:24:45,264 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:24:45,289 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.025s
+2025-05-30 11:24:47,534 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:24:47,568 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.034s
+2025-05-30 11:24:49,618 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:24:49,621 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:24:51,831 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:24:51,832 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:24:51,834 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:24:51,854 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.023s
+2025-05-30 11:24:54,271 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:24:54,272 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:24:54,273 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:24:54,295 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.024s
+2025-05-30 11:26:10,421 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:26:10,431 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 11:26:10,432 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.011s
+2025-05-30 11:27:26,852 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:27:26,855 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:27:26,857 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:27:26,861 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-05-30 11:27:28,895 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:27:28,951 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.055s
+2025-05-30 11:27:31,264 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:27:31,291 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.027s
+2025-05-30 11:27:33,322 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:27:33,323 - ensemble_api - ERROR - Failed to get bitwise logic config: module 'backend.config_adapter' has no attribute 'COMBINED_FAILURE_MODEL_NAME'
+2025-05-30 11:27:33,325 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 500 - Time: 0.003s
+2025-05-30 11:27:35,568 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:27:35,570 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:27:35,570 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:27:35,607 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.039s
+2025-05-30 11:29:48,154 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/bitwise-logic
+2025-05-30 11:29:48,174 - ensemble_api - INFO - Updated bitwise logic configuration: 0 rules, enabled: True
+2025-05-30 11:29:48,176 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.022s
+2025-05-30 11:35:40,258 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:35:40,261 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:35:40,263 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:35:40,265 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-30 11:35:42,335 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:35:42,378 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.043s
+2025-05-30 11:35:44,756 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:35:44,780 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.024s
+2025-05-30 11:35:46,836 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:35:46,838 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.002s
+2025-05-30 11:35:49,105 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:35:49,106 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:35:49,107 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:35:49,128 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.024s
+2025-05-30 11:36:29,310 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:36:29,331 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.021s
+2025-05-30 11:36:53,432 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:36:53,457 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.025s
+2025-05-30 11:36:55,523 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-models
+2025-05-30 11:36:55,544 - ensemble_api - INFO - Updated base model decision configuration: {'models.base_model_decisions.enabled_columns': ['AD_Decision', 'CL_Decision'], 'models.base_model_decisions.good_tag': 'Good', 'models.base_model_decisions.bad_tag': 'Bad'}
+2025-05-30 11:36:55,547 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-models - Status: 200 - Time: 0.024s
+2025-05-30 11:36:57,604 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:36:57,612 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.009s
+2025-05-30 11:37:34,612 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-05-30 11:37:34,614 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-05-30 11:37:34,615 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-05-30 11:37:34,618 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-05-30 11:37:36,656 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-05-30 11:37:36,710 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.054s
+2025-05-30 11:37:39,020 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:37:39,033 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.013s
+2025-05-30 11:39:23,773 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-05-30 11:39:23,789 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.016s
+2025-05-30 11:39:25,841 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-05-30 11:39:25,844 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.003s
+2025-05-30 11:39:28,066 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-05-30 11:39:28,068 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-05-30 11:39:28,068 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-05-30 11:39:28,099 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.033s

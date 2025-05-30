@@ -159,10 +159,10 @@ def main(config):
     base_model_runs.append(kfold_avg_cl_run)
 
     # ========== STRUCTURED BASE MODEL METRICS SECTION ==========
-    # This section calculates results for the original base models (AD_Decision, CL_Decision, AD_or_CL_Fail).
+    # This section calculates results for the original base models (AD_Decision, CL_Decision, etc.).
     # These runs will always be created here, and added to base_model_runs below.
     structured_base_model_runs = []
-    base_models_to_process = config.BASE_MODEL_DECISION_COLUMNS + [config.COMBINED_FAILURE_MODEL_NAME]
+    base_models_to_process = config.BASE_MODEL_DECISION_COLUMNS
 
     # For K-fold, we don't need train/test indices, so pass None
     Legacy_Base(config, C_FP, C_FN, df, y, None, None, structured_base_model_runs, base_models_to_process)

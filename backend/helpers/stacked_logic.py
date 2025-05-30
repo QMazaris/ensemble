@@ -67,7 +67,14 @@ def generate_combined_runs(
             combined = op(combined, arr)
 
         # compute confusion, cost, metrics
-        tn, fp, fn, tp = confusion_matrix(y_true, combined).ravel()
+        # Ensure binary classification with labels [0, 1]
+        cm = confusion_matrix(y_true, combined, labels=[0, 1])
+        tn, fp, fn, tp = cm.ravel()
+        
+        # Validate that we have a 2x2 matrix
+        if cm.shape != (2, 2):
+            raise ValueError(f"Expected 2x2 confusion matrix for binary classification, got {cm.shape}")
+        
         cost = (C_FP * fp + C_FN * fn) / N_SPLITS
         metrics = compute_metrics(y_true, combined, C_FP, C_FN)
         metrics.update({'cost': cost, 'tp': tp, 'fp': fp, 'tn': tn, 'fn': fn})

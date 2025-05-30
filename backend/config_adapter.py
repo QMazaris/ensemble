@@ -80,7 +80,6 @@ class ConfigAdapter:
             'enabled_columns': ['AD_Decision', 'CL_Decision'],
             'good_tag': 'Good',
             'bad_tag': 'Bad',
-            'combined_failure_model': 'AD_or_CL_Fail'
         })
     
     @property
@@ -97,11 +96,6 @@ class ConfigAdapter:
     def BAD_TAG(self):
         """Get the tag used to represent 'bad' classification in decision columns."""
         return self.BASE_MODEL_DECISIONS.get('bad_tag', 'Bad')
-    
-    @property
-    def COMBINED_FAILURE_MODEL_NAME(self):
-        """Get the name for the combined failure model (e.g., 'AD_or_CL_Fail')."""
-        return self.BASE_MODEL_DECISIONS.get('combined_failure_model', 'AD_or_CL_Fail')
     
     @property
     def MODELS(self):
@@ -256,7 +250,6 @@ BASE_MODEL_DECISIONS = _adapter.BASE_MODEL_DECISIONS
 BASE_MODEL_DECISION_COLUMNS = _adapter.BASE_MODEL_DECISION_COLUMNS
 GOOD_TAG = _adapter.GOOD_TAG
 BAD_TAG = _adapter.BAD_TAG
-COMBINED_FAILURE_MODEL_NAME = _adapter.COMBINED_FAILURE_MODEL_NAME
 MODELS = _adapter.MODELS
 USE_KFOLD = _adapter.USE_KFOLD
 N_SPLITS = _adapter.N_SPLITS

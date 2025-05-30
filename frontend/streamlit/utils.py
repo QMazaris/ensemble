@@ -9,8 +9,13 @@ from sklearn.metrics import roc_curve, precision_recall_curve, auc
 import logging
 import time
 from datetime import datetime
+import streamlit as st
+import re
 
 # Set up logging configuration for frontend
+# Ensure logs directory exists
+Path('output/logs').mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -22,9 +27,6 @@ logging.basicConfig(
 
 # Create logger for frontend API calls
 frontend_logger = logging.getLogger('ensemble_frontend')
-
-# Ensure logs directory exists
-Path('output/logs').mkdir(parents=True, exist_ok=True)
 
 # Constants
 OUTPUT_DIR = Path("output")
@@ -433,3 +435,462 @@ def get_plot_groups(plot_dir):
         groups[group].append(plot_file)
     
     return groups 
+
+def get_cached_data(cache_key, api_endpoint, default_value=None, force_refresh=False):
+    """
+    Centralized caching system for API calls to improve efficiency.
+    
+    Args:
+        cache_key: Key to store data in session state
+        api_endpoint: API endpoint to call
+        default_value: Default value if API call fails
+        force_refresh: Force refresh the cache
+    """
+    # Initialize cache if not exists
+    if 'api_cache' not in st.session_state:
+        st.session_state.api_cache = {}
+    
+    # Initialize cache timestamps
+    if 'api_cache_timestamps' not in st.session_state:
+        st.session_state.api_cache_timestamps = {}
+    
+    # Check if cache is expired (5 minutes cache time)
+    cache_timeout = 300  # 5 minutes
+    current_time = time.time()
+    is_expired = (
+        cache_key in st.session_state.api_cache_timestamps and
+        current_time - st.session_state.api_cache_timestamps[cache_key] > cache_timeout
+    )
+    
+    # Check if we need to refresh cache
+    if force_refresh or cache_key not in st.session_state.api_cache or is_expired:
+        try:
+            response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
+            if response.status_code == 200:
+                st.session_state.api_cache[cache_key] = response.json()
+                st.session_state.api_cache_timestamps[cache_key] = current_time
+            else:
+                st.session_state.api_cache[cache_key] = default_value
+                st.session_state.api_cache_timestamps[cache_key] = current_time
+        except Exception as e:
+            st.session_state.api_cache[cache_key] = default_value
+            st.session_state.api_cache_timestamps[cache_key] = current_time
+    
+    return st.session_state.api_cache[cache_key]
+
+def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
+    """
+    Debounced auto-save function to prevent excessive API calls.
+    
+    Args:
+        save_function: Function to call for saving
+        config_data: Data to save
+        notification_container: Streamlit container for notifications
+        debounce_key: Unique key for this auto-save operation
+        delay: Delay in seconds before saving
+    """
+    # Initialize debounce storage
+    if 'debounce_timers' not in st.session_state:
+        st.session_state.debounce_timers = {}
+    
+    if 'debounce_data' not in st.session_state:
+        st.session_state.debounce_data = {}
+    
+    # Store the current time and data
+    current_time = time.time()
+    st.session_state.debounce_timers[debounce_key] = current_time
+    st.session_state.debounce_data[debounce_key] = {
+        'save_function': save_function,
+        'config_data': config_data,
+        'notification_container': notification_container
+    }
+    
+    # Check if enough time has passed for any pending saves
+    keys_to_process = []
+    for key, timestamp in st.session_state.debounce_timers.items():
+        if current_time - timestamp >= delay:
+            keys_to_process.append(key)
+    
+    # Process debounced saves
+    for key in keys_to_process:
+        if key in st.session_state.debounce_data:
+            data = st.session_state.debounce_data[key]
+            try:
+                result = data['save_function'](data['config_data'], data['notification_container'])
+                if result:
+                    # Only show success message for actual saves
+                    pass  # The save function itself handles notifications
+            except Exception as e:
+                data['notification_container'].error(f"❌ Auto-save failed: {str(e)}")
+            
+            # Clean up
+            del st.session_state.debounce_timers[key]
+            del st.session_state.debounce_data[key]
+
+def clear_cache():
+    """Clear all cached data."""
+    if 'api_cache' in st.session_state:
+        st.session_state.api_cache = {}
+    if 'api_cache_timestamps' in st.session_state:
+        st.session_state.api_cache_timestamps = {}
+
+def update_cache(cache_key, data):
+    """Update specific cache entry."""
+    if 'api_cache' not in st.session_state:
+        st.session_state.api_cache = {}
+    if 'api_cache_timestamps' not in st.session_state:
+        st.session_state.api_cache_timestamps = {}
+    
+    st.session_state.api_cache[cache_key] = data
+    st.session_state.api_cache_timestamps[cache_key] = time.time()
+
+
+
+def create_radar_chart(data):
+    """Create a radar chart for model comparison."""
+    try:
+        metrics = ['accuracy', 'precision', 'recall', 'f1_score']
+        
+        fig = go.Figure()
+        
+        for _, row in data.iterrows():
+            fig.add_trace(go.Scatterpolar(
+                r=[row[metric] for metric in metrics],
+                theta=metrics,
+                fill='toself',
+                name=row['model_name']
+            ))
+        
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 100]
+                )),
+            showlegend=True,
+            title="Model Performance Radar Chart"
+        )
+        
+        return fig
+    except Exception as e:
+        st.error(f"Error creating radar chart: {e}")
+        return None
+
+def render_threshold_comparison_plots(sweep_data, summary_df):
+    """Render threshold sweep comparison plots."""
+    if not sweep_data:
+        return
+        
+    # Model selection for threshold analysis
+    available_models = list(sweep_data.keys())
+    if not available_models:
+        return
+        
+    selected_models = st.multiselect(
+        "Select models for threshold comparison",
+        options=available_models,
+        default=available_models[:min(3, len(available_models))]  # Default to first 3 models
+    )
+    
+    if not selected_models:
+        return
+        
+    # Create threshold sweep comparison plots
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("#### Cost vs Threshold")
+        fig_cost = go.Figure()
+        
+        for model in selected_models:
+            model_data = sweep_data[model]
+            fig_cost.add_trace(go.Scatter(
+                x=model_data['thresholds'],
+                y=model_data['costs'],
+                mode='lines+markers',
+                name=model
+            ))
+        
+        fig_cost.update_layout(
+            title="Cost vs Threshold Comparison",
+            xaxis_title="Threshold",
+            yaxis_title="Cost"
+        )
+        st.plotly_chart(fig_cost, use_container_width=True, key="threshold_cost_comparison")
+    
+    with col2:
+        st.write("#### Accuracy vs Threshold")
+        fig_acc = go.Figure()
+        
+        for model in selected_models:
+            model_data = sweep_data[model]
+            fig_acc.add_trace(go.Scatter(
+                x=model_data['thresholds'],
+                y=model_data['accuracies'],
+                mode='lines+markers',
+                name=model
+            ))
+        
+        fig_acc.update_layout(
+            title="Accuracy vs Threshold Comparison",
+            xaxis_title="Threshold",
+            yaxis_title="Accuracy (%)"
+        )
+        st.plotly_chart(fig_acc, use_container_width=True, key="threshold_accuracy_comparison")
+
+    # Add F1 Score vs Threshold plot
+    st.write("#### F1 Score vs Threshold")
+    fig_f1 = go.Figure()
+    
+    for model in selected_models:
+        model_data = sweep_data[model]
+        if 'f1_scores' in model_data:  # Check if F1 scores are available
+            fig_f1.add_trace(go.Scatter(
+                x=model_data['thresholds'],
+                y=model_data['f1_scores'],
+                mode='lines+markers',
+                name=model
+            ))
+    
+    fig_f1.update_layout(
+        title="F1 Score vs Threshold Comparison",
+        xaxis_title="Threshold",
+        yaxis_title="F1 Score (%)"
+    )
+    st.plotly_chart(fig_f1, use_container_width=True, key="threshold_f1_comparison")
+
+
+
+def render_model_curves(model, sweep_data, model_data_split):
+    """Render model curves and threshold analysis."""
+    st.write("#### Model Curves and Threshold Analysis")
+    
+    # Load predictions and ensure we have the data
+    try:
+        # Use cached predictions data instead of loading fresh each time
+        predictions_data = get_cached_data(
+            cache_key="predictions_data",
+            api_endpoint="/results/predictions",
+            default_value={"predictions": []},
+            force_refresh=False  # Don't force refresh here
+        )
+        
+        if predictions_data and predictions_data.get('predictions'):
+            pred_df = pd.DataFrame(predictions_data['predictions'])
+        else:
+            st.warning(f"No predictions data available.")
+            return
+            
+        if model not in pred_df.columns:
+            st.warning(f"Model {model} not found in predictions data.")
+            return
+            
+        # Get the probabilities and true labels for this model
+        probs = np.array(sweep_data[model]['probabilities'])
+        y_true = pred_df['GT'].values
+        
+        # Ensure lengths match
+        if len(probs) != len(y_true):
+            st.warning(f"Length mismatch between probabilities ({len(probs)}) and true labels ({len(y_true)}). Using the shorter length.")
+            min_len = min(len(probs), len(y_true))
+            probs = probs[:min_len]
+            y_true = y_true[:min_len]
+        
+        col3, col4 = st.columns(2)
+        
+        with col3:
+            st.write("##### ROC Curve (Full Data)")
+            st.plotly_chart(plot_roc_curve(y_true, probs), use_container_width=True, key=f"roc_curve_{model}")
+        
+        with col4:
+            st.write("##### Precision-Recall Curve (Full Data)")
+            st.plotly_chart(plot_precision_recall_curve(y_true, probs), use_container_width=True, key=f"pr_curve_{model}")
+
+        # Threshold Analysis
+        st.write("##### Probability Distribution and Threshold Sweep")
+        
+        fig_hist = px.histogram(
+            x=probs,
+            title=f'Probability Distribution - {model}',
+            nbins=50,
+            labels={'x': 'Probability', 'y': 'Count'}
+        )
+        st.plotly_chart(fig_hist, use_container_width=True, key=f"prob_distribution_{model}")
+
+        # Threshold sweep plot
+        sweep_fig = plot_threshold_sweep(sweep_data, model)
+        if sweep_fig:
+            st.plotly_chart(sweep_fig, use_container_width=True, key=f"threshold_sweep_{model}")
+
+        # Get optimal thresholds
+        cost_optimal_thr = (model_data_split[model_data_split['threshold_type'] == 'cost']['threshold'].iloc[0] 
+                           if not model_data_split[model_data_split['threshold_type'] == 'cost'].empty else None)
+        
+    except Exception as e:
+        st.error(f"Error plotting curves: {str(e)}")
+
+
+
+def update_config_file(updates):
+    """Update specific key-value pairs in the config.py file."""
+    try:
+        config_path = Path("config.py")
+        if not config_path.exists():
+            st.error("config.py not found.")
+            return
+            
+        lines = config_path.read_text().splitlines()
+        new_lines = []
+        updated_keys = set()
+
+        for line in lines:
+            added = False
+            for key, value in updates.items():
+                # Check if the line defines this config key
+                if line.strip().startswith(f"{key} ="):
+                    if isinstance(value, str):
+                        new_lines.append(f"{key} = '{value}'")
+                    elif isinstance(value, list):
+                         # Format list nicely, handle potential strings inside list
+                        formatted_list_items = [f"'{item}'" if isinstance(item, str) else str(item) for item in value]
+                        new_lines.append(f"{key} = [{', '.join(formatted_list_items)}]")
+                    else:
+                        new_lines.append(f"{key} = {value}")
+                    updated_keys.add(key)
+                    added = True
+                    break # Move to the next line in original file
+            if not added:
+                new_lines.append(line)
+                
+        config_path.write_text("\n".join(new_lines))
+        
+        # Store success message in session state
+        st.session_state.config_update_success = True
+        st.rerun()
+        
+    except Exception as e:
+        st.error(f"Error updating config file: {e}")
+
+def auto_save_data_config(config_updates, notification_container):
+    """Automatically save data configuration changes."""
+    # Initialize session state for previous data config if not exists
+    if 'previous_data_config' not in st.session_state:
+        st.session_state.previous_data_config = {}
+    
+    # Check if configuration has changed
+    config_changed = False
+    for key, value in config_updates.items():
+        if key not in st.session_state.previous_data_config or st.session_state.previous_data_config[key] != value:
+            config_changed = True
+            break
+    
+    # Only save if configuration actually changed
+    if not config_changed:
+        return False
+    
+    # Save if configuration changed
+    if config_changed:
+        try:
+            # Use the config manager to save using dot notation
+            from shared.config_manager import get_config
+            config = get_config()
+            
+            # Update configuration using dot notation
+            for key, value in config_updates.items():
+                config.set(key, value)
+            
+            # Save the configuration
+            config.save()
+            
+            # Update previous config in session state
+            st.session_state.previous_data_config = config_updates.copy()
+            # Show auto-save notification with timestamp
+            current_time = datetime.now().strftime("%H:%M:%S")
+            notification_container.success(f"✅ Data config auto-saved at {current_time}!", icon="💾")
+            return True
+        except Exception as e:
+            notification_container.error(f"❌ Auto-save failed: {str(e)}")
+    return False
+
+def _save_data_config_helper(config_data, notification_container):
+    """Helper function for debounced data config saving."""
+    return auto_save_data_config(config_data, notification_container)
+
+def auto_save_base_model_config(config_data, notification_container):
+    """Automatically save base model configuration changes."""
+    # Initialize session state for previous base model config if not exists
+    if 'previous_base_model_config' not in st.session_state:
+        st.session_state.previous_base_model_config = {}
+    
+    # Check if configuration has changed
+    config_changed = False
+    for key, value in config_data.items():
+        if key not in st.session_state.previous_base_model_config or st.session_state.previous_base_model_config[key] != value:
+            config_changed = True
+            break
+    
+    # Only save if configuration actually changed
+    if not config_changed:
+        return False
+    
+    # Save if configuration changed
+    if config_changed:
+        try:
+            response = requests.post(f"{BACKEND_API_URL}/config/base-models", json=config_data, timeout=10)
+            if response.status_code == 200:
+                # Update previous config in session state
+                st.session_state.previous_base_model_config = config_data.copy()
+                # Show auto-save notification with timestamp
+                current_time = datetime.now().strftime("%H:%M:%S")
+                notification_container.success(f"✅ Base model config auto-saved at {current_time}!", icon="💾")
+                return True
+            else:
+                notification_container.error(f"❌ Auto-save failed: {response.text}")
+                return False
+        except Exception as e:
+            notification_container.error(f"❌ Auto-save failed: {str(e)}")
+    return False
+
+def _save_base_model_config_helper(config_data, notification_container):
+    """Helper function for debounced base model config saving."""
+    return auto_save_base_model_config(config_data, notification_container)
+
+def auto_save_model_config(selected_model, edited_params, config_content, config_path, available_models, notification_container):
+    """Automatically save model configuration changes."""
+    # Initialize session state for previous model config if not exists
+    if 'previous_model_config' not in st.session_state:
+        st.session_state.previous_model_config = {}
+    
+    # Create a unique key for this model's configuration
+    model_config_key = f"{selected_model}_config"
+    
+    # Check if configuration has changed
+    config_changed = False
+    if model_config_key not in st.session_state.previous_model_config or st.session_state.previous_model_config[model_config_key] != edited_params:
+        config_changed = True
+    
+    # Save if configuration changed
+    if config_changed:
+        try:
+            # Construct new model definition
+            model_class = available_models[selected_model]['class']
+            param_str = ', '.join(f"{k}={repr(v)}" for k, v in edited_params.items())
+            new_model_def = f"'{selected_model}': {model_class.__name__}({param_str})"
+
+            # Find and replace the model definition
+            model_pattern = rf"'{selected_model}':\s*{model_class.__name__}\(.*?\)"
+            new_config_content = re.sub(model_pattern, new_model_def, config_content, flags=re.DOTALL)
+            
+            # Write updated config
+            config_path.write_text(new_config_content)
+            
+            # Update previous config in session state
+            st.session_state.previous_model_config[model_config_key] = edited_params.copy()
+            
+            # Show auto-save notification
+            notification_container.success(f"✅ {selected_model} config auto-saved!", icon="💾")
+            return True
+        except Exception as e:
+            notification_container.error(f"❌ Auto-save failed: {str(e)}")
+            return False
+    return False
