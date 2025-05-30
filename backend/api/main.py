@@ -32,6 +32,7 @@ os.makedirs('output/logs', exist_ok=True)
 # Add backend directory to path
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
+sys.path.insert(0, str(backend_dir.parent))  # Add project root too
 
 from backend import config_adapter as config
 from backend.helpers import (
@@ -39,6 +40,7 @@ from backend.helpers import (
     plot_threshold_sweep, plot_runs_at_threshold, plot_class_balance,
     save_all_model_probabilities_from_structure
 )
+from backend.helpers.stacked_logic import generate_combined_runs
 
 # Import data service for in-memory data storage
 from shared import data_service
@@ -118,6 +120,20 @@ class BaseModelDecisionConfig(BaseModel):
 class BaseModelDecisionResponse(BaseModel):
     config: BaseModelDecisionConfig
     available_columns: List[str]  # All columns in the dataset that could be decision columns
+
+class BitwiseLogicRule(BaseModel):
+    name: str
+    columns: List[str]
+    logic: str  # 'OR', 'AND', 'XOR', '|', '&', '^'
+
+class BitwiseLogicConfig(BaseModel):
+    rules: List[BitwiseLogicRule]
+    enabled: bool = True
+
+class BitwiseLogicConfigResponse(BaseModel):
+    config: BitwiseLogicConfig
+    available_models: List[str]
+    available_logic_ops: List[str]
 
 # Global variables for pipeline status
 pipeline_status = {"status": "idle", "message": "Ready to run", "progress": 0.0}
@@ -625,6 +641,249 @@ def debug_data_service():
         "predictions_sample": str(data_service.get_predictions_data())[:500] if data_service.get_predictions_data() else None,
         "sweep_sample": str(data_service.get_sweep_data())[:500] if data_service.get_sweep_data() else None
     }
+
+@app.get("/config/bitwise-logic", response_model=BitwiseLogicConfigResponse)
+def get_bitwise_logic_config():
+    """Get the current bitwise logic configuration and available models."""
+    try:
+        # Get current configuration from config manager
+        from shared.config_manager import config_manager
+        
+        # Get bitwise logic config (with defaults if not present)
+        bitwise_config = config_manager.get('models.bitwise_logic', {
+            'rules': [],
+            'enabled': False
+        })
+        
+        # Get available models from current metrics data
+        available_models = []
+        try:
+            metrics_data = data_service.get_metrics_data()
+            if metrics_data and 'model_summary' in metrics_data:
+                available_models = list(set(
+                    metric.get('model_name', '') 
+                    for metric in metrics_data['model_summary']
+                    if metric.get('model_name')
+                ))
+        except Exception as e:
+            api_logger.warning(f"Could not get available models from metrics: {e}")
+        
+        # Add base models that should always be available
+        base_decision_models = config.BASE_MODEL_DECISION_COLUMNS + [config.COMBINED_FAILURE_MODEL_NAME]
+        available_models.extend(base_decision_models)
+        
+        # Remove duplicates and sort
+        available_models = sorted(list(set(available_models)))
+        
+        # Available logic operations
+        available_logic_ops = ['OR', 'AND', 'XOR', '|', '&', '^']
+        
+        return BitwiseLogicConfigResponse(
+            config=BitwiseLogicConfig(**bitwise_config),
+            available_models=available_models,
+            available_logic_ops=available_logic_ops
+        )
+        
+    except Exception as e:
+        api_logger.error(f"Failed to get bitwise logic config: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get bitwise logic config: {str(e)}")
+
+@app.post("/config/bitwise-logic")
+def update_bitwise_logic_config(bitwise_config: BitwiseLogicConfig):
+    """Update bitwise logic configuration."""
+    try:
+        from shared.config_manager import config_manager
+        
+        # Validate the configuration
+        for rule in bitwise_config.rules:
+            if rule.logic not in ['OR', 'AND', 'XOR', '|', '&', '^']:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid logic operation '{rule.logic}'. Must be one of: OR, AND, XOR, |, &, ^"
+                )
+            
+            if len(rule.columns) < 2:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Rule '{rule.name}' must have at least 2 columns"
+                )
+        
+        # Update the configuration
+        config_updates = {
+            'models.bitwise_logic.rules': [rule.dict() for rule in bitwise_config.rules],
+            'models.bitwise_logic.enabled': bitwise_config.enabled
+        }
+        
+        config_manager.update(config_updates)
+        config_manager.save()
+        
+        # Reload the config adapter to pick up the changes
+        config._adapter.config = config_manager
+        
+        api_logger.info(f"Updated bitwise logic configuration: {len(bitwise_config.rules)} rules, enabled: {bitwise_config.enabled}")
+        
+        return {
+            "message": "Bitwise logic configuration updated successfully",
+            "updated_config": bitwise_config.dict()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        api_logger.error(f"Failed to update bitwise logic config: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update bitwise logic config: {str(e)}")
+
+@app.post("/config/bitwise-logic/apply")
+def apply_bitwise_logic():
+    """Apply bitwise logic rules to current results and update the data service."""
+    try:
+        from shared.config_manager import config_manager
+        
+        # Get current bitwise logic configuration
+        bitwise_config = config_manager.get('models.bitwise_logic', {
+            'rules': [],
+            'enabled': False
+        })
+        
+        if not bitwise_config.get('enabled', False):
+            return {"message": "Bitwise logic is disabled", "combined_models_created": 0}
+        
+        rules = bitwise_config.get('rules', [])
+        if not rules:
+            return {"message": "No bitwise logic rules configured", "combined_models_created": 0}
+        
+        # Get current results from data service
+        metrics_data = data_service.get_metrics_data()
+        if not metrics_data:
+            raise HTTPException(status_code=404, detail="No model results available. Run the pipeline first.")
+        
+        # Load current predictions to get y_true
+        predictions_data = data_service.get_predictions_data()
+        if not predictions_data:
+            raise HTTPException(status_code=404, detail="No predictions data available. Run the pipeline first.")
+        
+        # Convert predictions data to DataFrame for easier handling
+        predictions_df = pd.DataFrame(predictions_data)
+        y_true = predictions_df['GT'].values
+        
+        # Create ModelEvaluationRun objects from current metrics
+        runs = []
+        
+        # Group metrics by model name
+        model_runs = {}
+        for metric in metrics_data.get('model_summary', []):
+            model_name = metric['model_name']
+            if model_name not in model_runs:
+                model_runs[model_name] = []
+            
+            # Create ModelEvaluationResult
+            result = ModelEvaluationResult(
+                model_name=model_name,
+                split=metric['split'],
+                threshold_type=metric['threshold_type'],
+                threshold=metric.get('threshold'),
+                precision=metric['precision'],
+                recall=metric['recall'],
+                f1_score=metric['f1_score'],
+                accuracy=metric['accuracy'],
+                cost=metric['cost'],
+                tp=metric.get('tp', 0),
+                fp=metric.get('fp', 0),
+                tn=metric.get('tn', 0),
+                fn=metric.get('fn', 0),
+                is_base_model=metric.get('threshold_type') in ['base', 'combined']
+            )
+            model_runs[model_name].append(result)
+        
+        # Create runs with probabilities
+        for model_name, results in model_runs.items():
+            probabilities = {}
+            if model_name in predictions_df.columns:
+                probabilities['Full'] = predictions_df[model_name].values
+            
+            run = ModelEvaluationRun(
+                model_name=model_name,
+                results=results,
+                probabilities=probabilities
+            )
+            runs.append(run)
+        
+        # Apply bitwise logic rules
+        combined_logic = {}
+        for rule in rules:
+            combined_logic[rule['name']] = {
+                'columns': rule['columns'],
+                'logic': rule['logic']
+            }
+        
+        # Generate combined runs
+        new_runs = generate_combined_runs(
+            runs=runs,
+            combined_logic=combined_logic,
+            y_true=y_true,
+            C_FP=config.C_FP,
+            C_FN=config.C_FN,
+            N_SPLITS=config.N_SPLITS
+        )
+        
+        # Add new combined runs to the existing metrics data
+        for new_run in new_runs:
+            # Add to model_metrics
+            for result in new_run.results:
+                metric_dict = {
+                    'model_name': result.model_name,
+                    'split': result.split,
+                    'threshold_type': result.threshold_type,
+                    'threshold': result.threshold,
+                    'accuracy': result.accuracy,
+                    'precision': result.precision,
+                    'recall': result.recall,
+                    'f1_score': result.f1_score,
+                    'cost': result.cost,
+                    'tp': result.tp,
+                    'fp': result.fp,
+                    'tn': result.tn,
+                    'fn': result.fn
+                }
+                metrics_data['model_metrics'].append(metric_dict)
+                metrics_data['model_summary'].append(metric_dict)
+            
+            # Add confusion matrix data
+            for result in new_run.results:
+                cm_dict = {
+                    'model_name': result.model_name,
+                    'split': result.split,
+                    'threshold_type': result.threshold_type,
+                    'tp': result.tp,
+                    'fp': result.fp,
+                    'tn': result.tn,
+                    'fn': result.fn
+                }
+                metrics_data['confusion_matrices'].append(cm_dict)
+            
+            # Add to predictions
+            if 'Full' in new_run.probabilities:
+                predictions_df[new_run.model_name] = new_run.probabilities['Full']
+        
+        # Update data service with new combined data
+        data_service.set_metrics_data(metrics_data)
+        data_service.set_predictions_data(predictions_df.to_dict('records'))
+        
+        api_logger.info(f"Applied bitwise logic: created {len(new_runs)} combined models")
+        
+        return {
+            "message": f"Bitwise logic applied successfully. Created {len(new_runs)} combined models.",
+            "combined_models_created": len(new_runs),
+            "combined_model_names": [run.model_name for run in new_runs]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_details = f"Failed to apply bitwise logic: {str(e)}\nTraceback: {traceback.format_exc()}"
+        api_logger.error(error_details)
+        raise HTTPException(status_code=500, detail=f"Failed to apply bitwise logic: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

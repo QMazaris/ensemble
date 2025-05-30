@@ -124,6 +124,19 @@ models:
     - AD_Decision
     - CL_Decision
     good_tag: Good
+  bitwise_logic:
+    enabled: true
+    rules:
+    - columns:
+      - AD_Decision
+      - CL_Decision
+      logic: OR
+      name: Really good feature
+    - columns:
+      - kfold_avg_RandomForest
+      - kfold_avg_XGBoost
+      logic: OR
+      name: even better featuer
   enabled:
   - XGBoost
   - RandomForest

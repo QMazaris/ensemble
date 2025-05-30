@@ -75,6 +75,9 @@ from .helpers.model_export import export_model
 # Explicit import for FinalModelCreateAndAnalyize
 from .helpers.modeling import FinalModelCreateAndAnalyize
 
+# Import bitwise logic functionality
+from .helpers.stacked_logic import generate_combined_runs
+
 # ---------- Main Function ----------
 def main(config):
     """Main function to run the entire pipeline.
@@ -169,6 +172,61 @@ def main(config):
     # Make the final structure
     results_total = model_zoo_runs + base_model_runs
 
+    # ========== BITWISE LOGIC SECTION ==========
+    # Apply bitwise logic rules if enabled and configured
+    try:
+        from shared.config_manager import config_manager
+        
+        # Get bitwise logic configuration
+        bitwise_config = config_manager.get('models.bitwise_logic', {
+            'rules': [],
+            'enabled': False
+        })
+        
+        if bitwise_config.get('enabled', False) and bitwise_config.get('rules', []):
+            if config.SUMMARY:
+                print("\n" + "="*80)
+                print("APPLYING BITWISE LOGIC RULES")
+                print("="*80)
+            
+            # Convert bitwise logic rules to the format expected by generate_combined_runs
+            combined_logic = {}
+            for rule in bitwise_config.get('rules', []):
+                combined_logic[rule['name']] = {
+                    'columns': rule['columns'],
+                    'logic': rule['logic']
+                }
+            
+            if config.SUMMARY:
+                print(f"Applying {len(combined_logic)} bitwise logic rules:")
+                for rule_name, rule_config in combined_logic.items():
+                    print(f"  • {rule_name}: {' '.join(rule_config['columns'])} with {rule_config['logic']} logic")
+            
+            # Generate combined runs using bitwise logic
+            combined_runs = generate_combined_runs(
+                runs=results_total,
+                combined_logic=combined_logic,
+                y_true=y.values,
+                C_FP=C_FP,
+                C_FN=C_FN,
+                N_SPLITS=config.N_SPLITS
+            )
+            
+            # Add combined runs to the total results
+            results_total.extend(combined_runs)
+            
+            if config.SUMMARY:
+                print(f"✅ Created {len(combined_runs)} combined models:")
+                for run in combined_runs:
+                    print(f"  • {run.model_name}")
+                print()
+        
+    except Exception as e:
+        if config.SUMMARY:
+            print(f"⚠️ Warning: Could not apply bitwise logic rules: {str(e)}")
+            print("Continuing without bitwise logic combinations...")
+            print()
+
     if config.SUMMARY:
         print_performance_summary(
         runs=results_total,
@@ -209,6 +267,8 @@ def main(config):
 
     print("\nPipeline complete")
 
+    print("\n🔄 Saving results for frontend...")
+    
     streamlit_output_dir = Path("output") / "streamlit_data"
 
     export_metrics_for_streamlit(results_total, streamlit_output_dir, meta_model_names=set(MODELS.keys()))

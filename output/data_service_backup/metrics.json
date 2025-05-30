@@ -10,10 +10,10 @@
       "f1_score": 62.044962238744816,
       "cost": 44.2,
       "threshold": 0.41000000000000003,
-      "tp": 6.4,
-      "fp": 8.2,
-      "tn": 466.6,
-      "fn": 1.2
+      "tp": 6,
+      "fp": 8,
+      "tn": 466,
+      "fn": 1
     },
     {
       "model_name": "kfold_avg_XGBoost",
@@ -25,10 +25,10 @@
       "f1_score": 69.45054945054946,
       "cost": 79.6,
       "threshold": 0.8400000000000001,
-      "tp": 5.0,
-      "fp": 1.6,
-      "tn": 473.2,
-      "fn": 2.6
+      "tp": 5,
+      "fp": 1,
+      "tn": 473,
+      "fn": 2
     },
     {
       "model_name": "kfold_avg_RandomForest",
@@ -40,10 +40,10 @@
       "f1_score": 67.59492685963275,
       "cost": 39.6,
       "threshold": 0.4600000000000001,
-      "tp": 6.6,
-      "fp": 9.6,
-      "tn": 465.2,
-      "fn": 1.0
+      "tp": 6,
+      "fp": 9,
+      "tn": 465,
+      "fn": 1
     },
     {
       "model_name": "kfold_avg_RandomForest",
@@ -55,10 +55,10 @@
       "f1_score": 74.64896214896214,
       "cost": 61.8,
       "threshold": 0.5700000000000001,
-      "tp": 5.6,
-      "fp": 1.8,
-      "tn": 473.0,
-      "fn": 2.0
+      "tp": 5,
+      "fp": 1,
+      "tn": 473,
+      "fn": 2
     },
     {
       "model_name": "kfold_avg_AD",
@@ -70,10 +70,10 @@
       "f1_score": 12.786481956945076,
       "cost": 132.0,
       "threshold": 0.30000000000000004,
-      "tp": 5.8,
-      "fp": 78.0,
-      "tn": 396.8,
-      "fn": 1.8
+      "tp": 5,
+      "fp": 78,
+      "tn": 396,
+      "fn": 1
     },
     {
       "model_name": "kfold_avg_AD",
@@ -85,10 +85,10 @@
       "f1_score": 2.805049088359046,
       "cost": 238.4,
       "threshold": 0.55,
-      "tp": 0.8,
-      "fp": 34.4,
-      "tn": 440.4,
-      "fn": 6.8
+      "tp": 0,
+      "fp": 34,
+      "tn": 440,
+      "fn": 6
     },
     {
       "model_name": "kfold_avg_CL",
@@ -100,10 +100,10 @@
       "f1_score": 13.047619047619047,
       "cost": 206.4,
       "threshold": 1.0,
-      "tp": 0.8,
-      "fp": 2.4,
-      "tn": 472.4,
-      "fn": 6.8
+      "tp": 0,
+      "fp": 2,
+      "tn": 472,
+      "fn": 6
     },
     {
       "model_name": "kfold_avg_CL",
@@ -115,10 +115,10 @@
       "f1_score": 13.047619047619047,
       "cost": 206.4,
       "threshold": 1.0,
-      "tp": 0.8,
-      "fp": 2.4,
-      "tn": 472.4,
-      "fn": 6.8
+      "tp": 0,
+      "fp": 2,
+      "tn": 472,
+      "fn": 6
     },
     {
       "model_name": "AD_Decision",
@@ -130,10 +130,10 @@
       "f1_score": 4.067402672864613,
       "cost": 347.6,
       "threshold": null,
-      "tp": "35",
-      "fp": "1648",
-      "tn": "726",
-      "fn": "3"
+      "tp": 35,
+      "fp": 1648,
+      "tn": 726,
+      "fn": 3
     },
     {
       "model_name": "CL_Decision",
@@ -145,10 +145,70 @@
       "f1_score": 12.66490765171504,
       "cost": 147.4,
       "threshold": null,
-      "tp": "24",
-      "fp": "317",
-      "tn": "2057",
-      "fn": "14"
+      "tp": 24,
+      "fp": 317,
+      "tn": 2057,
+      "fn": 14
+    },
+    {
+      "model_name": "Test_Combined",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "f1_score": 4.055619930475086,
+      "cost": 348.6,
+      "tp": 35,
+      "fp": 1653,
+      "tn": 721,
+      "fn": 3
+    },
+    {
+      "model_name": "Test_Combined",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "f1_score": 4.055619930475086,
+      "cost": 348.6,
+      "tp": 35,
+      "fp": 1653,
+      "tn": 721,
+      "fn": 3
+    },
+    {
+      "model_name": "Really good feature",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "f1_score": 4.055619930475086,
+      "cost": 348.6,
+      "tp": "35",
+      "fp": "1653",
+      "tn": "721",
+      "fn": "3"
+    },
+    {
+      "model_name": "even better featuer",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 98.424543946932,
+      "precision": 0,
+      "recall": 0.0,
+      "f1_score": 0,
+      "cost": 228.0,
+      "tp": "0",
+      "fp": "0",
+      "tn": "2374",
+      "fn": "38"
     }
   ],
   "confusion_matrices": [
@@ -156,91 +216,127 @@
       "model_name": "kfold_avg_XGBoost",
       "split": "Full",
       "threshold_type": "cost",
-      "tp": 6.4,
-      "fp": 8.2,
-      "tn": 466.6,
-      "fn": 1.2
+      "tp": 6,
+      "fp": 8,
+      "tn": 466,
+      "fn": 1
     },
     {
       "model_name": "kfold_avg_XGBoost",
       "split": "Full",
       "threshold_type": "accuracy",
-      "tp": 5.0,
-      "fp": 1.6,
-      "tn": 473.2,
-      "fn": 2.6
+      "tp": 5,
+      "fp": 1,
+      "tn": 473,
+      "fn": 2
     },
     {
       "model_name": "kfold_avg_RandomForest",
       "split": "Full",
       "threshold_type": "cost",
-      "tp": 6.6,
-      "fp": 9.6,
-      "tn": 465.2,
-      "fn": 1.0
+      "tp": 6,
+      "fp": 9,
+      "tn": 465,
+      "fn": 1
     },
     {
       "model_name": "kfold_avg_RandomForest",
       "split": "Full",
       "threshold_type": "accuracy",
-      "tp": 5.6,
-      "fp": 1.8,
-      "tn": 473.0,
-      "fn": 2.0
+      "tp": 5,
+      "fp": 1,
+      "tn": 473,
+      "fn": 2
     },
     {
       "model_name": "kfold_avg_AD",
       "split": "Full",
       "threshold_type": "cost",
-      "tp": 5.8,
-      "fp": 78.0,
-      "tn": 396.8,
-      "fn": 1.8
+      "tp": 5,
+      "fp": 78,
+      "tn": 396,
+      "fn": 1
     },
     {
       "model_name": "kfold_avg_AD",
       "split": "Full",
       "threshold_type": "accuracy",
-      "tp": 0.8,
-      "fp": 34.4,
-      "tn": 440.4,
-      "fn": 6.8
+      "tp": 0,
+      "fp": 34,
+      "tn": 440,
+      "fn": 6
     },
     {
       "model_name": "kfold_avg_CL",
       "split": "Full",
       "threshold_type": "cost",
-      "tp": 0.8,
-      "fp": 2.4,
-      "tn": 472.4,
-      "fn": 6.8
+      "tp": 0,
+      "fp": 2,
+      "tn": 472,
+      "fn": 6
     },
     {
       "model_name": "kfold_avg_CL",
       "split": "Full",
       "threshold_type": "accuracy",
-      "tp": 0.8,
-      "fp": 2.4,
-      "tn": 472.4,
-      "fn": 6.8
+      "tp": 0,
+      "fp": 2,
+      "tn": 472,
+      "fn": 6
     },
     {
       "model_name": "AD_Decision",
       "split": "Full",
       "threshold_type": "base",
-      "tp": "35",
-      "fp": "1648",
-      "tn": "726",
-      "fn": "3"
+      "tp": 35,
+      "fp": 1648,
+      "tn": 726,
+      "fn": 3
     },
     {
       "model_name": "CL_Decision",
       "split": "Full",
       "threshold_type": "base",
-      "tp": "24",
-      "fp": "317",
-      "tn": "2057",
-      "fn": "14"
+      "tp": 24,
+      "fp": 317,
+      "tn": 2057,
+      "fn": 14
+    },
+    {
+      "model_name": "Test_Combined",
+      "split": "Full",
+      "threshold_type": "combined",
+      "tp": 35,
+      "fp": 1653,
+      "tn": 721,
+      "fn": 3
+    },
+    {
+      "model_name": "Test_Combined",
+      "split": "Full",
+      "threshold_type": "combined",
+      "tp": 35,
+      "fp": 1653,
+      "tn": 721,
+      "fn": 3
+    },
+    {
+      "model_name": "Really good feature",
+      "split": "Full",
+      "threshold_type": "combined",
+      "tp": "35",
+      "fp": "1653",
+      "tn": "721",
+      "fn": "3"
+    },
+    {
+      "model_name": "even better featuer",
+      "split": "Full",
+      "threshold_type": "combined",
+      "tp": "0",
+      "fp": "0",
+      "tn": "2374",
+      "fn": "38"
     }
   ],
   "model_summary": [
@@ -254,7 +350,7 @@
       "f1_score": 62.044962238744816,
       "cost": 44.2,
       "threshold": 0.41000000000000003,
-      "total_samples": 482.40000000000003
+      "total_samples": 482
     },
     {
       "model_name": "kfold_avg_XGBoost",
@@ -266,7 +362,7 @@
       "f1_score": 69.45054945054946,
       "cost": 79.6,
       "threshold": 0.8400000000000001,
-      "total_samples": 482.40000000000003
+      "total_samples": 482
     },
     {
       "model_name": "kfold_avg_RandomForest",
@@ -278,7 +374,7 @@
       "f1_score": 67.59492685963275,
       "cost": 39.6,
       "threshold": 0.4600000000000001,
-      "total_samples": 482.4
+      "total_samples": 482
     },
     {
       "model_name": "kfold_avg_RandomForest",
@@ -290,7 +386,7 @@
       "f1_score": 74.64896214896214,
       "cost": 61.8,
       "threshold": 0.5700000000000001,
-      "total_samples": 482.4
+      "total_samples": 482
     },
     {
       "model_name": "kfold_avg_AD",
@@ -302,7 +398,7 @@
       "f1_score": 12.786481956945076,
       "cost": 132.0,
       "threshold": 0.30000000000000004,
-      "total_samples": 482.40000000000003
+      "total_samples": 482
     },
     {
       "model_name": "kfold_avg_AD",
@@ -314,7 +410,7 @@
       "f1_score": 2.805049088359046,
       "cost": 238.4,
       "threshold": 0.55,
-      "total_samples": 482.4
+      "total_samples": 482
     },
     {
       "model_name": "kfold_avg_CL",
@@ -326,7 +422,7 @@
       "f1_score": 13.047619047619047,
       "cost": 206.4,
       "threshold": 1.0,
-      "total_samples": 482.4
+      "total_samples": 482
     },
     {
       "model_name": "kfold_avg_CL",
@@ -338,7 +434,7 @@
       "f1_score": 13.047619047619047,
       "cost": 206.4,
       "threshold": 1.0,
-      "total_samples": 482.4
+      "total_samples": 482
     },
     {
       "model_name": "AD_Decision",
@@ -350,7 +446,7 @@
       "f1_score": 4.067402672864613,
       "cost": 347.6,
       "threshold": null,
-      "total_samples": "2412"
+      "total_samples": 2412
     },
     {
       "model_name": "CL_Decision",
@@ -362,7 +458,67 @@
       "f1_score": 12.66490765171504,
       "cost": 147.4,
       "threshold": null,
-      "total_samples": "2412"
+      "total_samples": 2412
+    },
+    {
+      "model_name": "Test_Combined",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "f1_score": 4.055619930475086,
+      "cost": 348.6,
+      "tp": 35,
+      "fp": 1653,
+      "tn": 721,
+      "fn": 3
+    },
+    {
+      "model_name": "Test_Combined",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "f1_score": 4.055619930475086,
+      "cost": 348.6,
+      "tp": 35,
+      "fp": 1653,
+      "tn": 721,
+      "fn": 3
+    },
+    {
+      "model_name": "Really good feature",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 31.34328358208955,
+      "precision": 2.0734597156398102,
+      "recall": 92.10526315789474,
+      "f1_score": 4.055619930475086,
+      "cost": 348.6,
+      "tp": "35",
+      "fp": "1653",
+      "tn": "721",
+      "fn": "3"
+    },
+    {
+      "model_name": "even better featuer",
+      "split": "Full",
+      "threshold_type": "combined",
+      "threshold": null,
+      "accuracy": 98.424543946932,
+      "precision": 0,
+      "recall": 0.0,
+      "f1_score": 0,
+      "cost": 228.0,
+      "tp": "0",
+      "fp": "0",
+      "tn": "2374",
+      "fn": "38"
     }
   ]
 }
