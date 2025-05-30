@@ -568,6 +568,8 @@ def create_radar_chart(data):
                     range=[0, 100]
                 )),
             showlegend=True,
+            height=650,
+            width=650,
             title="Model Performance Radar Chart"
         )
         
@@ -854,6 +856,45 @@ def auto_save_base_model_config(config_data, notification_container):
 def _save_base_model_config_helper(config_data, notification_container):
     """Helper function for debounced base model config saving."""
     return auto_save_base_model_config(config_data, notification_container)
+
+def auto_save_base_model_columns_config(config_data, notification_container):
+    """Automatically save base model columns configuration changes."""
+    # Initialize session state for previous base model columns config if not exists
+    if 'previous_base_model_columns_config' not in st.session_state:
+        st.session_state.previous_base_model_columns_config = {}
+    
+    # Check if configuration has changed
+    config_changed = False
+    for key, value in config_data.items():
+        if key not in st.session_state.previous_base_model_columns_config or st.session_state.previous_base_model_columns_config[key] != value:
+            config_changed = True
+            break
+    
+    # Only save if configuration actually changed
+    if not config_changed:
+        return False
+    
+    # Save if configuration changed
+    if config_changed:
+        try:
+            response = requests.post(f"{BACKEND_API_URL}/config/base-model-columns", json=config_data, timeout=10)
+            if response.status_code == 200:
+                # Update previous config in session state
+                st.session_state.previous_base_model_columns_config = config_data.copy()
+                # Show auto-save notification with timestamp
+                current_time = datetime.now().strftime("%H:%M:%S")
+                notification_container.success(f"✅ Base model columns config auto-saved at {current_time}!", icon="💾")
+                return True
+            else:
+                notification_container.error(f"❌ Auto-save failed: {response.text}")
+                return False
+        except Exception as e:
+            notification_container.error(f"❌ Auto-save failed: {str(e)}")
+    return False
+
+def _save_base_model_columns_config_helper(config_data, notification_container):
+    """Helper function for debounced base model columns config saving."""
+    return auto_save_base_model_columns_config(config_data, notification_container)
 
 def auto_save_model_config(selected_model, edited_params, config_content, config_path, available_models, notification_container):
     """Automatically save model configuration changes."""

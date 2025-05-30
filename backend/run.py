@@ -94,8 +94,8 @@ def main(config):
 
     # raw‑output lookup
     base_cols = config.BASE_MODEL_OUTPUT_COLUMNS
+    base_cols = ["AnomalyScore", "CL_ConfMax"]
 
-    SAVE_PLOTS = getattr(config, 'SAVE_PLOTS', True)
     SAVE_PREDICTIONS = getattr(config, 'SAVE_PREDICTIONS', True)
     SAVE_MODEL = getattr(config, 'SAVE_MODEL', True)
     SUMMARY = getattr(config, 'SUMMARY', True)
@@ -143,20 +143,11 @@ def main(config):
         print(f"Saved exact training features to '{feature_info_path}'")
         print()
 
-    # Generate class balance data if SAVE_PLOTS is enabled
-    if SAVE_PLOTS:
-        class_balance_data = plot_class_balance(y, SUMMARY=SUMMARY)
-        # Store data for potential frontend use
+    
 
-    # Collect averaged-fold results for every model (K-fold is always used)
-    model_zoo_runs = []
-    base_model_runs = []
-
-    # K-fold path (always executed)
-    kfold_avg_ad_run, kfold_avg_cl_run = Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, model_zoo_runs)
-    # These are the averaged base model runs
-    base_model_runs.append(kfold_avg_ad_run)
-    base_model_runs.append(kfold_avg_cl_run)
+    meta, base = Core_KFold(config, C_FP, C_FN, base_cols, MODELS, df, X, y)
+    # These are the averaged base model runs from output columns
+    results_total = meta + base
 
     # ========== STRUCTURED BASE MODEL METRICS SECTION ==========
     # This section calculates results for the original base models (AD_Decision, CL_Decision, etc.).
@@ -165,12 +156,9 @@ def main(config):
     base_models_to_process = config.BASE_MODEL_DECISION_COLUMNS
 
     # For K-fold, we don't need train/test indices, so pass None
-    Legacy_Base(config, C_FP, C_FN, df, y, None, None, structured_base_model_runs, base_models_to_process)
+    decision_base_model_runs = Legacy_Base(config, C_FP, C_FN, df, y, base_models_to_process)
 
-    base_model_runs.extend(structured_base_model_runs)
-
-    # Make the final structure
-    results_total = model_zoo_runs + base_model_runs
+    results_total.extend(decision_base_model_runs)
 
     # ========== BITWISE LOGIC SECTION ==========
     # Apply bitwise logic rules if enabled and configured
@@ -240,30 +228,13 @@ def main(config):
             SUMMARY=config.SUMMARY, save_csv_backup=False
         )
       
-    if SAVE_PLOTS:
-        # Always use Full split for k-fold mode
-        comparison_split = 'Full'
-        
-        cost_comparison_data = plot_runs_at_threshold(
-            runs=results_total,
-            threshold_type='cost',
-            split_name=comparison_split,
-            C_FP=C_FP,
-            C_FN=C_FN
-        )
-        accuracy_comparison_data = plot_runs_at_threshold(
-            runs=results_total,
-            threshold_type='accuracy',
-            split_name=comparison_split,
-            C_FP=C_FP,
-            C_FN=C_FN
-        )
+
 
     # ========== FINAL PRODUCTION MODELS SECTION ==========
     # When using k-fold, the final model should be trained on the full data after hyperparameter tuning (if enabled)
     # based on the average performance across folds.
     # When using single-split, the final model is trained on the training split and evaluated on the test split.
-    FinalModelCreateAndAnalyize(config, config.MODEL_DIR, config.PLOT_DIR, C_FP, C_FN, SAVE_PLOTS, X, y)
+    FinalModelCreateAndAnalyize(config, config.MODEL_DIR, config.PLOT_DIR, C_FP, C_FN, X, y)
 
     print("\nPipeline complete")
 
@@ -273,209 +244,207 @@ def main(config):
 
     export_metrics_for_streamlit(results_total, streamlit_output_dir, meta_model_names=set(MODELS.keys()))
 
-def Legacy_Base(config, C_FP, C_FN, df, y, train_idx, test_idx, structured_base_model_runs, base_models_to_process):
-    """Process legacy decision-based base models using defined decision columns and configurable good/bad tags."""
+def Legacy_Base(
+    config,
+    C_FP,
+    C_FN,
+    df: pd.DataFrame,
+    y: pd.Series,
+    base_models_to_process: list[str]
+) -> list[ModelEvaluationRun]:
+    """
+    Process legacy decision-based base models.
+    Returns a list of ModelEvaluationRun for each column in base_models_to_process.
+    """
 
+    from sklearn.metrics import confusion_matrix
+    from .helpers.metrics import compute_metrics
+    from .helpers import ModelEvaluationResult, ModelEvaluationRun
+
+    runs: list[ModelEvaluationRun] = []
     good_tag = config.GOOD_TAG
-    bad_tag = config.BAD_TAG
-    decision_columns = config.BASE_MODEL_DECISION_COLUMNS  # list of column names
+    bad_tag  = config.BAD_TAG
 
-    for column in decision_columns:
-        base_results = []
-        base_probs = {}
-
-        model_name = column  # use column name as model name
-
+    for column in base_models_to_process:
         if column not in df.columns:
             raise ValueError(f"🚨 Column '{column}' not found in dataframe.")
 
-        # Validate the column only contains good/bad tags
-        invalid_values = df[column][~df[column].isin([good_tag, bad_tag])]
-        if not invalid_values.empty:
+        # Ensure only good/bad values
+        invalid = df[column][~df[column].isin([good_tag, bad_tag])]
+        if not invalid.empty:
             raise ValueError(
-                f"🚨 Column '{column}' contains invalid values: {invalid_values.unique().tolist()}.\n"
-                f"Expected only: [{good_tag}, {bad_tag}]"
+                f"🚨 Column '{column}' contains invalid values {invalid.unique().tolist()}; "
+                f"expected only [{good_tag}, {bad_tag}]."
             )
 
-        # Convert to binary: 1 for bad, 0 for good
+        # 1) Convert decisions to binary
         decisions = (df[column] == bad_tag).astype(int).values
-        y_true = y.values
+        y_true    = y.values
 
-        # Compute metrics and cost (normalized over N_SPLITS)
+        # 2) Compute confusion & cost
         tn, fp, fn, tp = confusion_matrix(y_true, decisions).ravel()
         cost = (C_FP * fp + C_FN * fn) / config.N_SPLITS
+
+        # 3) Compute standard metrics
         metrics = compute_metrics(y_true, decisions, C_FP, C_FN)
         metrics.update({'cost': cost, 'tp': tp, 'fp': fp, 'tn': tn, 'fn': fn})
 
-        # Store result
-        base_results.append(
-            ModelEvaluationResult(
-                model_name=model_name,
-                split='Full',
-                threshold_type='base',
-                threshold=None,
-                precision=metrics['precision'],
-                recall=metrics['recall'],
-                f1_score=metrics['f1_score'],
-                accuracy=metrics['accuracy'],
-                cost=cost,
-                tp=tp,
-                fp=fp,
-                tn=tn,
-                fn=fn,
-                is_base_model=True
-            )
+        # 4) Build the ModelEvaluationResult
+        result = ModelEvaluationResult(
+            model_name     = column,
+            split          = 'Full',
+            threshold_type = 'base',
+            threshold      = None,
+            precision      = metrics['precision'],
+            recall         = metrics['recall'],
+            f1_score       = metrics['f1_score'],
+            accuracy       = metrics['accuracy'],
+            cost           = cost,
+            tp             = tp,
+            fp             = fp,
+            tn             = tn,
+            fn             = fn,
+            is_base_model  = True
         )
 
-        base_probs['Full'] = decisions
-
-        structured_base_model_runs.append(
-            ModelEvaluationRun(
-                model_name=model_name,
-                results=base_results,
-                probabilities=base_probs
-            )
+        # 5) Wrap in a ModelEvaluationRun, with the “Full”‐split probabilities
+        run = ModelEvaluationRun(
+            model_name   = column,
+            results      = [result],
+            probabilities= {'Full': decisions}
         )
 
+        runs.append(run)
 
-def Core_KFold(config, C_FP, C_FN, base_cols, SAVE_PLOTS, MODELS, df, X, y, model_zoo_runs):
-    """Core logic for K-fold cross-validation with improved structure."""
-    from .helpers.data import get_cv_splitter
+    return runs
+
+
+
+def Core_KFold(config, C_FP, C_FN, base_cols, MODELS, df, X, y):
+    """
+    Pure K‑fold cross‑validation:
+      - returns (meta_runs, base_runs)
+      - does not mutate any input lists
+    """
+    from .helpers.data    import get_cv_splitter
     from .helpers.modeling import process_cv_fold
-    from .helpers.metrics import _average_results, _average_probabilities, _average_sweep_data, _mk_result
-    
-    outer_cv = get_cv_splitter(config)
+    from .helpers.metrics  import (
+        _average_results,
+        _average_probabilities,
+        _average_sweep_data,
+        _mk_result
+    )
+
+    outer_cv  = get_cv_splitter(config)
     n_samples = len(X)
-    
-    # Initialize OOF probability arrays for meta, AD, and CL models
-    oof_probs_dict = {model_name: np.full(n_samples, np.nan) for model_name in MODELS}
-    oof_probs_ad = np.full(n_samples, np.nan)
-    oof_probs_cl = np.full(n_samples, np.nan)
+
+    # 1) META models
+    meta_runs      = []
+    oof_probs_meta = {
+        mn: np.full(n_samples, np.nan)
+        for mn in MODELS
+    }
 
     for model_name, prototype in MODELS.items():
-        if config.SUMMARY:
-            print(f"\n{'='*40}\nNested‑CV → {model_name}\n{'='*40}")
-
         fold_cost, fold_acc, fold_probs, fold_sweeps = [], [], [], []
-        fold_cost_ad, fold_acc_ad, fold_probs_ad, fold_sweeps_ad = [], [], [], []
-        fold_cost_cl, fold_acc_cl, fold_probs_cl, fold_sweeps_cl = [], [], [], []
 
-        # Process each fold
         for fold_idx, (tr_idx, te_idx) in enumerate(outer_cv.split(X, y), start=1):
-            if config.SUMMARY:
-                print(f"  ➤ Fold {fold_idx}")
-
             X_tr, y_tr = X.iloc[tr_idx], y.iloc[tr_idx]
             X_te, y_te = X.iloc[te_idx], y.iloc[te_idx]
 
-            # Process meta model for this fold
-            cost_result, acc_result, proba, sweep = process_cv_fold(
-                prototype, X_tr, y_tr, X_te, y_te, fold_idx, config, C_FP, C_FN
+            c_res, a_res, proba, sweep = process_cv_fold(
+                prototype, X_tr, y_tr, X_te, y_te,
+                fold_idx, config, C_FP, C_FN
             )
-            
-            # Update model name in results
-            cost_result.model_name = model_name
-            acc_result.model_name = model_name
-            
-            # Store OOF probabilities for meta model
-            oof_probs_dict[model_name][te_idx] = proba
-            
-            # Collect fold results for meta model
-            fold_cost.append(cost_result)
-            fold_acc.append(acc_result)
+            # tag with correct name
+            c_res.model_name = a_res.model_name = model_name
+            oof_probs_meta[model_name][te_idx] = proba
+
+            fold_cost.append(c_res)
+            fold_acc.append(a_res)
             fold_probs.append(proba)
             fold_sweeps.append(sweep)
 
-            # Process base models (AD/CL) for this fold
-            ad_scores = df.loc[te_idx, base_cols["AD"]].values
-            cl_scores = df.loc[te_idx, base_cols["CL"]].values
-            oof_probs_ad[te_idx] = ad_scores
-            oof_probs_cl[te_idx] = cl_scores
 
-            # Threshold sweeps for base models
-            sweep_ad, bc_ad, ba_ad = threshold_sweep_with_cost(
-                ad_scores, y_te, C_FP, C_FN,
-                SUMMARY=config.SUMMARY, split_name=f"AD_Fold{fold_idx}"
-            )
-            sweep_cl, bc_cl, ba_cl = threshold_sweep_with_cost(
-                cl_scores, y_te, C_FP, C_FN,
-                SUMMARY=config.SUMMARY, split_name=f"CL_Fold{fold_idx}"
-            )
 
-            # Optional plotting for base models
-            if SAVE_PLOTS:
-                plot_threshold_sweep(sweep_ad, C_FP, C_FN,
-                                   cost_optimal_thr=bc_ad["threshold"],
-                                   accuracy_optimal_thr=ba_ad["threshold"],
-                                   SUMMARY=config.SUMMARY)
-                plot_threshold_sweep(sweep_cl, C_FP, C_FN,
-                                   cost_optimal_thr=bc_cl["threshold"],
-                                   accuracy_optimal_thr=ba_cl["threshold"],
-                                   SUMMARY=config.SUMMARY)
-
-            # Collect base model results
-            fold_cost_ad.append(_mk_result("AD", f"Fold{fold_idx}", bc_ad, 'cost'))
-            fold_acc_ad.append(_mk_result("AD", f"Fold{fold_idx}", ba_ad, 'accuracy'))
-            fold_probs_ad.append(ad_scores)
-            fold_sweeps_ad.append(sweep_ad)
-
-            fold_cost_cl.append(_mk_result("CL", f"Fold{fold_idx}", bc_cl, 'cost'))
-            fold_acc_cl.append(_mk_result("CL", f"Fold{fold_idx}", ba_cl, 'accuracy'))
-            fold_probs_cl.append(cl_scores)
-            fold_sweeps_cl.append(sweep_cl)
-
-            # Optional per-fold sweep plot for meta model
-            if SAVE_PLOTS:
-                plot_threshold_sweep(
-                    sweep, C_FP, C_FN,
-                    cost_optimal_thr=cost_result.threshold,
-                    accuracy_optimal_thr=acc_result.threshold,
-                    SUMMARY=config.SUMMARY
-                )
-
-        # Average results across folds for meta model
-        avg_c = _average_results(fold_cost, model_name)
-        avg_a = _average_results(fold_acc, model_name)
-        avg_p = _average_probabilities(fold_probs)
+        # average across folds
+        avg_c     = _average_results(fold_cost, model_name)
+        avg_a     = _average_results(fold_acc,  model_name)
+        avg_p     = _average_probabilities(fold_probs)
         avg_sweep = _average_sweep_data(fold_sweeps)
 
-        # Store meta model results
-        model_zoo_runs.append(
+        meta_runs.append(
             ModelEvaluationRun(
-                model_name=f'kfold_avg_{model_name}',
-                results=[avg_c, avg_a],
-                probabilities={'Full': avg_p, 'oof': oof_probs_dict[model_name].tolist()},
-                sweep_data={'Full': avg_sweep} if avg_sweep else None
+                model_name   = f'kfold_avg_{model_name}',
+                results      = [avg_c, avg_a],
+                probabilities= {'Full': avg_p,
+                                'oof' : oof_probs_meta[model_name].tolist()},
+                sweep_data   = {'Full': avg_sweep} if avg_sweep else None
             )
         )
 
-    # Average results for base models (AD/CL)
-    avg_c_ad = _average_results(fold_cost_ad, "AD")
-    avg_a_ad = _average_results(fold_acc_ad, "AD")
-    avg_p_ad = _average_probabilities(fold_probs_ad)
-    avg_sweep_ad = _average_sweep_data(fold_sweeps_ad)
+    # 2) BASE models (from output columns)
+    base_runs       = []
+    oof_probs_base  = {
+        col: np.full(n_samples, np.nan)
+        for col in base_cols
+    }
+    folds_by_column = {
+        col: {'cost':[], 'acc':[], 'probs':[], 'sweeps':[]}
+        for col in base_cols
+    }
 
-    avg_c_cl = _average_results(fold_cost_cl, "CL")
-    avg_a_cl = _average_results(fold_acc_cl, "CL")
-    avg_p_cl = _average_probabilities(fold_probs_cl)
-    avg_sweep_cl = _average_sweep_data(fold_sweeps_cl)
+    for fold_idx, (tr_idx, te_idx) in enumerate(outer_cv.split(X, y), start=1):
+        y_te = y.iloc[te_idx]
 
-    # Create base model runs
-    kfold_avg_ad_run = ModelEvaluationRun(
-        model_name='kfold_avg_AD',
-        results=[avg_c_ad, avg_a_ad],
-        probabilities={'Full': avg_p_ad, 'oof': oof_probs_ad.tolist()},
-        sweep_data={'Full': avg_sweep_ad} if avg_sweep_ad else None
-    )
+        for column_name in base_cols:
+            if column_name not in df:
+                if config.SUMMARY:
+                    print(f"⚠️ missing '{column_name}', skipping.")
+                continue
 
-    kfold_avg_cl_run = ModelEvaluationRun(
-        model_name='kfold_avg_CL',
-        results=[avg_c_cl, avg_a_cl],
-        probabilities={'Full': avg_p_cl, 'oof': oof_probs_cl.tolist()},
-        sweep_data={'Full': avg_sweep_cl} if avg_sweep_cl else None
-    )
-    
-    return kfold_avg_ad_run, kfold_avg_cl_run
+            scores = df.loc[te_idx, column_name].values
+            oof_probs_base[column_name][te_idx] = scores
+
+            sweep, cost_opt, acc_opt = threshold_sweep_with_cost(
+                scores, y_te, C_FP, C_FN,
+                SUMMARY   = config.SUMMARY,
+                split_name= f"{column_name}_Fold{fold_idx}"
+            )
+
+            folds_by_column[column_name]['cost'].append(
+                _mk_result(column_name, f"Fold{fold_idx}", cost_opt,'cost')
+            )
+            folds_by_column[column_name]['acc'].append(
+                _mk_result(column_name, f"Fold{fold_idx}", acc_opt,'accuracy')
+            )
+            folds_by_column[column_name]['probs'].append(scores)
+            folds_by_column[column_name]['sweeps'].append(sweep)
+
+           
+
+    # Average each base model
+    for column_name, data in folds_by_column.items():
+        if not data['cost']:
+            continue
+
+        avg_c     = _average_results(data['cost'], column_name)
+        avg_a     = _average_results(data['acc'],  column_name)
+        avg_p     = _average_probabilities(data['probs'])
+        avg_sweep = _average_sweep_data(data['sweeps'])
+
+        base_runs.append(
+            ModelEvaluationRun(
+                model_name   = f'kfold_avg_{column_name}',
+                results      = [avg_c, avg_a],
+                probabilities= {'Full': avg_p,
+                                'oof' : oof_probs_base[column_name].tolist()},
+                sweep_data   = {'Full': avg_sweep} if avg_sweep else None
+            )
+        )
+
+    return meta_runs, base_runs
+
 
 def Initalize(config, SAVE_MODEL):
     # Load data

@@ -20,7 +20,7 @@ if root_dir not in sys.path:
 # Import utility functions
 from utils import (
     get_cached_data, clear_cache, update_cache,
-    debounced_auto_save, _save_data_config_helper, _save_base_model_config_helper
+    debounced_auto_save, _save_data_config_helper, _save_base_model_config_helper, _save_base_model_columns_config_helper
 )
 
 # API Configuration
@@ -199,7 +199,130 @@ def render_preprocessing_tab(config_settings):
     else:
         st.error("Failed to load base model configuration")
     
-    # ========== 4. EXCLUDE COLUMNS SELECTION (FILTERED) ==========
+    # ========== 4. BASE MODEL COLUMNS CONFIGURATION ==========
+    st.write("#### Base Model Columns Configuration")
+    st.write("Configure which columns contain base model outputs/scores (e.g., AnomalyScore, CL_ConfMax):")
+    
+    # Use cached data for base model columns config
+    try:
+        base_model_columns_data = get_cached_data(
+            cache_key="base_model_columns_config",
+            api_endpoint="/config/base-model-columns",
+            default_value={"config": {"model_columns": {"AD": "AnomalyScore", "CL": "CL_ConfMax"}}, "available_columns": []}
+        )
+        
+    except Exception as e:
+        st.error(f"Error calling API: {str(e)}")
+        base_model_columns_data = None
+    
+    if base_model_columns_data:
+        current_columns_config = base_model_columns_data['config']
+        available_columns = base_model_columns_data['available_columns']
+        
+        # Simple approach like decision columns - just show the current configuration
+        st.write("##### Model to Column Mappings")
+        st.info("💡 **How it works**: Map each base model name to its corresponding output column. For example, 'AD' → 'AnomalyScore' means the AD model's output is in the AnomalyScore column.")
+        
+        # Show current mappings in an editable way
+        current_model_columns = current_columns_config.get('model_columns', {})
+        
+        # Convert to lists for easy editing
+        model_names = list(current_model_columns.keys())
+        column_names = list(current_model_columns.values())
+        
+        # Add empty slots for new mappings
+        while len(model_names) < 6:  # Allow up to 6 base models
+            model_names.append("")
+            column_names.append("")
+        
+        # Create editable inputs
+        updated_mappings = {}
+        
+        for i in range(6):
+            col1, col2 = st.columns([1, 2])
+            
+            with col1:
+                model_name = st.text_input(
+                    f"Model Name {i+1}",
+                    value=model_names[i] if i < len(model_names) else "",
+                    key=f"base_model_name_{i}",
+                    help="Name of the base model (e.g., AD, CL, RF)"
+                )
+            
+            with col2:
+                if available_columns and model_names[i]:
+                    # Use selectbox if we have available columns and this row has a model name
+                    try:
+                        current_index = available_columns.index(column_names[i]) if column_names[i] in available_columns else 0
+                    except ValueError:
+                        current_index = 0
+                    
+                    column_name = st.selectbox(
+                        f"Column Name {i+1}",
+                        [""] + available_columns,
+                        index=current_index + 1 if column_names[i] in available_columns else 0,
+                        key=f"base_model_column_{i}",
+                        help="Column containing the model's output/score"
+                    )
+                else:
+                    # Use text input as fallback
+                    column_name = st.text_input(
+                        f"Column Name {i+1}",
+                        value=column_names[i] if i < len(column_names) else "",
+                        key=f"base_model_column_{i}",
+                        help="Column containing the model's output/score"
+                    )
+            
+            # Only add to mappings if both model name and column name are provided
+            if model_name.strip() and column_name.strip():
+                updated_mappings[model_name.strip()] = column_name.strip()
+        
+        # Auto-save base model columns configuration
+        base_model_columns_config_data = {
+            "model_columns": updated_mappings
+        }
+        
+        # Create notification container for base model columns auto-save messages
+        base_model_columns_notification = st.empty()
+        
+        # Use debounced auto-save for base model columns configuration
+        debounced_auto_save(
+            save_function=_save_base_model_columns_config_helper,
+            config_data=base_model_columns_config_data,
+            notification_container=base_model_columns_notification,
+            debounce_key="base_model_columns_config",
+            delay=3.0  # 3 second delay to prevent excessive calls
+        )
+        
+        # Show current configuration summary
+        if updated_mappings:
+            st.success(f"✅ {len(updated_mappings)} base model(s) configured")
+            
+            # Show current mappings
+            with st.expander("Current Base Model Mappings"):
+                for model_name, column_name in updated_mappings.items():
+                    st.write(f"• **{model_name}** → `{column_name}`")
+            
+            # Validate columns exist in dataset
+            if available_columns:
+                missing_columns = []
+                for col in updated_mappings.values():
+                    if col not in available_columns and (df is None or col not in df.columns):
+                        missing_columns.append(col)
+                if missing_columns:
+                    st.warning(f"⚠️ Some columns may not exist in the dataset: {missing_columns}")
+        else:
+            st.warning("⚠️ No base models configured. The pipeline will skip base model analysis.")
+            
+    else:
+        st.error("Failed to load base model columns configuration")
+        st.write("⚠️ Could not connect to backend API. Please check that the backend server is running.")
+        
+        # Fallback section for when API fails
+        st.write("##### Manual Configuration (Fallback)")
+        st.info("You can still configure base models manually, but changes won't be saved until the API connection is restored.")
+    
+    # ========== 5. EXCLUDE COLUMNS SELECTION (FILTERED) ==========
     st.write("#### Exclude Columns Configuration")
     st.write("Select additional columns to exclude from model training (target and base decision columns are automatically excluded):")
     
@@ -226,7 +349,7 @@ def render_preprocessing_tab(config_settings):
     if columns_to_filter_out:
         st.info(f"🔒 **Automatically excluded:** {', '.join(columns_to_filter_out)} (target and base decision columns)")
 
-    # ========== 5. AUTO-SAVE DATA CONFIGURATION ==========
+    # ========== 6. AUTO-SAVE DATA CONFIGURATION ==========
     # Auto-save data configuration - use YAML structure for saving
     config_updates = {
         'data.path': selected_dataset_path.as_posix(), # Use forward slashes
@@ -253,7 +376,7 @@ def render_preprocessing_tab(config_settings):
         delay=3.0  # 3 second delay to prevent excessive file writes
     )
         
-    # ========== 6. BITWISE LOGIC CONFIGURATION ==========
+    # ========== 7. BITWISE LOGIC CONFIGURATION ==========
     st.write("#### 🔧 Bitwise Logic Configuration")
     st.write("Create custom models by combining existing model outputs using bitwise logic operations.")
     
@@ -551,7 +674,7 @@ def render_preprocessing_tab(config_settings):
     else:
         st.error("Failed to load bitwise logic configuration. Please refresh the page or check backend connectivity.")
         
-    # ========== 7. PREPROCESSING PREVIEWS ==========
+    # ========== 8. PREPROCESSING PREVIEWS ==========
     st.write("#### Preprocessing Previews")
     
     # Filtering settings inputs - fix key mapping

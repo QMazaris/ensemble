@@ -23,25 +23,6 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
         sys.path.append(str(Path(__file__).parent.parent.parent))
         from shared import data_service
     
-    # Temporary: Print the structure of the received runs object for debugging
-    print("\n--- Structure of runs object received by export_metrics_for_streamlit ---")
-    for i, run in enumerate(runs):
-        print(f"Run {i+1}: Model Name = {run.model_name}")
-        print(f"  Results type: {type(run.results)}")
-        if isinstance(run.results, list):
-            print(f"  Results length: {len(run.results)}")
-            if len(run.results) > 0:
-                print(f"  First result type: {type(run.results[0])}")
-                if hasattr(run.results[0], '__dict__'):
-                    print(f"  First result attributes: {dir(run.results[0])}")
-        elif isinstance(run.results, dict):
-            print(f"  Results Keys: {list(run.results.keys())}")
-        if hasattr(run, 'threshold_sweep') and run.threshold_sweep is not None:
-             print(f"  Threshold Sweep available: True")
-        else:
-             print(f"  Threshold Sweep available: False")
-    print("--------------------------------------------------------------------")
-    
     # 1. Prepare detailed metrics data
     metrics_data = []
     for run in runs:
@@ -197,11 +178,11 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     data_service.set_metrics_data(metrics_package)
     data_service.set_sweep_data(sweep_data)
     
-    # Optionally save to files as backup
-    if output_dir:
-        output_dir = Path(output_dir)
-        # Only save JSON files by default for efficiency, CSV files only if needed for debugging
-        data_service.save_to_files(output_dir, save_csv_backup=False)
+    # # Optionally save to files as backup
+    # if output_dir:
+    #     output_dir = Path(output_dir)
+    #     # Only save JSON files by default for efficiency, CSV files only if needed for debugging
+    #     data_service.save_to_files(output_dir, save_csv_backup=False)
     
     print(f"Metrics data stored in memory and optionally saved to {output_dir}")
     print("\nPerformance Summary:")

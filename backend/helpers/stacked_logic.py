@@ -4,6 +4,20 @@ from typing import List, Dict, Any
 from .metrics import ModelEvaluationRun, ModelEvaluationResult, compute_metrics
 
 
+def pick_oof_or_full_or_longest(probas):
+    """Pick the best available probability array, prioritizing OOF predictions for k-fold models."""
+    if not probas:
+        return None
+    if 'oof' in probas:
+        return np.array(probas['oof'])  # Use OOF predictions for k-fold models
+    if 'Full' in probas:
+        return np.array(probas['Full'])
+    non_empty = [arr for arr in probas.values() if arr is not None and hasattr(arr, 'shape')]
+    if not non_empty:
+        return None
+    return max(non_empty, key=lambda arr: arr.shape[0])
+
+
 def generate_combined_runs(
     runs: List[ModelEvaluationRun],
     combined_logic: Dict[str, Dict[str, Any]],
@@ -14,10 +28,10 @@ def generate_combined_runs(
 ) -> List[ModelEvaluationRun]:
     """
     Create new ModelEvaluationRun entries by bitwise-combining
-    the 'Full' decisions of existing runs.
+    the decisions of existing runs.
 
     Args:
-        runs: existing base-model runs (probabilities['Full'] is 0/1 decisions).
+        runs: existing base-model runs (probabilities are accessed using pick_oof_or_full_or_longest).
         combined_logic: {
             "NewModelName": {"columns": ["AD_Decision","CL_Decision"], "logic": "OR"},
              ...
@@ -50,15 +64,37 @@ def generate_combined_runs(
         if logic not in ops:
             raise ValueError(f"Unsupported logic '{logic}' for '{new_name}'")
 
-        # fetch each base-model decision array
+        # fetch each base-model decision array using the helper function
         try:
-            arrays = [
-                name_to_run[col].probabilities['Full'].astype(int)
-                for col in cols
-            ]
+            arrays = []
+            for col in cols:
+                if col not in name_to_run:
+                    missing = [c for c in cols if c not in name_to_run]
+                    raise ValueError(f"Missing runs for models: {missing}")
+                
+                # Use the helper function to get the right probability array
+                probas = pick_oof_or_full_or_longest(name_to_run[col].probabilities)
+                if probas is None:
+                    raise ValueError(f"No valid probabilities found for model {col}")
+                
+                # Convert to binary decisions (assuming probabilities > 0.5 = positive class)
+                # For base models like AD_Decision/CL_Decision, these might already be binary
+                if np.all(np.isin(probas, [0, 1])):
+                    # Already binary decisions
+                    decisions = probas.astype(int)
+                else:
+                    # Convert probabilities to binary decisions using 0.5 threshold
+                    decisions = (probas > 0.5).astype(int)
+                
+                arrays.append(decisions)
         except KeyError as e:
             missing = [c for c in cols if c not in name_to_run]
             raise ValueError(f"Missing runs for models: {missing}") from e
+
+        # Ensure all arrays have the same length
+        array_lengths = [len(arr) for arr in arrays]
+        if not all(length == array_lengths[0] for length in array_lengths):
+            raise ValueError(f"Found input variables with inconsistent numbers of samples: {array_lengths}")
 
         # apply bitwise logic in sequence
         combined = arrays[0]

@@ -120,6 +120,13 @@ class BaseModelDecisionResponse(BaseModel):
     config: BaseModelDecisionConfig
     available_columns: List[str]  # All columns in the dataset that could be decision columns
 
+class BaseModelColumnsConfig(BaseModel):
+    model_columns: Dict[str, str]  # Map of model names to their column names (e.g., {"AD": "AnomalyScore", "CL": "CL_ConfMax"})
+
+class BaseModelColumnsResponse(BaseModel):
+    config: BaseModelColumnsConfig
+    available_columns: List[str]  # All columns in the dataset that could be base model output columns
+
 class BitwiseLogicRule(BaseModel):
     name: str
     columns: List[str]
@@ -583,6 +590,104 @@ def update_base_model_config(base_model_config: BaseModelDecisionConfig):
     except Exception as e:
         api_logger.error(f"Failed to update base model config: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to update base model config: {str(e)}")
+
+@app.get("/config/base-model-columns", response_model=BaseModelColumnsResponse)
+def get_base_model_columns_config():
+    """Get the current base model columns configuration and available columns."""
+    try:
+        # Get current configuration from config manager
+        from shared.config_manager import config_manager
+        
+        # Get base model columns config (with defaults if not present)
+        base_model_columns = config_manager.get('models.base_model_columns', {
+            'AD': 'AnomalyScore',
+            'CL': 'CL_ConfMax'
+        })
+        
+        # Dynamically detect available columns from the dataset
+        available_columns = []
+        try:
+            # Try to load the current dataset to get available columns
+            data_path = config_manager.get('data.path', 'data/training_data.csv')
+            if os.path.exists(data_path):
+                df = pd.read_csv(data_path, nrows=5)  # Just read a few rows to get column names
+                
+                # Exclude target column and decision columns
+                target_column = config_manager.get('data.target_column', 'GT_Label')
+                exclude_columns = config_manager.get('data.exclude_columns', [])
+                decision_columns = config_manager.get('models.base_model_decisions.enabled_columns', [])
+                
+                # Look for columns that might be base model output columns (typically numeric/continuous)
+                potential_output_cols = []
+                for col in df.columns:
+                    if (col != target_column 
+                        and col not in exclude_columns 
+                        and col not in decision_columns):
+                        try:
+                            # Check if it's numeric or can be converted to numeric
+                            pd.to_numeric(df[col], errors='raise')
+                            potential_output_cols.append(col)
+                        except (ValueError, TypeError):
+                            # If not numeric, check if it might be a score column based on name
+                            if any(keyword in col.lower() for keyword in ['score', 'prob', 'conf', 'output', 'pred']):
+                                potential_output_cols.append(col)
+                
+                available_columns = potential_output_cols
+                
+        except Exception as e:
+            api_logger.warning(f"Could not detect available columns from dataset: {e}")
+            # Fallback to currently configured columns
+            available_columns = list(base_model_columns.values())
+        
+        return BaseModelColumnsResponse(
+            config=BaseModelColumnsConfig(model_columns=base_model_columns),
+            available_columns=available_columns
+        )
+        
+    except Exception as e:
+        api_logger.error(f"Failed to get base model columns config: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get base model columns config: {str(e)}")
+
+@app.post("/config/base-model-columns")
+def update_base_model_columns_config(base_model_columns_config: BaseModelColumnsConfig):
+    """Update base model columns configuration."""
+    try:
+        # Update the configuration using the config manager
+        from shared.config_manager import config_manager
+        
+        # Simple validation - just check that model_columns is a dict
+        if not isinstance(base_model_columns_config.model_columns, dict):
+            raise HTTPException(status_code=400, detail="model_columns must be a dictionary")
+        
+        # Filter out empty values (more lenient approach)
+        filtered_model_columns = {}
+        for model_name, column_name in base_model_columns_config.model_columns.items():
+            if model_name and model_name.strip() and column_name and column_name.strip():
+                filtered_model_columns[model_name.strip()] = column_name.strip()
+        
+        # Save the filtered configuration
+        config_updates = {
+            'models.base_model_columns': filtered_model_columns
+        }
+        
+        config_manager.update(config_updates)
+        config_manager.save()
+        
+        # Reload the config adapter to pick up the changes
+        config._adapter.config = config_manager
+        
+        api_logger.info(f"Updated base model columns configuration: {filtered_model_columns}")
+        
+        return {
+            "message": "Base model columns configuration updated successfully",
+            "updated_config": {"model_columns": filtered_model_columns}
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        api_logger.error(f"Failed to update base model columns config: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update base model columns config: {str(e)}")
 
 @app.get("/config")
 def get_config():

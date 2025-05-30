@@ -3,6 +3,7 @@ import subprocess
 import os
 import sys
 from pathlib import Path
+import time
 
 # Add the root directory to Python path
 root_dir = str(Path(__file__).parent.parent.parent)
@@ -18,7 +19,7 @@ from tabs.preprocessing import render_preprocessing_tab
 from tabs.downloads import render_downloads_tab
 
 # Import from the same directory
-from frontend.streamlit.utils import ensure_directories
+from frontend.streamlit.utils import ensure_directories, clear_cache
 from frontend.streamlit.sidebar import render_sidebar
 from shared.config_manager import get_config
 
@@ -54,11 +55,31 @@ def run_pipeline():
                 
             # Run the backend pipeline
             subprocess.run([venv_python, "-m", "backend.run"], check=True, cwd=root_dir)
+            
+            # Import utils for cache management
+            from frontend.streamlit.utils import clear_cache
+            
+            # Clear all cached data to force fresh data loading
+            clear_cache()
+            
+            # Use a single timestamp-based refresh mechanism instead of multiple flags
+            # This prevents race conditions between tabs
+            import time
+            st.session_state.pipeline_completed_at = time.time()
+            
+            # Show success message
             st.success("✅ Pipeline completed successfully!")
+            st.info("🔄 Data will refresh automatically. You may need to interact with the page to see updates.")
+            
+            # Don't use st.rerun() immediately as it can cause issues
+            # Let the natural Streamlit refresh cycle handle the update
+            
         except subprocess.CalledProcessError as e:
             st.error(f"❌ Pipeline failed with error: {str(e)}")
         except FileNotFoundError:
             st.error("❌ Error: backend/run.py not found. Please ensure backend/run.py exists.")
+        except Exception as e:
+            st.error(f"❌ Unexpected error: {str(e)}")
 
 def main():
     """Main application entry point."""

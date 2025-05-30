@@ -169,7 +169,7 @@ def save_final_kfold_model(model, X, y, model_name, model_dir, SUMMARY=None, con
         print(f"Final K-Fold model '{model_name}_final' trained and saved to {model_dir}")
     return trained_model
 
-def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE_PLOTS, X, y):
+def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, X, y):
     """Create and analyze final production models.
     
     Args:
@@ -178,7 +178,6 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
         image_path: Directory to save plots
         C_FP: Cost of false positive
         C_FN: Cost of false negative
-        SAVE_PLOTS: Whether to save threshold sweep plots
         X: Feature matrix
         y: Target vector
     """
@@ -216,18 +215,6 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, SAVE
                 split_name=f"FINAL PRODUCTION {name}"
             )
             
-            # Save threshold sweep plot
-            if SAVE_PLOTS:
-                plot_threshold_sweep(
-                    sweep_results, C_FP, C_FN,
-                    cost_optimal_thr=best_cost['threshold'],
-                    accuracy_optimal_thr=best_acc['threshold'],
-                    output_path=os.path.join(
-                        image_path,
-                        f"{name}_final_production_threshold_sweep.png"
-                    ),
-                    SUMMARY=config.SUMMARY
-                )
             
             # Save the model
             out_path = export_model(best, f"{name}_production", model_path, config, feature_names=X.columns.tolist())
