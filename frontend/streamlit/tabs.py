@@ -14,6 +14,8 @@ import re
 import ast
 import importlib.util
 import requests
+import time
+from datetime import datetime
 
 # API Configuration
 API_BASE_URL = "http://localhost:8000"
@@ -34,35 +36,142 @@ def get_cached_data(cache_key, api_endpoint, default_value=None, force_refresh=F
     if 'api_cache' not in st.session_state:
         st.session_state.api_cache = {}
     
+    # Initialize cache timestamps
+    if 'api_cache_timestamps' not in st.session_state:
+        st.session_state.api_cache_timestamps = {}
+    
+    # Check if cache is expired (5 minutes cache time)
+    cache_timeout = 300  # 5 minutes
+    current_time = time.time()
+    is_expired = (
+        cache_key in st.session_state.api_cache_timestamps and
+        current_time - st.session_state.api_cache_timestamps[cache_key] > cache_timeout
+    )
+    
     # Check if we need to refresh cache
-    if force_refresh or cache_key not in st.session_state.api_cache:
+    if force_refresh or cache_key not in st.session_state.api_cache or is_expired:
         try:
             response = requests.get(f"{API_BASE_URL}{api_endpoint}", timeout=10)
             if response.status_code == 200:
                 st.session_state.api_cache[cache_key] = response.json()
+                st.session_state.api_cache_timestamps[cache_key] = current_time
             else:
                 st.session_state.api_cache[cache_key] = default_value
+                st.session_state.api_cache_timestamps[cache_key] = current_time
         except Exception as e:
             st.session_state.api_cache[cache_key] = default_value
+            st.session_state.api_cache_timestamps[cache_key] = current_time
     
     return st.session_state.api_cache[cache_key]
+
+def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
+    """
+    Debounced auto-save function to prevent excessive API calls.
+    
+    Args:
+        save_function: Function to call for saving
+        config_data: Data to save
+        notification_container: Streamlit container for notifications
+        debounce_key: Unique key for this auto-save operation
+        delay: Delay in seconds before saving
+    """
+    # Initialize debounce storage
+    if 'debounce_timers' not in st.session_state:
+        st.session_state.debounce_timers = {}
+    
+    if 'debounce_data' not in st.session_state:
+        st.session_state.debounce_data = {}
+    
+    # Store the current time and data
+    current_time = time.time()
+    st.session_state.debounce_timers[debounce_key] = current_time
+    st.session_state.debounce_data[debounce_key] = {
+        'save_function': save_function,
+        'config_data': config_data,
+        'notification_container': notification_container
+    }
+    
+    # Check if enough time has passed for any pending saves
+    keys_to_process = []
+    for key, timestamp in st.session_state.debounce_timers.items():
+        if current_time - timestamp >= delay:
+            keys_to_process.append(key)
+    
+    # Process debounced saves
+    for key in keys_to_process:
+        if key in st.session_state.debounce_data:
+            data = st.session_state.debounce_data[key]
+            try:
+                result = data['save_function'](data['config_data'], data['notification_container'])
+                if result:
+                    # Only show success message for actual saves
+                    pass  # The save function itself handles notifications
+            except Exception as e:
+                data['notification_container'].error(f"❌ Auto-save failed: {str(e)}")
+            
+            # Clean up
+            del st.session_state.debounce_timers[key]
+            del st.session_state.debounce_data[key]
 
 def clear_cache():
     """Clear all cached data."""
     if 'api_cache' in st.session_state:
         st.session_state.api_cache = {}
+    if 'api_cache_timestamps' in st.session_state:
+        st.session_state.api_cache_timestamps = {}
 
 def update_cache(cache_key, data):
     """Update specific cache entry."""
     if 'api_cache' not in st.session_state:
         st.session_state.api_cache = {}
+    if 'api_cache_timestamps' not in st.session_state:
+        st.session_state.api_cache_timestamps = {}
+    
     st.session_state.api_cache[cache_key] = data
+    st.session_state.api_cache_timestamps[cache_key] = time.time()
 
 def render_overview_tab():
     """Render the enhanced overview tab with comprehensive model analysis."""
     st.write("### 📊 Model Performance Dashboard")
     
-    metrics_df, summary_df, cm_df, sweep_data = load_metrics_data()
+    # Use cached data to avoid redundant API calls
+    metrics_data = get_cached_data(
+        cache_key="metrics_data",
+        api_endpoint="/results/metrics",
+        default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}},
+        force_refresh=st.session_state.get('force_refresh_metrics', False)
+    )
+    
+    # Clear the force refresh flag
+    if st.session_state.get('force_refresh_metrics', False):
+        st.session_state.force_refresh_metrics = False
+    
+    if metrics_data and metrics_data.get('results'):
+        results = metrics_data['results']
+        
+        # Convert to DataFrames for compatibility
+        metrics_df = pd.DataFrame(results.get('model_metrics', []))
+        summary_df = pd.DataFrame(results.get('model_summary', []))
+        cm_df = pd.DataFrame(results.get('confusion_matrices', []))
+        
+        # Get sweep data from cache
+        sweep_data = get_cached_data(
+            cache_key="sweep_data",
+            api_endpoint="/debug/data-service",  # This endpoint provides info about what data is available
+            default_value=None
+        )
+        
+        # Try to get actual sweep data from data service
+        try:
+            import sys
+            from pathlib import Path
+            root_dir = str(Path(__file__).parent.parent.parent)
+            if root_dir not in sys.path:
+                sys.path.insert(0, root_dir)
+            from shared import data_service
+            sweep_data = data_service.get_sweep_data()
+        except Exception as e:
+            sweep_data = None
     
     if summary_df is not None and not summary_df.empty:
         # Enhanced comprehensive model comparison chart
@@ -77,74 +186,92 @@ def render_overview_tab():
             key="overview_threshold_selector"
         )
         
-        # Filter for 'Full' split with selected threshold type
-        # Handle both ML models and base models with the selected threshold type
-        ml_data = summary_df[
+        # Get ALL models for the selected threshold type, with fallbacks for base models
+        overview_data = []
+        
+        # First, get all ML models with the selected threshold type  
+        ml_models = summary_df[
             (summary_df['split'] == 'Full') &
             (summary_df['threshold_type'] == selected_threshold_type) &
-            (~summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
+            (~summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])) &
+            (~summary_df['model_name'].str.contains('_Combined|Combined_', na=False))  # Also include manually created combined models
         ].copy()
         
-        base_data = summary_df[
-            (summary_df['split'] == 'Full') &
-            (summary_df['threshold_type'] == selected_threshold_type) &
-            (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
-        ].copy()
+        if not ml_models.empty:
+            overview_data.append(ml_models)
         
-        # If no data found with selected threshold type for base models, try 'base' threshold
-        if base_data.empty and selected_threshold_type != 'base':
-            base_data = summary_df[
+        # Then, get base models - try selected threshold type first, then fallback
+        base_model_names = ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']
+        
+        for model_name in base_model_names:
+            model_data = summary_df[
                 (summary_df['split'] == 'Full') &
-                (summary_df['threshold_type'] == 'base') &
-                (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
+                (summary_df['model_name'] == model_name)
             ].copy()
-            if not base_data.empty:
-                st.info(f"No base models found with '{selected_threshold_type}' threshold. Using 'base' threshold for base models.")
-        
-        # If still no base models, try any available threshold type for base models
-        if base_data.empty:
-            available_base_models = summary_df[
-                (summary_df['split'] == 'Full') &
-                (summary_df['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail']))
-            ]
             
-            if not available_base_models.empty:
-                # Group by model and get the first threshold type available for each base model
-                base_data = available_base_models.groupby('model_name').first().reset_index()
-                st.info(f"Using available threshold types for base models: {available_base_models['threshold_type'].unique()}")
-
-        # Combine ML and base model data
-        overview_data = pd.concat([ml_data, base_data], ignore_index=True)
+            if not model_data.empty:
+                # Try to get data with selected threshold type first
+                preferred_data = model_data[model_data['threshold_type'] == selected_threshold_type]
+                if not preferred_data.empty:
+                    overview_data.append(preferred_data)
+                else:
+                    # Fallback to any available threshold type for this model
+                    fallback_data = model_data.iloc[[0]]  # Take the first available
+                    overview_data.append(fallback_data)
+        
+        # Get ALL combined models (created via bitwise logic)
+        combined_models = summary_df[
+            (summary_df['split'] == 'Full') &
+            (summary_df['model_name'].str.contains('Combined|_Combined', na=False))
+        ].copy()
+        
+        if not combined_models.empty:
+            # For combined models, try selected threshold type first, then fallback
+            preferred_combined = combined_models[combined_models['threshold_type'] == selected_threshold_type]
+            if not preferred_combined.empty:
+                overview_data.append(preferred_combined)
+            else:
+                # Group by model name and take first available threshold type for each
+                for model_name in combined_models['model_name'].unique():
+                    model_combined = combined_models[combined_models['model_name'] == model_name].iloc[[0]]
+                    overview_data.append(model_combined)
+        
+        # Combine all data
+        if overview_data:
+            overview_data_combined = pd.concat(overview_data, ignore_index=True)
+            
+            # Add model type for better visualization
+            overview_data_combined['model_type'] = overview_data_combined['model_name'].apply(
+                lambda x: 'Base Model' if x in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'] 
+                         else 'Combined Model' if 'Combined' in x or '_Combined' in x
+                         else 'ML Model'
+            )
+        else:
+            st.warning(f"No model data found for threshold type: {selected_threshold_type}")
+            overview_data_combined = pd.DataFrame()
         
         # Separate ML models and base models for visualization
-        ml_overview_data = overview_data[
-            ~overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
+        ml_overview_data = overview_data_combined[
+            ~overview_data_combined['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
         ]
         
-        base_models_data = overview_data[
-            overview_data['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
+        base_models_data = overview_data_combined[
+            overview_data_combined['model_name'].isin(['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'])
         ]
         
-        
-        if not overview_data.empty:
-            # Add model type for better visualization
-            overview_data_enhanced = overview_data.copy()
-            overview_data_enhanced['model_type'] = overview_data_enhanced['model_name'].apply(
-                lambda x: 'Base Model' if x in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'] else 'ML Model'
-            )
-            
+        if not overview_data_combined.empty:
             # ============================================
             # 🔥 Enhanced Performance Overview with F1 Score and Thresholds
             # ============================================
 
-            overview_data_enhanced['model_display'] = overview_data_enhanced.apply(
+            overview_data_combined['model_display'] = overview_data_combined.apply(
                 lambda row: f"{row['model_name']} (τ={row['threshold']:.2f})", axis=1
             )
 
             # Reshape so each metric becomes its own bar - now including F1 score
             metric_cols = ["accuracy", "precision", "recall", "f1_score"]
             plot_df = (
-                overview_data_enhanced
+                overview_data_combined
                 .melt(
                     id_vars=["model_name","model_display", "threshold"],
                     value_vars=metric_cols,
@@ -166,7 +293,13 @@ def render_overview_tab():
                     "metric": "Metric"
                 },
                 title=f"Model Performance with {selected_threshold_type.title()} Threshold",
-                hover_data={"threshold": True}
+                hover_data={"threshold": True},
+                color_discrete_map={
+                    'accuracy': '#1f77b4',
+                    'precision': '#ff7f0e', 
+                    'recall': '#2ca02c',
+                    'f1_score': '#d62728'
+                }
             )
 
             fig.update_layout(
@@ -179,7 +312,7 @@ def render_overview_tab():
 
             # Add threshold information table
             st.write("##### Threshold Values Used")
-            threshold_info = overview_data_enhanced[['model_name', 'threshold', 'threshold_type', 'model_type']].copy()
+            threshold_info = overview_data_combined[['model_name', 'threshold', 'threshold_type', 'model_type']].copy()
             threshold_info['threshold'] = threshold_info['threshold'].round(4)
             
             st.dataframe(
@@ -191,39 +324,31 @@ def render_overview_tab():
             # Cost Analysis
             st.write("#### 💰 Cost Analysis")
             
-            # Cost comparison
-            fig_cost_bar = px.bar(overview_data_enhanced,
-                                x='model_name',
-                                y='cost',
-                                title='Model Costs (Lower is Better)',
-                                labels={'cost': 'Cost', 'model_name': 'Model'},
-                                color='model_type',
-                                color_discrete_map={'ML Model': '#1f77b4', 'Base Model': '#ff7f0e'})
+            # Cost comparison - make sure it includes all model types including combined models
+            fig_cost_bar = px.bar(overview_data_combined,
+                            x='model_name',
+                            y='cost',
+                            title='Model Costs (Lower is Better)',
+                            labels={'cost': 'Cost', 'model_name': 'Model'},
+                            color='model_type',
+                            color_discrete_map={
+                                'ML Model': '#1f77b4', 
+                                'Base Model': '#ff7f0e',
+                                'Combined Model': '#2ca02c'  # Green for combined models
+                            })
             fig_cost_bar.update_layout(height=500)
             st.plotly_chart(fig_cost_bar, use_container_width=True, key="cost_comparison_bar_chart")
             
-            # Cost breakdown if available
-            if 'fp' in overview_data.columns and 'fn' in overview_data.columns:
-                st.write("##### Cost Breakdown Analysis")
-                cost_breakdown = overview_data_enhanced.copy()
-                cost_breakdown['fp_cost'] = cost_breakdown['fp'] * 1.0  # Assuming C_FP = 1
-                cost_breakdown['fn_cost'] = cost_breakdown['fn'] * 30.0  # Assuming C_FN = 30
-                
-                fig_breakdown = px.bar(cost_breakdown,
-                                     x='model_name',
-                                     y=['fp_cost', 'fn_cost'],
-                                     title='Cost Breakdown: False Positives vs False Negatives',
-                                     labels={'value': 'Cost', 'model_name': 'Model'},
-                                     color_discrete_map={'fp_cost': '#ff9999', 'fn_cost': '#66b3ff'})
-                fig_breakdown.update_layout(height=500)
-                st.plotly_chart(fig_breakdown, use_container_width=True, key="cost_breakdown_bar_chart")
+            # Radar chart for model comparison (ML models and combined models)
+            radar_data = overview_data_combined[
+                overview_data_combined['model_type'].isin(['ML Model', 'Combined Model'])
+            ]
             
-            # Radar chart for model comparison (ML models only due to complexity)
-            if not ml_overview_data.empty and len(ml_overview_data) > 1:
-                st.write("#### 📈 ML Models Radar Chart")
-                fig_radar = create_radar_chart(ml_overview_data)
+            if not radar_data.empty and len(radar_data) > 1:
+                st.write("#### 📈 ML & Combined Models Radar Chart")
+                fig_radar = create_radar_chart(radar_data)
                 if fig_radar:
-                    st.plotly_chart(fig_radar, use_container_width=True, key="ml_models_radar_chart")
+                    st.plotly_chart(fig_radar, use_container_width=True, key="ml_combined_models_radar_chart")
             
             # Detailed tables section
             st.write("#### 🔍 Detailed Metrics Table")
@@ -401,7 +526,43 @@ def render_model_analysis_tab():
     """Render the model analysis tab content."""
     st.write("### Model Analysis")
     
-    metrics_df, summary_df, cm_df, sweep_data = load_metrics_data()
+    # Add cache refresh button
+    if st.button("🔄 Refresh Data", key="model_analysis_refresh", help="Clear cache and reload model data"):
+        st.session_state.force_refresh_metrics = True
+        clear_cache()
+        st.rerun()
+    
+    # Use cached data to avoid redundant API calls
+    metrics_data = get_cached_data(
+        cache_key="metrics_data",
+        api_endpoint="/results/metrics",
+        default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}},
+        force_refresh=st.session_state.get('force_refresh_metrics', False)
+    )
+    
+    # Clear the force refresh flag
+    if st.session_state.get('force_refresh_metrics', False):
+        st.session_state.force_refresh_metrics = False
+    
+    if metrics_data and metrics_data.get('results'):
+        results = metrics_data['results']
+        
+        # Convert to DataFrames for compatibility
+        metrics_df = pd.DataFrame(results.get('model_metrics', []))
+        summary_df = pd.DataFrame(results.get('model_summary', []))
+        cm_df = pd.DataFrame(results.get('confusion_matrices', []))
+        
+        # Get sweep data from cache
+        try:
+            import sys
+            from pathlib import Path
+            root_dir = str(Path(__file__).parent.parent.parent)
+            if root_dir not in sys.path:
+                sys.path.insert(0, root_dir)
+            from shared import data_service
+            sweep_data = data_service.get_sweep_data()
+        except Exception as e:
+            sweep_data = None
     
     if summary_df is not None and not summary_df.empty:
         # Model Selection
@@ -452,6 +613,8 @@ def render_model_analysis_tab():
                 st.info("Threshold sweep data is not available for decision-based models.")
             else:
                 st.info("Threshold sweep data is not available. This may be because the pipeline hasn't been run yet or the model doesn't have sweep data.")
+        else:
+            st.info("No model data available. Run the pipeline to see analysis here.")
     else:
         st.info("Run the pipeline to see analysis here.")
 
@@ -461,8 +624,21 @@ def render_model_curves(model, sweep_data, model_data_split):
     
     # Load predictions and ensure we have the data
     try:
-        pred_df = load_predictions_data()
-        if pred_df is None or model not in pred_df.columns:
+        # Use cached predictions data instead of loading fresh each time
+        predictions_data = get_cached_data(
+            cache_key="predictions_data",
+            api_endpoint="/results/predictions",
+            default_value={"predictions": []},
+            force_refresh=False  # Don't force refresh here
+        )
+        
+        if predictions_data and predictions_data.get('predictions'):
+            pred_df = pd.DataFrame(predictions_data['predictions'])
+        else:
+            st.warning(f"No predictions data available.")
+            return
+            
+        if model not in pred_df.columns:
             st.warning(f"Model {model} not found in predictions data.")
             return
             
@@ -514,12 +690,19 @@ def render_downloads_tab():
     """Render the downloads tab content."""
     st.write("### Download Files")
     
-    # Download predictions - now using API/data service instead of CSV file
+    # Download predictions - now using cached data instead of fresh API call
     try:
-        # Try to get predictions data from utils (which will try API first, then data service)
-        predictions_df = load_predictions_data()
+        # Use cached predictions data
+        predictions_data = get_cached_data(
+            cache_key="predictions_data",
+            api_endpoint="/results/predictions",
+            default_value={"predictions": []},
+            force_refresh=False
+        )
         
-        if predictions_df is not None:
+        if predictions_data and predictions_data.get('predictions'):
+            predictions_df = pd.DataFrame(predictions_data['predictions'])
+            
             # Convert DataFrame to CSV for download
             csv_data = predictions_df.to_csv(index=False)
             st.download_button(
@@ -786,19 +969,27 @@ def auto_save_data_config(config_updates, notification_container):
             config_changed = True
             break
     
+    # Only save if configuration actually changed
+    if not config_changed:
+        return False
+    
     # Save if configuration changed
     if config_changed:
         try:
             update_config_file(config_updates)
             # Update previous config in session state
             st.session_state.previous_data_config = config_updates.copy()
-            # Show auto-save notification
-            notification_container.success("✅ Data config auto-saved!", icon="💾")
+            # Show auto-save notification with timestamp
+            current_time = datetime.now().strftime("%H:%M:%S")
+            notification_container.success(f"✅ Data config auto-saved at {current_time}!", icon="💾")
             return True
         except Exception as e:
             notification_container.error(f"❌ Auto-save failed: {str(e)}")
-            return False
     return False
+
+def _save_data_config_helper(config_data, notification_container):
+    """Helper function for debounced data config saving."""
+    return auto_save_data_config(config_data, notification_container)
 
 def auto_save_base_model_config(config_data, notification_container):
     """Automatically save base model configuration changes."""
@@ -813,23 +1004,31 @@ def auto_save_base_model_config(config_data, notification_container):
             config_changed = True
             break
     
+    # Only save if configuration actually changed
+    if not config_changed:
+        return False
+    
     # Save if configuration changed
     if config_changed:
         try:
-            response = requests.post(f"{API_BASE_URL}/config/base-models", json=config_data)
+            response = requests.post(f"{API_BASE_URL}/config/base-models", json=config_data, timeout=10)
             if response.status_code == 200:
                 # Update previous config in session state
                 st.session_state.previous_base_model_config = config_data.copy()
-                # Show auto-save notification
-                notification_container.success("✅ Base model config auto-saved!", icon="💾")
+                # Show auto-save notification with timestamp
+                current_time = datetime.now().strftime("%H:%M:%S")
+                notification_container.success(f"✅ Base model config auto-saved at {current_time}!", icon="💾")
                 return True
             else:
                 notification_container.error(f"❌ Auto-save failed: {response.text}")
                 return False
         except Exception as e:
             notification_container.error(f"❌ Auto-save failed: {str(e)}")
-            return False
     return False
+
+def _save_base_model_config_helper(config_data, notification_container):
+    """Helper function for debounced base model config saving."""
+    return auto_save_base_model_config(config_data, notification_container)
 
 def auto_save_model_config(selected_model, edited_params, config_content, config_path, available_models, notification_container):
     """Automatically save model configuration changes."""
@@ -1074,19 +1273,30 @@ def render_model_metrics_cheat_tab():
     """)
     
     try:
-        # Try to load metrics data using the API/data service approach
-        metrics_df, _, _, _ = load_metrics_data()
+        # Use cached metrics data instead of loading fresh each time
+        metrics_data = get_cached_data(
+            cache_key="metrics_data",
+            api_endpoint="/results/metrics",
+            default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}},
+            force_refresh=False
+        )
         
-        if metrics_df is not None and not metrics_df.empty:
-            st.dataframe(metrics_df.style.format({
-                'accuracy': '{:.1f}%',
-                'precision': '{:.1f}%',
-                'recall': '{:.1f}%',
-                'cost': '{:.1f}',
-                'threshold': '{:.3f}'
-            }))
-            st.write("---")
-            st.write("**Legend:**\n- TP: True Positives\n- FP: False Positives\n- TN: True Negatives\n- FN: False Negatives")
+        if metrics_data and metrics_data.get('results'):
+            results = metrics_data['results']
+            metrics_df = pd.DataFrame(results.get('model_metrics', []))
+            
+            if not metrics_df.empty:
+                st.dataframe(metrics_df.style.format({
+                    'accuracy': '{:.1f}%',
+                    'precision': '{:.1f}%',
+                    'recall': '{:.1f}%',
+                    'cost': '{:.1f}',
+                    'threshold': '{:.3f}'
+                }))
+                st.write("---")
+                st.write("**Legend:**\n- TP: True Positives\n- FP: False Positives\n- TN: True Negatives\n- FN: False Negatives")
+            else:
+                st.error("No model metrics data found. Please run the pipeline first.")
         else:
             st.error("No model metrics data found. Please run the pipeline first.")
     except Exception as e:
@@ -1223,7 +1433,15 @@ def render_preprocessing_tab(config_settings):
     
     # Create notification container for auto-save messages
     data_config_notification = st.empty()
-    auto_save_data_config(config_updates, data_config_notification)
+    
+    # Use debounced auto-save for data configuration
+    debounced_auto_save(
+        save_function=_save_data_config_helper,
+        config_data=config_updates,
+        notification_container=data_config_notification,
+        debounce_key="data_config",
+        delay=3.0  # 3 second delay to prevent excessive file writes
+    )
     
     # --- Base Model Decision Configuration ---
     st.write("#### Base Model Decision Configuration")
@@ -1271,90 +1489,116 @@ def render_preprocessing_tab(config_settings):
                 help="The value in decision columns that represents a 'bad' classification",
                 key="bad_tag_input"
             )
-        
-        # Combined Failure Model Name
-        st.write("##### Combined Failure Model")
-        combined_failure_model = st.text_input(
-            "Combined Failure Model Name",
-            value=current_config.get('combined_failure_model', 'AD_or_CL_Fail'),
-            help="Name for the model that combines all decision columns (fails if any column says 'bad')",
-            key="combined_failure_model_input"
-        )
-        
+            
         # Auto-save base model configuration
         base_model_config_data_new = {
             "enabled_columns": selected_decision_columns,
             "good_tag": good_tag,
             "bad_tag": bad_tag,
-            "combined_failure_model": combined_failure_model
+            "combined_failure_model": current_config.get('combined_failure_model', 'AD_or_CL_Fail')  # Use existing value
         }
         
         # Create notification container for base model auto-save messages
         base_model_notification = st.empty()
-        if auto_save_base_model_config(base_model_config_data_new, base_model_notification):
-            # Update cache if save was successful
-            update_cache("base_model_config", {
-                "config": base_model_config_data_new,
-                "available_columns": available_columns
-            })
+        
+        # Use debounced auto-save for base model configuration
+        debounced_auto_save(
+            save_function=_save_base_model_config_helper,
+            config_data=base_model_config_data_new,
+            notification_container=base_model_notification,
+            debounce_key="base_model_config",
+            delay=3.0  # 3 second delay to prevent excessive calls
+        )
         
         # Show current configuration
         with st.expander("Current Base Model Configuration"):
             st.json(current_config)
             
-        # --- Bitwise Logic Configuration ---
-        st.write("#### 🔧 Bitwise Logic Configuration")
-        st.write("Create custom models by combining existing model outputs using bitwise logic operations.")
+    # --- Bitwise Logic Configuration ---
+    st.write("#### 🔧 Bitwise Logic Configuration")
+    st.write("Create custom models by combining existing model outputs using bitwise logic operations.")
+    
+    # Use cached data for bitwise logic config
+    bitwise_data = get_cached_data(
+        cache_key="bitwise_logic_config",
+        api_endpoint="/config/bitwise-logic",
+        default_value={"config": {"rules": [], "enabled": False}, "available_models": [], "available_logic_ops": ['OR', 'AND', 'XOR', '|', '&', '^']}
+    )
+    
+    if bitwise_data:
+        current_bitwise_config = bitwise_data['config']
+        available_models = bitwise_data['available_models']
+        available_logic_ops = bitwise_data['available_logic_ops']
         
-        # Use cached data for bitwise logic config
-        bitwise_data = get_cached_data(
-            cache_key="bitwise_logic_config",
-            api_endpoint="/config/bitwise-logic",
-            default_value={"config": {"rules": [], "enabled": False}, "available_models": [], "available_logic_ops": ['OR', 'AND', 'XOR', '|', '&', '^']}
+        # Enable/Disable bitwise logic
+        st.write("##### Enable Bitwise Logic")
+        bitwise_enabled = st.checkbox(
+            "Enable bitwise logic combinations",
+            value=current_bitwise_config.get('enabled', False),
+            help="Enable to create custom models by combining existing model outputs",
+            key="bitwise_logic_enabled"
         )
         
-        if bitwise_data:
-            current_bitwise_config = bitwise_data['config']
-            available_models = bitwise_data['available_models']
-            available_logic_ops = bitwise_data['available_logic_ops']
+        if bitwise_enabled:
+            st.write("##### Logic Rules")
+            st.info("💡 **How it works**: Select 2 or more models and choose a logic operation to combine their decisions. For example: 'AD_Decision OR CL_Decision' creates a model that predicts failure if either base model predicts failure.")
             
-            # Enable/Disable bitwise logic
-            st.write("##### Enable Bitwise Logic")
-            bitwise_enabled = st.checkbox(
-                "Enable bitwise logic combinations",
-                value=current_bitwise_config.get('enabled', False),
-                help="Enable to create custom models by combining existing model outputs",
-                key="bitwise_logic_enabled"
-            )
+            # Initialize session state for rules
+            if 'bitwise_rules' not in st.session_state:
+                st.session_state.bitwise_rules = current_bitwise_config.get('rules', [])
             
-            if bitwise_enabled:
-                st.write("##### Logic Rules")
-                st.info("💡 **How it works**: Select 2 or more models and choose a logic operation to combine their decisions. For example: 'AD_Decision OR CL_Decision' creates a model that predicts failure if either base model predicts failure.")
-                
-                # Initialize session state for rules
-                if 'bitwise_rules' not in st.session_state:
-                    st.session_state.bitwise_rules = current_bitwise_config.get('rules', [])
-                
-                # Sync session state with current config if they differ
-                config_rules = current_bitwise_config.get('rules', [])
-                if st.session_state.bitwise_rules != config_rules:
-                    st.session_state.bitwise_rules = config_rules
-                
-                # Display existing rules
-                if st.session_state.bitwise_rules:
-                    st.write("**Current Rules:**")
-                    for i, rule in enumerate(st.session_state.bitwise_rules):
-                        col1, col2, col3, col4 = st.columns([3, 4, 2, 1])
-                        with col1:
-                            st.text_input(f"Rule {i+1} Name", value=rule['name'], disabled=True, key=f"rule_name_display_{i}")
-                        with col2:
-                            st.text(f"Columns: {', '.join(rule['columns'])}")
-                        with col3:
-                            st.text(f"Logic: {rule['logic']}")
-                        with col4:
-                            if st.button("🗑️", key=f"delete_rule_{i}", help="Delete this rule"):
-                                st.session_state.bitwise_rules.pop(i)
-                                st.rerun()
+            # Sync session state with current config if they differ
+            config_rules = current_bitwise_config.get('rules', [])
+            if st.session_state.bitwise_rules != config_rules:
+                st.session_state.bitwise_rules = config_rules
+            
+            # Display existing rules
+            if st.session_state.bitwise_rules:
+                st.write("**Current Rules:**")
+                for i, rule in enumerate(st.session_state.bitwise_rules):
+                    col1, col2, col3, col4 = st.columns([3, 4, 2, 1])
+                    with col1:
+                        st.text_input(f"Rule {i+1} Name", value=rule['name'], disabled=True, key=f"rule_name_display_{i}")
+                    with col2:
+                        st.text(f"Columns: {', '.join(rule['columns'])}")
+                    with col3:
+                        st.text(f"Logic: {rule['logic']}")
+                    with col4:
+                        if st.button("🗑️", key=f"delete_rule_{i}", help="Delete this rule"):
+                            # Remove the rule from session state
+                            deleted_rule_name = st.session_state.bitwise_rules[i]['name']
+                            st.session_state.bitwise_rules.pop(i)
+                            
+                            # Immediately save the updated configuration to backend
+                            updated_config_data = {
+                                "rules": st.session_state.bitwise_rules,
+                                "enabled": bitwise_enabled
+                            }
+                            
+                            try:
+                                update_response = requests.post(
+                                    f"{API_BASE_URL}/config/bitwise-logic", 
+                                    json=updated_config_data,
+                                    timeout=10
+                                )
+                                if update_response.status_code == 200:
+                                    st.success(f"✅ Deleted rule '{deleted_rule_name}' and saved to backend!")
+                                    # Update cache
+                                    update_cache("bitwise_logic_config", {
+                                        "config": updated_config_data,
+                                        "available_models": available_models,
+                                        "available_logic_ops": available_logic_ops
+                                    })
+                                    # Force refresh on other tabs
+                                    if 'api_cache' in st.session_state:
+                                        st.session_state.api_cache.pop('metrics_data', None)
+                                        st.session_state.api_cache.pop('predictions_data', None)
+                                else:
+                                    st.error(f"❌ Failed to save after deletion: {update_response.text}")
+                            except Exception as e:
+                                st.error(f"❌ Failed to save after deletion: {str(e)}")
+                            
+                            st.rerun()
                 
                 # Add new rule section
                 st.write("**Add New Rule:**")
@@ -1467,7 +1711,6 @@ def render_preprocessing_tab(config_settings):
                                         st.error(f"Failed to apply rules: {apply_response.text}")
                                 else:
                                     st.error(f"Failed to save configuration: {update_response.text}")
-                                
                             except Exception as e:
                                 st.error(f"Error applying rules: {str(e)}")
                     
@@ -1478,6 +1721,7 @@ def render_preprocessing_tab(config_settings):
                 if 'previous_bitwise_enabled' not in st.session_state:
                     st.session_state.previous_bitwise_enabled = current_bitwise_config.get('enabled', False)
                 
+                # Only save when enabled state actually changes
                 if st.session_state.previous_bitwise_enabled != bitwise_enabled:
                     bitwise_config_data = {
                         "rules": st.session_state.bitwise_rules,
@@ -1487,20 +1731,47 @@ def render_preprocessing_tab(config_settings):
                     try:
                         update_response = requests.post(
                             f"{API_BASE_URL}/config/bitwise-logic", 
-                            json=bitwise_config_data
+                            json=bitwise_config_data,
+                            timeout=10
                         )
                         if update_response.status_code == 200:
                             st.session_state.previous_bitwise_enabled = bitwise_enabled
+                            current_time = datetime.now().strftime("%H:%M:%S")
+                            st.success(f"✅ Bitwise logic enabled state saved at {current_time}!")
                             # Update cache
                             update_cache("bitwise_logic_config", {
                                 "config": bitwise_config_data,
                                 "available_models": available_models,
                                 "available_logic_ops": available_logic_ops
                             })
+                        else:
+                            st.error(f"❌ Failed to save enabled state: {update_response.text}")
                     except Exception as e:
-                        pass  # Silent fail for auto-save
+                        st.error(f"❌ Failed to save enabled state: {str(e)}")
                 
-                # Auto-save rules when they change
+                # Auto-save rules only when they actually change (with debouncing)
+                def _save_bitwise_rules_helper(config_data, notification_container):
+                    try:
+                        update_response = requests.post(
+                            f"{API_BASE_URL}/config/bitwise-logic", 
+                            json=config_data,
+                            timeout=10
+                        )
+                        if update_response.status_code == 200:
+                            if 'previous_bitwise_rules' not in st.session_state:
+                                st.session_state.previous_bitwise_rules = []
+                            st.session_state.previous_bitwise_rules = config_data['rules'].copy()
+                            current_time = datetime.now().strftime("%H:%M:%S")
+                            notification_container.success(f"✅ Bitwise logic rules auto-saved at {current_time}!", icon="💾")
+                            return True
+                        else:
+                            notification_container.error(f"❌ Auto-save failed: {update_response.text}")
+                            return False
+                    except Exception as e:
+                        notification_container.error(f"❌ Auto-save failed: {str(e)}")
+                        return False
+                
+                # Check if rules have changed
                 if 'previous_bitwise_rules' not in st.session_state:
                     st.session_state.previous_bitwise_rules = current_bitwise_config.get('rules', [])
                 
@@ -1510,22 +1781,17 @@ def render_preprocessing_tab(config_settings):
                         "enabled": bitwise_enabled
                     }
                     
-                    try:
-                        update_response = requests.post(
-                            f"{API_BASE_URL}/config/bitwise-logic", 
-                            json=bitwise_config_data
-                        )
-                        if update_response.status_code == 200:
-                            st.session_state.previous_bitwise_rules = st.session_state.bitwise_rules.copy()
-                            st.success("✅ Bitwise logic rules auto-saved!", icon="💾")
-                            # Update cache
-                            update_cache("bitwise_logic_config", {
-                                "config": bitwise_config_data,
-                                "available_models": available_models,
-                                "available_logic_ops": available_logic_ops
-                            })
-                    except Exception as e:
-                        st.error(f"❌ Auto-save failed: {str(e)}")
+                    # Create notification container for rules auto-save
+                    rules_notification = st.empty()
+                    
+                    # Use debounced auto-save for rules
+                    debounced_auto_save(
+                        save_function=_save_bitwise_rules_helper,
+                        config_data=bitwise_config_data,
+                        notification_container=rules_notification,
+                        debounce_key="bitwise_rules",
+                        delay=2.0  # 2 second delay for rules
+                    )
         
         else:
             st.error("Failed to load bitwise logic configuration")
@@ -1535,11 +1801,7 @@ def render_preprocessing_tab(config_settings):
     # --- Preprocessing Previews ---
     st.write("#### Preprocessing Previews")
     
-    # ————————————————————————————————————————————————————————————————
-    #  Drop-in replacement: show ONLY the column headers for each preview
-    # ————————————————————————————————————————————————————————————————
-
-    # 1. Filtering settings inputs (unchanged)
+    # Filtering settings inputs
     st.write("##### Filtering Settings for Preview")
     col_filter1, col_filter2 = st.columns(2)
     with col_filter1:
@@ -1557,37 +1819,65 @@ def render_preprocessing_tab(config_settings):
             format="%.3f", key="preview_correlation_threshold"
         )
 
-    # 2. Update button
-    if st.button("🔄 Update Previews"):
-        st.rerun()
 
-    # 3. Prepare data
+    # Prepare data
     cols_to_process = [
         c for c in all_columns
         if c != selected_target_column and c not in selected_exclude_columns
     ]
     df_processed = df[cols_to_process].copy()
 
-    # 4. One-Hot Encoding — headers only
-    st.write("##### After One-Hot Encoding")
+    # Show final processed columns after one-hot encoding and filtering
+    st.write("##### Final Feature Columns (After One-Hot Encoding & Filtering)")
     try:
+        # One-hot encoding
         df_ohe = pd.get_dummies(df_processed, drop_first=True)
-        st.write("Columns:", ", ".join(df_ohe.columns.tolist()))
-    except Exception as e:
-        st.error(f"Error during OHE preview: {e}")
-
-    # 5. Variance & Correlation Filtering — headers only
-    st.write("##### After Variance & Correlation Filtering")
-    try:
-        df_filt = df_ohe.copy()
-        # variance filter
-        df_filt = df_filt.loc[:, df_filt.var() > preview_variance_threshold]
-        # correlation filter
-        corr = df_filt.corr().abs()
+        
+        # Apply variance and correlation filtering
+        df_filtered = df_ohe.copy()
+        
+        # Variance filter
+        initial_cols = len(df_filtered.columns)
+        df_filtered = df_filtered.loc[:, df_filtered.var() > preview_variance_threshold]
+        variance_removed = initial_cols - len(df_filtered.columns)
+        
+        # Correlation filter
+        corr = df_filtered.corr().abs()
         upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
         drop_cols = [col for col in upper.columns if any(upper[col] > preview_correlation_threshold)]
-        df_filt = df_filt.drop(columns=drop_cols)
-
-        st.write("Columns:", ", ".join(df_filt.columns.tolist()))
+        df_filtered = df_filtered.drop(columns=drop_cols)
+        correlation_removed = len(drop_cols)
+        
+        # Display summary
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Original Features", len(cols_to_process))
+        with col2:
+            st.metric("After One-Hot Encoding", len(df_ohe.columns))
+        with col3:
+            st.metric("Final Features", len(df_filtered.columns))
+        
+        # Show filtering details
+        if variance_removed > 0 or correlation_removed > 0:
+            st.write("**Filtering Applied:**")
+            if variance_removed > 0:
+                st.write(f"- Removed {variance_removed} features due to low variance (≤{preview_variance_threshold})")
+            if correlation_removed > 0:
+                st.write(f"- Removed {correlation_removed} features due to high correlation (≥{preview_correlation_threshold})")
+        
+        # Display the final column names
+        st.write("**Final Feature Column Names:**")
+        # Display in a more compact format - multiple columns
+        cols_per_row = 4
+        final_cols = df_filtered.columns.tolist()
+        
+        for i in range(0, len(final_cols), cols_per_row):
+            cols = st.columns(cols_per_row)
+            for j, col_name in enumerate(final_cols[i:i+cols_per_row]):
+                with cols[j]:
+                    st.write(f"• {col_name}")
+        
+        st.write(f"**Total: {len(final_cols)} features will be used for model training**")
+        
     except Exception as e:
-        st.error(f"Error during filtering preview: {e}")
+        st.error(f"Error during preprocessing preview: {e}")

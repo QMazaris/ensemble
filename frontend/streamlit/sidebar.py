@@ -149,7 +149,7 @@ def render_sidebar():
             key="hyperparam_iter"
         )
     OPTIMIZE_FINAL_MODEL = st.sidebar.checkbox(
-        "Optimize Final Model", 
+        "Create Final Model", 
         value=config.get('optimization.optimize_final_model', False),
         help="Apply hyperparameter optimization to the final production model",
         key="optimize_final_model"

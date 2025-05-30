@@ -149,21 +149,6 @@
       "fp": "317",
       "tn": "2057",
       "fn": "14"
-    },
-    {
-      "model_name": "Test_Combined",
-      "split": "Full",
-      "threshold_type": "combined",
-      "accuracy": 31.34328358208955,
-      "precision": 2.0734597156398102,
-      "recall": 92.10526315789474,
-      "f1_score": 4.055619930475086,
-      "cost": 348.6,
-      "threshold": null,
-      "tp": "35",
-      "fp": "1653",
-      "tn": "721",
-      "fn": "3"
     }
   ],
   "confusion_matrices": [
@@ -256,15 +241,6 @@
       "fp": "317",
       "tn": "2057",
       "fn": "14"
-    },
-    {
-      "model_name": "Test_Combined",
-      "split": "Full",
-      "threshold_type": "combined",
-      "tp": "35",
-      "fp": "1653",
-      "tn": "721",
-      "fn": "3"
     }
   ],
   "model_summary": [
@@ -385,18 +361,6 @@
       "recall": 63.1578947368421,
       "f1_score": 12.66490765171504,
       "cost": 147.4,
-      "threshold": null,
-      "total_samples": "2412"
-    },
-    {
-      "model_name": "Test_Combined",
-      "split": "Full",
-      "threshold_type": "combined",
-      "accuracy": 31.34328358208955,
-      "precision": 2.0734597156398102,
-      "recall": 92.10526315789474,
-      "f1_score": 4.055619930475086,
-      "cost": 348.6,
       "threshold": null,
       "total_samples": "2412"
     }
