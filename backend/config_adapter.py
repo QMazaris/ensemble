@@ -68,10 +68,32 @@ class ConfigAdapter:
     # ===== Model Configuration =====
     @property
     def BASE_MODEL_OUTPUT_COLUMNS(self):
-        return self.config.get('models.base_model_columns', {
-            'AD': 'AnomalyScore',
-            'CL': 'CL_ConfMax'
-        })
+        base_model_columns = self.config.get('models.base_model_columns', [])
+        
+        # Handle backward compatibility
+        if isinstance(base_model_columns, dict):
+            # Old structure: nested dict with model_columns key
+            return base_model_columns
+        elif isinstance(base_model_columns, list):
+            # New structure: simple list of column names
+            # Convert to dict format for backward compatibility
+            result = {}
+            for i, col_name in enumerate(base_model_columns):
+                # Try to guess model name from column name
+                if 'anomaly' in col_name.lower() or 'ad' in col_name.lower():
+                    model_name = 'AD'
+                elif 'cl' in col_name.lower() or 'conf' in col_name.lower():
+                    model_name = 'CL'
+                else:
+                    model_name = f'Model_{i+1}'
+                result[model_name] = col_name
+            return result
+        else:
+            # Fallback to default
+            return {
+                'AD': 'AnomalyScore',
+                'CL': 'CL_ConfMax'
+            }
     
     @property
     def BASE_MODEL_DECISIONS(self):

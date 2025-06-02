@@ -2,11 +2,10 @@ costs:
   false_negative: 30.0
   false_positive: 1.0
 data:
-  exclude_columns:
-  - Image
+  exclude_columns: []
   path: data/training_data.csv
   random_state: 42
-  target_column: GT_Label
+  target_column: AnomalyScore
   test_size: 0.2
 export:
   export_onnx: false
@@ -108,17 +107,22 @@ model_params:
     subsample: 0.8
 models:
   base_model_columns:
-    AD: AnomalyScore
-    CL: CL_ConfMax
+  - AnomalyScore
+  - CL_ConfMax
   base_model_decisions:
     bad_tag: Bad
     enabled_columns:
-    - AD_Decision
-    - CL_Decision
+    - MaxVal
+    - RegionCount
     good_tag: Good
   bitwise_logic:
     enabled: true
-    rules: []
+    rules:
+    - columns:
+      - AD_Decision
+      - CL_Decision
+      logic: OR
+      name: Test_Combined
   enabled:
   - XGBoost
   - RandomForest

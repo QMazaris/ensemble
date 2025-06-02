@@ -126,7 +126,7 @@ class BaseModelDecisionResponse(BaseModel):
     available_columns: List[str]  # All columns in the dataset that could be decision columns
 
 class BaseModelColumnsConfig(BaseModel):
-    model_columns: Dict[str, str]  # Map of model names to their column names (e.g., {"AD": "AnomalyScore", "CL": "CL_ConfMax"})
+    columns: List[str]  # Simple list of column names (e.g., ["AnomalyScore", "CL_ConfMax"])
 
 class BaseModelColumnsResponse(BaseModel):
     config: BaseModelColumnsConfig
@@ -209,11 +209,19 @@ def health_check():
 def merge_dicts(base: dict, updates: dict) -> None:
     """
     Recursively merge `updates` into `base`, replacing only the keys present in `updates`.
+    If a value is the sentinel {"__delete__": true}, remove that key from base.
     """
     for key, value in updates.items():
-        if isinstance(value, dict) and key in base and isinstance(base[key], dict):
+        # Check for deletion sentinel
+        if isinstance(value, dict) and value == {"__delete__": True}:
+            # Remove the key from base if it exists
+            if key in base:
+                del base[key]
+        elif isinstance(value, dict) and key in base and isinstance(base[key], dict):
+            # Recursively merge nested dictionaries
             merge_dicts(base[key], value)
         else:
+            # Normal assignment
             base[key] = value
 
 def save_config(config: dict) -> None:
@@ -224,7 +232,7 @@ def save_config(config: dict) -> None:
         yaml.safe_dump(config, f, sort_keys=False)
 
 # New config API functions
-@app.post("/config/load")
+@app.get("/config/load")
 def load_config() -> dict:
     """
     Read config.yaml from disk and return its contents as a Python dict.
@@ -237,6 +245,9 @@ def update_config_partial(partial_conf: Dict[str, Any]):
     """
     Accept a nested dict of changes and merge them into config.yaml.
     Only the keys present in `partial_conf` will be replaced.
+    
+    To delete a key from the configuration, set its value to {"__delete__": true}.
+    Example: {"data": {"target_column": {"__delete__": true}}} will remove the target_column key.
     """
     try:
         conf = load_config()
@@ -653,11 +664,15 @@ def get_base_model_columns_config():
         # Get current configuration from config manager
         from shared.config_manager import config_manager
         
-        # Get base model columns config (with defaults if not present)
-        base_model_columns = config_manager.get('models.base_model_columns', {
-            'AD': 'AnomalyScore',
-            'CL': 'CL_ConfMax'
-        })
+        # Get base model columns config - now a simple list
+        base_model_columns = config_manager.get('models.base_model_columns', [])
+        
+        # Ensure it's a list (handle backward compatibility)
+        if isinstance(base_model_columns, dict):
+            # Convert old dict format to list format
+            base_model_columns = list(base_model_columns.values())
+        elif not isinstance(base_model_columns, list):
+            base_model_columns = []
         
         # Dynamically detect available columns from the dataset
         available_columns = []
@@ -692,10 +707,10 @@ def get_base_model_columns_config():
         except Exception as e:
             api_logger.warning(f"Could not detect available columns from dataset: {e}")
             # Fallback to currently configured columns
-            available_columns = list(base_model_columns.values())
+            available_columns = base_model_columns
         
         return BaseModelColumnsResponse(
-            config=BaseModelColumnsConfig(model_columns=base_model_columns),
+            config=BaseModelColumnsConfig(columns=base_model_columns),
             available_columns=available_columns
         )
         
@@ -710,19 +725,16 @@ def update_base_model_columns_config(base_model_columns_config: BaseModelColumns
         # Update the configuration using the config manager
         from shared.config_manager import config_manager
         
-        # Simple validation - just check that model_columns is a dict
-        if not isinstance(base_model_columns_config.model_columns, dict):
-            raise HTTPException(status_code=400, detail="model_columns must be a dictionary")
+        # Simple validation - check that columns is a list
+        if not isinstance(base_model_columns_config.columns, list):
+            raise HTTPException(status_code=400, detail="columns must be a list")
         
-        # Filter out empty values (more lenient approach)
-        filtered_model_columns = {}
-        for model_name, column_name in base_model_columns_config.model_columns.items():
-            if model_name and model_name.strip() and column_name and column_name.strip():
-                filtered_model_columns[model_name.strip()] = column_name.strip()
+        # Filter out empty values
+        filtered_columns = [col.strip() for col in base_model_columns_config.columns if col and col.strip()]
         
         # Save the filtered configuration
         config_updates = {
-            'models.base_model_columns': filtered_model_columns
+            'models.base_model_columns': filtered_columns
         }
         
         config_manager.update(config_updates)
@@ -731,11 +743,11 @@ def update_base_model_columns_config(base_model_columns_config: BaseModelColumns
         # Reload the config adapter to pick up the changes
         config._adapter.config = config_manager
         
-        api_logger.info(f"Updated base model columns configuration: {filtered_model_columns}")
+        api_logger.info(f"Updated base model columns configuration: {filtered_columns}")
         
         return {
             "message": "Base model columns configuration updated successfully",
-            "updated_config": {"model_columns": filtered_model_columns}
+            "updated_config": {"columns": filtered_columns}
         }
         
     except HTTPException:

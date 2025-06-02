@@ -43,6 +43,17 @@ def ensure_directories():
     for dir_path in [OUTPUT_DIR, MODEL_DIR, PLOT_DIR, PREDICTIONS_DIR, STREAMLIT_DATA_DIR]:
         dir_path.mkdir(exist_ok=True)
 
+def load_initial_config():
+    try:
+        resp = requests.get("http://localhost:8000/config/load", timeout=5)  # ✅ GET, not POST
+        resp.raise_for_status()
+        return resp.json().get("config", {})
+    except Exception as e:
+        import streamlit as st
+        st.error(f"❌ Error loading config settings from API: {e}")
+        return {}
+
+
 def fetch_data_from_api(endpoint):
     """Fetch data from backend API with detailed logging."""
     start_time = time.time()
@@ -935,3 +946,173 @@ def auto_save_model_config(selected_model, edited_params, config_content, config
             notification_container.error(f"❌ Auto-save failed: {str(e)}")
             return False
     return False
+
+def deep_diff(prev: dict, new: dict) -> dict:
+    """
+    Recursively compare two dicts and return ONLY the changes:
+      • keys added or whose value changed     → include with new value
+      • keys removed in `new`                 → include {"__delete__": True}
+      • nested dicts are traversed
+    """
+    diff = {}
+    all_keys = set(prev) | set(new)
+
+    for k in all_keys:
+        pv = prev.get(k, "_MISSING_")
+        nv = new.get(k, "_MISSING_")
+
+        if pv == "_MISSING_":                # new key entirely
+            diff[k] = nv
+        elif nv == "_MISSING_":              # key was removed
+            diff[k] = {"__delete__": True}
+        elif isinstance(pv, dict) and isinstance(nv, dict):
+            sub = deep_diff(pv, nv)
+            if sub:                           # only include if nested diff is non‐empty
+                diff[k] = sub
+        elif pv != nv:                        # value changed (or type changed)
+            diff[k] = nv
+
+    return diff
+
+
+def master_auto_save(endpoint: str,
+                          full_config: dict,
+                          notification_container,
+                          session_key: str,
+                          delay: float = 2.0) -> bool:
+    """
+    Debounced auto-save that posts ONLY the *net* changes (deep diff)
+    of `full_config` to `/config/{endpoint}`.
+
+    1) Uses deep_diff(...) to compute exactly what changed since last snapshot.
+    2) If no real diff, does nothing.
+    3) Otherwise, schedules a debounced POST (with a delay) so rapid edits collapse.
+    4) When the delay elapses, sends {diff} to `/config/{endpoint}`.
+    5) Updates the "snapshot" so future calls compare against the latest.
+
+    Args:
+      endpoint (str):         Path under "/config/" your FastAPI expects (e.g. "data", "base-models").
+      full_config (dict):     The *entire* config dict (e.g. config.to_dict()).
+      notification_container: Streamlit placeholder (e.g. st.empty()) to show "Saved!" or errors.
+      session_key (str):      Unique key for this section (e.g. "data_tab") so multiple tabs don't collide.
+      delay (float):          Seconds to wait after last change before POSTing.
+
+    Returns:
+      True if a change was scheduled (or just sent); False if no diff detected.
+    """
+    
+    # Define API base URL
+    API_BASE_URL = "http://localhost:8000"
+
+    print(f"\n🔍 [TERMINAL] master_auto_save called:")
+    print(f"   endpoint: {endpoint}")
+    print(f"   session_key: {session_key}")
+    print(f"   delay: {delay}")
+    print(f"   full_config size: {len(full_config)} keys")
+
+    # 1) Load previous-snapshot of the full config from session_state (default to empty)
+    snap_key = f"_snapshot_{session_key}"
+    previous_snapshot = st.session_state.get(snap_key, {})
+    
+    print(f"📸 [TERMINAL] Previous snapshot size: {len(previous_snapshot)} keys")
+
+    # 2) Check if this is the first call (no previous snapshot)
+    is_first_call = len(previous_snapshot) == 0
+    
+    # 3) Compute a deep diff: keys added/changed/removed
+    delta = deep_diff(previous_snapshot, full_config)
+    
+    # Debug: Show diff information
+    if delta:
+        print(f"🔧 [TERMINAL] Changes detected for {session_key}")
+        print(f"📝 [TERMINAL] Changes: {delta}")
+    else:
+        print(f"🔧 [TERMINAL] No changes detected for {session_key}")
+
+    # 4) If this is the first call, just take a snapshot and return False
+    if is_first_call:
+        print("⚠️ [TERMINAL] First call - taking initial snapshot without triggering save")
+        st.session_state[snap_key] = json.loads(json.dumps(full_config))
+        print(f"📸 [TERMINAL] Initial snapshot taken for {session_key}")
+        return False
+
+    # 5) If no changes detected after first call, return False
+    if not delta:
+        return False
+
+    # 6) Update the snapshot immediately so next call diffs against this state
+    st.session_state[snap_key] = json.loads(json.dumps(full_config))
+    print(f"📸 [TERMINAL] Updated snapshot for {session_key}")
+
+    # 7) Below: debounce logic and eventual POST
+
+    # A) Initialize debounce-storage dicts in session_state if missing
+    if "master_debounce_timers" not in st.session_state:
+        st.session_state.master_debounce_timers = {}
+    if "master_debounce_payloads" not in st.session_state:
+        st.session_state.master_debounce_payloads = {}
+    if "master_debounce_notifications" not in st.session_state:
+        st.session_state.master_debounce_notifications = {}
+
+    # B) Use "session_key" to identify this particular pending update
+    now = time.time()
+    st.session_state.master_debounce_timers[session_key] = now
+    # We store the "endpoint" and its payload (the diff) for later posting
+    st.session_state.master_debounce_payloads[session_key] = {
+        "endpoint": endpoint,
+        "payload": delta
+    }
+    st.session_state.master_debounce_notifications[session_key] = notification_container
+
+    print(f"🔧 [TERMINAL] Scheduled save for {session_key}, waiting {delay}s...")
+
+    # C) Find which keys have waited ≥ delay seconds
+    keys_ready = []
+    for key, timestamp in st.session_state.master_debounce_timers.items():
+        wait_time = now - timestamp
+        print(f"⏱️ [TERMINAL] Key '{key}' has been waiting {wait_time:.2f}s (needs {delay}s)")
+        if wait_time >= delay:
+            keys_ready.append(key)
+
+    # Special case: if delay is 0, immediately add the current key to ready list
+    if delay == 0.0 and session_key not in keys_ready:
+        keys_ready.append(session_key)
+        print(f"🚀 [TERMINAL] Immediate save requested for {session_key}")
+
+    print(f"📤 [TERMINAL] Keys ready to save: {keys_ready}")
+
+    # D) For each "ready" key, actually POST to /config/{endpoint}
+    for key in keys_ready:
+        data_block = st.session_state.master_debounce_payloads.get(key, {})
+        notif = st.session_state.master_debounce_notifications.get(key)
+        url = f"{API_BASE_URL}/config/{data_block['endpoint']}"
+
+        print(f"🔧 [TERMINAL] Making POST request to {url}")
+        print(f"📤 [TERMINAL] Payload: {data_block['payload']}")
+
+        try:
+            response = requests.post(url, json=data_block["payload"], timeout=5)
+            print(f"🔧 [TERMINAL] Response status: {response.status_code}")
+            print(f"📥 [TERMINAL] Response text: {response.text}")
+            
+            if response.status_code == 200:
+                ts = datetime.now().strftime("%H:%M:%S")
+                success_msg = f"✅ Auto-saved `{data_block['endpoint']}` at {ts}."
+                notif.success(success_msg, icon="💾")
+                print(f"✅ [TERMINAL] SUCCESS: Config saved to {url}")
+            else:
+                error_msg = f"❌ Auto-save failed ({response.status_code}): {response.text}"
+                notif.error(error_msg)
+                print(f"❌ [TERMINAL] ERROR: {error_msg}")
+        except Exception as e:
+            error_msg = f"❌ Auto-save error: {e}"
+            notif.error(error_msg)
+            print(f"❌ [TERMINAL] EXCEPTION: {error_msg}")
+
+        # E) Clean up so we won't post again for this key
+        del st.session_state.master_debounce_timers[key]
+        del st.session_state.master_debounce_payloads[key]
+        del st.session_state.master_debounce_notifications[key]
+        print(f"🧹 [TERMINAL] Cleaned up debounce data for key: {key}")
+
+    return True

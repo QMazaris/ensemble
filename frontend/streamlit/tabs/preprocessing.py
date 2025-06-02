@@ -7,6 +7,8 @@ import time
 from datetime import datetime
 import sys
 
+
+
 # Add parent directory to path to access utils
 parent_dir = str(Path(__file__).parent.parent)
 if parent_dir not in sys.path:
@@ -18,33 +20,23 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 # Import utility functions
-from utils import (
-    get_cached_data, clear_cache, update_cache,
-    debounced_auto_save, _save_data_config_helper, _save_base_model_config_helper, _save_base_model_columns_config_helper
-)
+from utils import master_auto_save
 
 # API Configuration
 API_BASE_URL = "http://localhost:8000"
 
-def render_preprocessing_tab(config_settings):
+def render_preprocessing_tab():
     """Render the data preprocessing and configuration tab with automatic saving."""
-    # Display success message if it exists in session state
-    if st.session_state.get('config_update_success', False):
-        st.success("Config updated successfully!")
-        # Clear the success message after displaying it
-        st.session_state.config_update_success = False
+    print("\n🔄 [TERMINAL] render_preprocessing_tab() called")
+    
+    # Get centralized config
+    cfg = st.session_state.config_settings
+    print(f"📊 [TERMINAL] Config received in preprocessing tab: {len(cfg)} keys")
+    
+    # Create notification container at the top for auto-save messages
+    notification_container = st.empty()
     
     st.write("### Data Preprocessing & Configuration")
-    
-    # Add cache management controls
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.write("Use the refresh button if data seems out of sync with recent changes.")
-    with col2:
-        if st.button("🔄 Refresh Data", help="Clear cache and reload all data"):
-            clear_cache()
-            st.success("Cache cleared! Data will be refreshed.")
-            st.rerun()
     
     data_dir = Path("data")
     if not data_dir.exists():
@@ -58,17 +50,17 @@ def render_preprocessing_tab(config_settings):
 
     # ========== 1. DATASET SELECTION ==========
     st.write("#### Dataset Selection")
-    # Use file names relative to the data directory for cleaner display and saving
-    dataset_options = [f.name for f in available_datasets]
     
-    # Attempt to pre-select the currently configured dataset - fix key mapping
-    # The config comes from YAML with nested structure
-    current_data_path = config_settings.get('data', {}).get('path', '')
+    # Read current values from config
+    current_data_path = cfg.get('data', {}).get('path', '')
     current_data_path_name = Path(current_data_path).name if current_data_path else ''
+    
+    # Dataset selection
+    dataset_options = [f.name for f in available_datasets]
     try:
         default_index = dataset_options.index(current_data_path_name) if current_data_path_name in dataset_options else 0
     except ValueError:
-        default_index = 0 # Fallback if config path is invalid or file not found
+        default_index = 0
 
     selected_dataset_name = st.selectbox(
         "Choose a dataset", 
@@ -79,6 +71,7 @@ def render_preprocessing_tab(config_settings):
     
     selected_dataset_path = data_dir / selected_dataset_name
     
+    # Load and preview dataset
     df = None
     try:
         df = pd.read_csv(selected_dataset_path, low_memory=False)
@@ -88,19 +81,19 @@ def render_preprocessing_tab(config_settings):
                  df[col] = df[col].astype(str)
                  
         st.write("**Selected Dataset Preview:**")
-        st.dataframe(df.head())
+        st.dataframe(df.head(2))
         
     except Exception as e:
         st.error(f"Error loading dataset: {e}")
-        return # Stop if dataset can't be loaded
+        return
     
     all_columns = df.columns.tolist()
     
     # ========== 2. TARGET COLUMN SELECTION ==========
     st.write("#### Target Column Selection")
     
-    # Fix key mapping for target column
-    current_target = config_settings.get('data', {}).get('target_column', '')
+    current_target = cfg.get('data', {}).get('target_column', '')
+    
     try:
         target_default_index = all_columns.index(current_target) if current_target and current_target in all_columns else 0
     except ValueError:
@@ -118,213 +111,140 @@ def render_preprocessing_tab(config_settings):
     st.write("#### Base Model Decision Configuration")
     st.write("Configure which columns contain base model decisions and the tags used for good/bad classifications.")
     
-    # Use cached data for base model config
-    base_model_config_data = get_cached_data(
-        cache_key="base_model_config",
-        api_endpoint="/config/base-models",
-        default_value={"config": {"enabled_columns": [], "good_tag": "Good", "bad_tag": "Bad"}, "available_columns": []}
+    base_model_config = cfg.get('models', {}).get('base_model_decisions', {})
+    current_decision_columns = base_model_config.get('enabled_columns', [])
+    current_good_tag = base_model_config.get('good_tag', 'Good')
+    current_bad_tag = base_model_config.get('bad_tag', 'Bad')
+    
+    st.write("##### Decision Columns")
+    st.write("Select columns that contain base model decisions (e.g., AD_Decision, CL_Decision):")
+    
+    selected_decision_columns = st.multiselect(
+        "Decision Columns",
+        all_columns,
+        default=current_decision_columns,
+        help="These columns will be excluded from training features and used as base models for comparison",
+        key="decision_columns_selection"
     )
     
-    selected_decision_columns = []
-    good_tag = "Good"
-    bad_tag = "Bad"
+    # Good/Bad Tags Configuration
+    st.write("##### Good/Bad Tags")
+    col1, col2 = st.columns(2)
     
-    if base_model_config_data:
-        current_config = base_model_config_data['config']
-        available_columns = base_model_config_data['available_columns']
-        
-        # Decision Columns Selection
-        st.write("##### Decision Columns")
-        st.write("Select columns that contain base model decisions (e.g., AD_Decision, CL_Decision):")
-        
-        selected_decision_columns = st.multiselect(
-            "Decision Columns",
-            available_columns,
-            default=current_config.get('enabled_columns', []),
-            help="These columns will be excluded from training features and used as base models for comparison",
-            key="decision_columns_selection"
+    with col1:
+        good_tag = st.text_input(
+            "Good Tag",
+            value=current_good_tag,
+            help="The value in decision columns that represents a 'good' classification",
+            key="good_tag_input"
         )
-        
-        # Good/Bad Tags Configuration
-        st.write("##### Good/Bad Tags")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            good_tag = st.text_input(
-                "Good Tag",
-                value=current_config.get('good_tag', 'Good'),
-                help="The value in decision columns that represents a 'good' classification",
-                key="good_tag_input"
-            )
-        
-        with col2:
-            bad_tag = st.text_input(
-                "Bad Tag", 
-                value=current_config.get('bad_tag', 'Bad'),
-                help="The value in decision columns that represents a 'bad' classification",
-                key="bad_tag_input"
-            )
-            
-        # Auto-save base model configuration
-        base_model_config_data_new = {
-            "enabled_columns": selected_decision_columns,
-            "good_tag": good_tag,
-            "bad_tag": bad_tag,
-        }
-        
-        # Create notification container for base model auto-save messages
-        base_model_notification = st.empty()
-        
-        # Use debounced auto-save for base model configuration
-        debounced_auto_save(
-            save_function=_save_base_model_config_helper,
-            config_data=base_model_config_data_new,
-            notification_container=base_model_notification,
-            debounce_key="base_model_config",
-            delay=3.0  # 3 second delay to prevent excessive calls
+    
+    with col2:
+        bad_tag = st.text_input(
+            "Bad Tag", 
+            value=current_bad_tag,
+            help="The value in decision columns that represents a 'bad' classification",
+            key="bad_tag_input"
         )
-        
-        # Show current configuration
-        with st.expander("Current Base Model Configuration"):
-            st.json(current_config)
-    else:
-        st.error("Failed to load base model configuration")
     
     # ========== 4. BASE MODEL COLUMNS CONFIGURATION ==========
     st.write("#### Base Model Columns Configuration")
     st.write("Configure which columns contain base model outputs/scores (e.g., AnomalyScore, CL_ConfMax):")
     
-    # Use cached data for base model columns config
-    try:
-        base_model_columns_data = get_cached_data(
-            cache_key="base_model_columns_config",
-            api_endpoint="/config/base-model-columns",
-            default_value={"config": {"model_columns": {"AD": "AnomalyScore", "CL": "CL_ConfMax"}}, "available_columns": []}
-        )
-        
-    except Exception as e:
-        st.error(f"Error calling API: {str(e)}")
-        base_model_columns_data = None
+    base_model_columns_list = cfg.get('models', {}).get('base_model_columns', [])
     
-    if base_model_columns_data:
-        current_columns_config = base_model_columns_data['config']
-        available_columns = base_model_columns_data['available_columns']
-        
-        # Simple approach like decision columns - just show the current configuration
-        st.write("##### Model to Column Mappings")
-        st.info("💡 **How it works**: Map each base model name to its corresponding output column. For example, 'AD' → 'AnomalyScore' means the AD model's output is in the AnomalyScore column.")
-        
-        # Show current mappings in an editable way
-        current_model_columns = current_columns_config.get('model_columns', {})
-        
-        # Convert to lists for easy editing
-        model_names = list(current_model_columns.keys())
-        column_names = list(current_model_columns.values())
-        
-        # Add empty slots for new mappings
-        while len(model_names) < 6:  # Allow up to 6 base models
-            model_names.append("")
-            column_names.append("")
-        
-        # Create editable inputs
-        updated_mappings = {}
-        
-        for i in range(6):
-            col1, col2 = st.columns([1, 2])
-            
-            with col1:
-                model_name = st.text_input(
-                    f"Model Name {i+1}",
-                    value=model_names[i] if i < len(model_names) else "",
-                    key=f"base_model_name_{i}",
-                    help="Name of the base model (e.g., AD, CL, RF)"
-                )
-            
-            with col2:
-                if available_columns and model_names[i]:
-                    # Use selectbox if we have available columns and this row has a model name
-                    try:
-                        current_index = available_columns.index(column_names[i]) if column_names[i] in available_columns else 0
-                    except ValueError:
-                        current_index = 0
-                    
-                    column_name = st.selectbox(
-                        f"Column Name {i+1}",
-                        [""] + available_columns,
-                        index=current_index + 1 if column_names[i] in available_columns else 0,
-                        key=f"base_model_column_{i}",
-                        help="Column containing the model's output/score"
-                    )
-                else:
-                    # Use text input as fallback
-                    column_name = st.text_input(
-                        f"Column Name {i+1}",
-                        value=column_names[i] if i < len(column_names) else "",
-                        key=f"base_model_column_{i}",
-                        help="Column containing the model's output/score"
-                    )
-            
-            # Only add to mappings if both model name and column name are provided
-            if model_name.strip() and column_name.strip():
-                updated_mappings[model_name.strip()] = column_name.strip()
-        
-        # Auto-save base model columns configuration
-        base_model_columns_config_data = {
-            "model_columns": updated_mappings
-        }
-        
-        # Create notification container for base model columns auto-save messages
-        base_model_columns_notification = st.empty()
-        
-        # Use debounced auto-save for base model columns configuration
-        debounced_auto_save(
-            save_function=_save_base_model_columns_config_helper,
-            config_data=base_model_columns_config_data,
-            notification_container=base_model_columns_notification,
-            debounce_key="base_model_columns_config",
-            delay=3.0  # 3 second delay to prevent excessive calls
-        )
-        
-        # Show current configuration summary
-        if updated_mappings:
-            st.success(f"✅ {len(updated_mappings)} base model(s) configured")
-            
-            # Show current mappings
-            with st.expander("Current Base Model Mappings"):
-                for model_name, column_name in updated_mappings.items():
-                    st.write(f"• **{model_name}** → `{column_name}`")
-            
-            # Validate columns exist in dataset
-            if available_columns:
-                missing_columns = []
-                for col in updated_mappings.values():
-                    if col not in available_columns and (df is None or col not in df.columns):
-                        missing_columns.append(col)
-                if missing_columns:
-                    st.warning(f"⚠️ Some columns may not exist in the dataset: {missing_columns}")
-        else:
-            st.warning("⚠️ No base models configured. The pipeline will skip base model analysis.")
-            
+    # Convert list to dict for backward compatibility if needed
+    if isinstance(base_model_columns_list, list):
+        # Simple list of column names - create default mapping
+        current_model_columns = {}
+        for i, col_name in enumerate(base_model_columns_list):
+            # Try to guess model name from column name
+            if 'anomaly' in col_name.lower() or 'ad' in col_name.lower():
+                model_name = 'AD'
+            elif 'cl' in col_name.lower() or 'conf' in col_name.lower():
+                model_name = 'CL'
+            else:
+                model_name = f'Model_{i+1}'
+            current_model_columns[model_name] = col_name
     else:
-        st.error("Failed to load base model columns configuration")
-        st.write("⚠️ Could not connect to backend API. Please check that the backend server is running.")
+        # Legacy dict structure with model_columns key
+        current_model_columns = base_model_columns_list.get('model_columns', {})
+    
+    st.write("##### Model to Column Mappings")
+    st.info("💡 **How it works**: Map each base model name to its corresponding output column. For example, 'AD' → 'AnomalyScore' means the AD model's output is in the AnomalyScore column.")
+    
+    # Convert to lists for easy editing
+    model_names = list(current_model_columns.keys())
+    column_names = list(current_model_columns.values())
+    
+    # Add empty slots for new mappings
+    while len(model_names) < 6:  # Allow up to 6 base models
+        model_names.append("")
+        column_names.append("")
+    
+    # Create editable inputs
+    updated_mappings = {}
+    
+    for i in range(6):
+        col1, col2 = st.columns([1, 2])
         
-        # Fallback section for when API fails
-        st.write("##### Manual Configuration (Fallback)")
-        st.info("You can still configure base models manually, but changes won't be saved until the API connection is restored.")
+        with col1:
+            model_name = st.text_input(
+                f"Model Name {i+1}",
+                value=model_names[i] if i < len(model_names) else "",
+                key=f"base_model_name_{i}",
+                help="Name of the base model (e.g., AD, CL, RF)"
+            )
+        
+        with col2:
+            # Use selectbox if we have available columns and this row has a model name
+            try:
+                current_index = all_columns.index(column_names[i]) if column_names[i] in all_columns else 0
+            except (ValueError, IndexError):
+                current_index = 0
+            
+            column_name = st.selectbox(
+                f"Column Name {i+1}",
+                [""] + all_columns,
+                index=current_index + 1 if i < len(column_names) and column_names[i] in all_columns else 0,
+                key=f"base_model_column_{i}",
+                help="Column containing the model's output/score"
+            )
+        
+        # Only add to mappings if both model name and column name are provided
+        if model_name.strip() and column_name.strip():
+            updated_mappings[model_name.strip()] = column_name.strip()
+    
+    # Show current configuration summary
+    if updated_mappings:
+        st.success(f"✅ {len(updated_mappings)} base model(s) configured")
+        
+        # Show current mappings
+        with st.expander("Current Base Model Mappings"):
+            for model_name, column_name in updated_mappings.items():
+                st.write(f"• **{model_name}** → `{column_name}`")
+        
+        # Validate columns exist in dataset
+        missing_columns = []
+        for col in updated_mappings.values():
+            if col not in all_columns:
+                missing_columns.append(col)
+        if missing_columns:
+            st.warning(f"⚠️ Some columns may not exist in the dataset: {missing_columns}")
+    else:
+        st.warning("⚠️ No base models configured. The pipeline will skip base model analysis.")
     
     # ========== 5. EXCLUDE COLUMNS SELECTION (FILTERED) ==========
     st.write("#### Exclude Columns Configuration")
     st.write("Select additional columns to exclude from model training (target and base decision columns are automatically excluded):")
     
+    current_exclude = cfg.get('data', {}).get('exclude_columns', [])
+    current_exclude_str = [str(col) for col in current_exclude]
+    
     # Filter out target column and selected decision columns from exclude options
     columns_to_filter_out = [selected_target_column] + selected_decision_columns
     exclude_column_options = [col for col in all_columns if col not in columns_to_filter_out]
     
-    # Get current exclude columns from config, but filter out any that are now target/decision columns
-    # Fix key mapping for exclude columns
-    current_exclude = config_settings.get('data', {}).get('exclude_columns', [])
-    current_exclude_str = [str(col) for col in current_exclude]
     # Only keep exclude columns that are still valid options
     valid_current_exclude = [col for col in current_exclude_str if col in exclude_column_options]
     
@@ -340,349 +260,139 @@ def render_preprocessing_tab(config_settings):
     if columns_to_filter_out:
         st.info(f"🔒 **Automatically excluded:** {', '.join(columns_to_filter_out)} (target and base decision columns)")
 
-    # ========== 6. AUTO-SAVE DATA CONFIGURATION ==========
-    # Auto-save data configuration - use YAML structure for saving
-    config_updates = {
-        'data.path': selected_dataset_path.as_posix(), # Use forward slashes
-        'data.target_column': selected_target_column,
-        'data.exclude_columns': selected_exclude_columns
-    }
-    
-    # Also get and save the good/bad tags from base model config to main config
-    config_updates.update({
-        'models.base_model_decisions.good_tag': good_tag,
-        'models.base_model_decisions.bad_tag': bad_tag,
-        'models.base_model_decisions.enabled_columns': selected_decision_columns,
-    })
-    
-    # Create notification container for auto-save messages
-    data_config_notification = st.empty()
-    
-    # Use debounced auto-save for data configuration
-    debounced_auto_save(
-        save_function=_save_data_config_helper,
-        config_data=config_updates,
-        notification_container=data_config_notification,
-        debounce_key="data_config",
-        delay=3.0  # 3 second delay to prevent excessive file writes
-    )
-        
-    # ========== 7. BITWISE LOGIC CONFIGURATION ==========
+    # ========== 6. BITWISE LOGIC CONFIGURATION ==========
     st.write("#### 🔧 Bitwise Logic Configuration")
     st.write("Create custom models by combining existing model outputs using bitwise logic operations.")
     
-    # Add refresh button specifically for bitwise logic
-    bitwise_col1, bitwise_col2 = st.columns([4, 1])
-    with bitwise_col1:
-        st.write("")  # Just for spacing
-    with bitwise_col2:
-        if st.button("🔄 Refresh Rules", help="Reload bitwise logic rules from backend config", key="refresh_bitwise_rules"):
-            # Clear session state and cache for bitwise logic
-            if 'bitwise_rules' in st.session_state:
-                del st.session_state.bitwise_rules
-            if 'bitwise_rules_initialized' in st.session_state:
-                del st.session_state.bitwise_rules_initialized
-            if 'api_cache' in st.session_state and 'bitwise_logic_config' in st.session_state.api_cache:
-                del st.session_state.api_cache['bitwise_logic_config']
-            st.success("Bitwise logic rules refreshed from backend!")
-            st.rerun()
+    bitwise_config = cfg.get('models', {}).get('bitwise_logic', {})
+    current_bitwise_enabled = bitwise_config.get('enabled', False)
+    current_bitwise_rules = bitwise_config.get('rules', [])
     
-    # Use cached data for bitwise logic config
-    bitwise_data = get_cached_data(
-        cache_key="bitwise_logic_config",
-        api_endpoint="/config/bitwise-logic",
-        default_value={"config": {"rules": [], "enabled": False}, "available_models": [], "available_logic_ops": ['OR', 'AND', 'XOR', '|', '&', '^']}
+    bitwise_enabled = st.checkbox(
+        "Enable bitwise logic combinations",
+        value=current_bitwise_enabled,
+        help="Enable to create custom models by combining existing model outputs",
+        key="bitwise_logic_enabled"
     )
     
-    if bitwise_data:
-        current_bitwise_config = bitwise_data['config']
-        available_models = bitwise_data['available_models']
-        available_logic_ops = bitwise_data['available_logic_ops']
+    if bitwise_enabled:
+        st.write("##### Logic Rules")
+        st.info("💡 **How it works**: Select 2 or more models and choose a logic operation to combine their decisions. For example: 'AD_Decision OR CL_Decision' creates a model that predicts failure if either base model predicts failure.")
         
-        # Enable/Disable bitwise logic
-        st.write("##### Enable Bitwise Logic")
-        bitwise_enabled = st.checkbox(
-            "Enable bitwise logic combinations",
-            value=current_bitwise_config.get('enabled', False),
-            help="Enable to create custom models by combining existing model outputs",
-            key="bitwise_logic_enabled"
-        )
+        # Initialize session state for rules management
+        if 'bitwise_rules' not in st.session_state:
+            st.session_state.bitwise_rules = current_bitwise_rules.copy()
         
-        # Auto-save enabled state when it changes
-        if 'previous_bitwise_enabled' not in st.session_state:
-            st.session_state.previous_bitwise_enabled = current_bitwise_config.get('enabled', False)
-        
-        # Save when enabled state actually changes
-        if st.session_state.previous_bitwise_enabled != bitwise_enabled:
-            # Get current rules from session state or default to empty
-            current_rules = st.session_state.get('bitwise_rules', [])
-            
-            bitwise_config_data = {
-                "rules": current_rules,
-                "enabled": bitwise_enabled
-            }
-            
-            try:
-                update_response = requests.post(
-                    f"{API_BASE_URL}/config/bitwise-logic", 
-                    json=bitwise_config_data,
-                    timeout=10
-                )
-                if update_response.status_code == 200:
-                    st.session_state.previous_bitwise_enabled = bitwise_enabled
-                    current_time = datetime.now().strftime("%H:%M:%S")
-                    st.success(f"✅ Bitwise logic {'enabled' if bitwise_enabled else 'disabled'} and saved at {current_time}!")
-                    # Update cache
-                    update_cache("bitwise_logic_config", {
-                        "config": bitwise_config_data,
-                        "available_models": available_models,
-                        "available_logic_ops": available_logic_ops
-                    })
-                else:
-                    st.error(f"❌ Failed to save enabled state: {update_response.text}")
-            except Exception as e:
-                st.error(f"❌ Failed to save enabled state: {str(e)}")
-        
-        if bitwise_enabled:
-            st.write("##### Logic Rules")
-            st.info("💡 **How it works**: Select 2 or more models and choose a logic operation to combine their decisions. For example: 'AD_Decision OR CL_Decision' creates a model that predicts failure if either base model predicts failure.")
-            
-            # Initialize session state for rules ONLY if not already initialized
-            # This prevents overriding user deletions
-            if 'bitwise_rules' not in st.session_state:
-                st.session_state.bitwise_rules = current_bitwise_config.get('rules', [])
-            
-            # Only sync with backend config on initial load or when force refresh is triggered
-            # This prevents constant overriding of user actions
-            if 'bitwise_rules_initialized' not in st.session_state:
-                st.session_state.bitwise_rules = current_bitwise_config.get('rules', [])
-                st.session_state.bitwise_rules_initialized = True
-            
-            # Display existing rules (even if empty, we still show the section)
-            st.write("**Current Rules:**")
-            if st.session_state.bitwise_rules:
-                for i, rule in enumerate(st.session_state.bitwise_rules):
-                    col1, col2, col3, col4 = st.columns([3, 4, 2, 1])
-                    with col1:
-                        st.text_input(f"Rule {i+1} Name", value=rule['name'], disabled=True, key=f"rule_name_display_{i}")
-                    with col2:
-                        st.text(f"Columns: {', '.join(rule['columns'])}")
-                    with col3:
-                        st.text(f"Logic: {rule['logic']}")
-                    with col4:
-                        if st.button("🗑️", key=f"delete_rule_{i}", help="Delete this rule"):
-                            # Remove the rule from session state
-                            deleted_rule_name = st.session_state.bitwise_rules[i]['name']
-                            st.session_state.bitwise_rules.pop(i)
-                            
-                            # Immediately save the updated configuration to backend
-                            updated_config_data = {
-                                "rules": st.session_state.bitwise_rules,
-                                "enabled": bitwise_enabled
-                            }
-                            
-                            try:
-                                update_response = requests.post(
-                                    f"{API_BASE_URL}/config/bitwise-logic", 
-                                    json=updated_config_data,
-                                    timeout=10
-                                )
-                                if update_response.status_code == 200:
-                                    st.success(f"✅ Deleted rule '{deleted_rule_name}' and saved to backend!")
-                                    # Update cache to reflect the deletion
-                                    update_cache("bitwise_logic_config", {
-                                        "config": updated_config_data,
-                                        "available_models": available_models,
-                                        "available_logic_ops": available_logic_ops
-                                    })
-                                    # Force refresh on other tabs
-                                    if 'api_cache' in st.session_state:
-                                        st.session_state.api_cache.pop('metrics_data', None)
-                                        st.session_state.api_cache.pop('predictions_data', None)
-                                else:
-                                    st.error(f"❌ Failed to save after deletion: {update_response.text}")
-                            except Exception as e:
-                                st.error(f"❌ Failed to save after deletion: {str(e)}")
-                            
-                            st.rerun()
-            else:
-                st.info("No rules configured yet. Add a new rule below.")
-            
-            # Add new rule section - ALWAYS show this when bitwise logic is enabled
-            st.write("**Add New Rule:**")
-            
-            new_rule_col1, new_rule_col2, new_rule_col3 = st.columns([3, 4, 2])
-            
-            with new_rule_col1:
-                new_rule_name = st.text_input(
-                    "Rule Name",
-                    placeholder="e.g., 'Combined_Failure'",
-                    help="Give your combined model a descriptive name",
-                    key="new_rule_name"
-                )
-            
-            with new_rule_col2:
-                selected_models = st.multiselect(
-                    "Select Models to Combine",
-                    options=available_models,
-                    default=[],
-                    help="Choose 2 or more models to combine",
-                    key="new_rule_models"
-                )
-            
-            with new_rule_col3:
-                selected_logic = st.selectbox(
-                    "Logic Operation",
-                    options=available_logic_ops,
-                    help="OR: True if ANY model is true\nAND: True if ALL models are true\nXOR: True if ODD number of models are true",
-                    key="new_rule_logic"
-                )
-            
-            # Add rule button
-            add_rule_col1, add_rule_col2 = st.columns([1, 4])
-            with add_rule_col1:
-                if st.button("➕ Add Rule", use_container_width=True):
-                    if new_rule_name and len(selected_models) >= 2:
-                        # Check for duplicate names
-                        existing_names = [rule['name'] for rule in st.session_state.bitwise_rules]
-                        if new_rule_name not in existing_names:
-                            new_rule = {
-                                'name': new_rule_name,
-                                'columns': selected_models,
-                                'logic': selected_logic
-                            }
-                            st.session_state.bitwise_rules.append(new_rule)
-                            st.success(f"Added rule: {new_rule_name}")
-                            
-                            # Immediately save to backend
-                            updated_config_data = {
-                                "rules": st.session_state.bitwise_rules,
-                                "enabled": bitwise_enabled
-                            }
-                            
-                            try:
-                                update_response = requests.post(
-                                    f"{API_BASE_URL}/config/bitwise-logic", 
-                                    json=updated_config_data,
-                                    timeout=10
-                                )
-                                if update_response.status_code == 200:
-                                    # Update cache
-                                    update_cache("bitwise_logic_config", {
-                                        "config": updated_config_data,
-                                        "available_models": available_models,
-                                        "available_logic_ops": available_logic_ops
-                                    })
-                                else:
-                                    st.error(f"❌ Failed to save new rule: {update_response.text}")
-                            except Exception as e:
-                                st.error(f"❌ Failed to save new rule: {str(e)}")
-                            
-                            st.rerun()
-                        else:
-                            st.error("Rule name already exists. Please choose a different name.")
-                    else:
-                        st.error("Please provide a rule name and select at least 2 models.")
-            
-            with add_rule_col2:
-                # Logic operation explanations
-                with st.expander("Logic Operation Explanations"):
-                    st.write("""
-                    **OR (|)**: Result is True if ANY of the selected models predicts True
-                    - Example: If AD_Decision OR CL_Decision, result is True if either model predicts failure
-                    
-                    **AND (&)**: Result is True if ALL of the selected models predict True  
-                    - Example: If AD_Decision AND CL_Decision, result is True only if both models predict failure
-                    
-                    **XOR (^)**: Result is True if an ODD number of selected models predict True
-                    - Example: If AD_Decision XOR CL_Decision, result is True if exactly one model predicts failure
-                    """)
-            
-            # Apply rules section - show even if no rules exist yet
-            st.write("##### Apply Logic Rules")
-            
-            apply_col1, apply_col2 = st.columns([1, 3])
-            
-            with apply_col1:
-                # Only enable the button if there are rules to apply
-                button_disabled = len(st.session_state.bitwise_rules) == 0
-                if st.button("🔄 Apply Rules", use_container_width=True, type="secondary", disabled=button_disabled):
-                    # Save configuration and apply rules
-                    bitwise_config_data = {
-                        "rules": st.session_state.bitwise_rules,
-                        "enabled": bitwise_enabled
-                    }
-                    
-                    try:
-                        # Update configuration
-                        update_response = requests.post(
-                            f"{API_BASE_URL}/config/bitwise-logic", 
-                            json=bitwise_config_data
-                        )
-                        
-                        if update_response.status_code == 200:
-                            # Update cache
-                            update_cache("bitwise_logic_config", {
-                                "config": bitwise_config_data,
-                                "available_models": available_models,
-                                "available_logic_ops": available_logic_ops
-                            })
-                            
-                            # Apply the rules
-                            apply_response = requests.post(f"{API_BASE_URL}/config/bitwise-logic/apply")
-                            
-                            if apply_response.status_code == 200:
-                                result = apply_response.json()
-                                st.success(f"✅ {result['message']}")
-                                if result['combined_models_created'] > 0:
-                                    st.info(f"Created models: {', '.join(result['combined_model_names'])}")
-                                    st.info("🔄 The Overview and Model Analysis tabs will now show your new combined models!")
-                                    # Clear other caches so they reload with new data
-                                    if 'api_cache' in st.session_state:
-                                        st.session_state.api_cache.pop('metrics_data', None)
-                                        st.session_state.api_cache.pop('predictions_data', None)
-                            else:
-                                st.error(f"Failed to apply rules: {apply_response.text}")
-                        else:
-                            st.error(f"Failed to save configuration: {update_response.text}")
-                    except Exception as e:
-                        st.error(f"Error applying rules: {str(e)}")
-            
-            with apply_col2:
-                if len(st.session_state.bitwise_rules) == 0:
-                    st.info("💡 Add some logic rules above, then click 'Apply Rules' to create your combined models.")
-                else:
-                    st.info("💡 Click 'Apply Rules' to create your combined models and update all dashboard results. The new models will appear in the Overview and Model Analysis tabs.")
-        
+        # Display existing rules
+        st.write("**Current Rules:**")
+        if st.session_state.bitwise_rules:
+            for i, rule in enumerate(st.session_state.bitwise_rules):
+                col1, col2, col3, col4 = st.columns([3, 4, 2, 1])
+                with col1:
+                    st.text_input(f"Rule {i+1} Name", value=rule['name'], disabled=True, key=f"rule_name_display_{i}")
+                with col2:
+                    st.text(f"Columns: {', '.join(rule['columns'])}")
+                with col3:
+                    st.text(f"Logic: {rule['logic']}")
+                with col4:
+                    if st.button("🗑️", key=f"delete_rule_{i}", help="Delete this rule"):
+                        st.session_state.bitwise_rules.pop(i)
+                        st.rerun()
         else:
-            # When bitwise logic is disabled, clear the session state to ensure clean state
-            if 'bitwise_rules' in st.session_state:
-                del st.session_state.bitwise_rules
-            if 'bitwise_rules_initialized' in st.session_state:
-                del st.session_state.bitwise_rules_initialized
-            st.info("Enable bitwise logic above to create custom models by combining existing model outputs.")
-    
-    else:
-        st.error("Failed to load bitwise logic configuration. Please refresh the page or check backend connectivity.")
+            st.info("No rules configured yet. Add a new rule below.")
         
-    # ========== 8. PREPROCESSING PREVIEWS ==========
+        # Add new rule section
+        st.write("**Add New Rule:**")
+        
+        new_rule_col1, new_rule_col2, new_rule_col3 = st.columns([3, 4, 2])
+        
+        with new_rule_col1:
+            new_rule_name = st.text_input(
+                "Rule Name",
+                placeholder="e.g., 'Combined_Failure'",
+                help="Give your combined model a descriptive name",
+                key="new_rule_name"
+            )
+        
+        with new_rule_col2:
+            available_models = selected_decision_columns + list(updated_mappings.keys())
+            selected_models = st.multiselect(
+                "Select Models to Combine",
+                options=available_models,
+                default=[],
+                help="Choose 2 or more models to combine",
+                key="new_rule_models"
+            )
+        
+        with new_rule_col3:
+            available_logic_ops = ['OR', 'AND', 'XOR', '|', '&', '^']
+            selected_logic = st.selectbox(
+                "Logic Operation",
+                options=available_logic_ops,
+                help="OR: True if ANY model is true\nAND: True if ALL models are true\nXOR: True if ODD number of models are true",
+                key="new_rule_logic"
+            )
+        
+        # Add rule button
+        add_rule_col1, add_rule_col2 = st.columns([1, 4])
+        with add_rule_col1:
+            if st.button("➕ Add Rule", use_container_width=True):
+                if new_rule_name and len(selected_models) >= 2:
+                    # Check for duplicate names
+                    existing_names = [rule['name'] for rule in st.session_state.bitwise_rules]
+                    if new_rule_name not in existing_names:
+                        new_rule = {
+                            'name': new_rule_name,
+                            'columns': selected_models,
+                            'logic': selected_logic
+                        }
+                        st.session_state.bitwise_rules.append(new_rule)
+                        st.success(f"Added rule: {new_rule_name}")
+                        st.rerun()
+                    else:
+                        st.error("Rule name already exists. Please choose a different name.")
+                else:
+                    st.error("Please provide a rule name and select at least 2 models.")
+        
+        with add_rule_col2:
+            # Logic operation explanations
+            with st.expander("Logic Operation Explanations"):
+                st.write("""
+                **OR (|)**: Result is True if ANY of the selected models predicts True
+                - Example: If AD_Decision OR CL_Decision, result is True if either model predicts failure
+                
+                **AND (&)**: Result is True if ALL of the selected models predict True  
+                - Example: If AD_Decision AND CL_Decision, result is True only if both models predict failure
+                
+                **XOR (^)**: Result is True if an ODD number of selected models predict True
+                - Example: If AD_Decision XOR CL_Decision, result is True if exactly one model predicts failure
+                """)
+    else:
+        # Clear rules when disabled
+        if 'bitwise_rules' in st.session_state:
+            st.session_state.bitwise_rules = []
+        st.info("Enable bitwise logic above to create custom models by combining existing model outputs.")
+        
+    # ========== 7. PREPROCESSING PREVIEWS ==========
     st.write("#### Preprocessing Previews")
     
-    # Filtering settings inputs - fix key mapping
+    current_variance_threshold = cfg.get('features', {}).get('variance_threshold', 0.01)
+    current_correlation_threshold = cfg.get('features', {}).get('correlation_threshold', 0.95)
+    
     st.write("##### Filtering Settings for Preview")
     col_filter1, col_filter2 = st.columns(2)
     with col_filter1:
         preview_variance_threshold = st.number_input(
             "Variance Threshold (>)",
             min_value=0.0, max_value=1.0, step=0.001,
-            value=float(config_settings.get('features', {}).get('variance_threshold', 0.01)),
+            value=float(current_variance_threshold),
             format="%.3f", key="preview_variance_threshold"
         )
     with col_filter2:
         preview_correlation_threshold = st.number_input(
             "Correlation Threshold (<)",
             min_value=0.0, max_value=1.0, step=0.001,
-            value=float(config_settings.get('features', {}).get('correlation_threshold', 0.95)),
+            value=float(current_correlation_threshold),
             format="%.3f", key="preview_correlation_threshold"
         )
 
@@ -747,3 +457,52 @@ def render_preprocessing_tab(config_settings):
         
     except Exception as e:
         st.error(f"Error during preprocessing preview: {e}")
+
+    # ========== 8. AUTO-SAVE CONFIGURATION CHANGES ==========
+    # Create a new config dict with all the current selections
+    new_config = cfg.copy()
+    
+    # Ensure nested dicts exist
+    if 'data' not in new_config:
+        new_config['data'] = {}
+    if 'models' not in new_config:
+        new_config['models'] = {}
+    if 'features' not in new_config:
+        new_config['features'] = {}
+    
+    # Update data configuration
+    new_config['data']['path'] = selected_dataset_path.as_posix()
+    new_config['data']['target_column'] = selected_target_column
+    new_config['data']['exclude_columns'] = selected_exclude_columns
+    
+    # Update base model decisions configuration
+    if 'base_model_decisions' not in new_config['models']:
+        new_config['models']['base_model_decisions'] = {}
+    new_config['models']['base_model_decisions']['enabled_columns'] = selected_decision_columns
+    new_config['models']['base_model_decisions']['good_tag'] = good_tag
+    new_config['models']['base_model_decisions']['bad_tag'] = bad_tag
+    
+    # Update base model columns configuration (store as simple list)
+    new_config['models']['base_model_columns'] = list(updated_mappings.values())
+    
+    # Update bitwise logic configuration
+    if 'bitwise_logic' not in new_config['models']:
+        new_config['models']['bitwise_logic'] = {}
+    new_config['models']['bitwise_logic']['enabled'] = bitwise_enabled
+    new_config['models']['bitwise_logic']['rules'] = st.session_state.get('bitwise_rules', [])
+    
+    # Update features configuration
+    new_config['features']['variance_threshold'] = preview_variance_threshold
+    new_config['features']['correlation_threshold'] = preview_correlation_threshold
+    
+    # Use master_auto_save for debounced saving
+    # This will automatically handle the debouncing and only save when there are real changes
+    master_auto_save(
+        endpoint="update",  # Use the general update endpoint
+        full_config=new_config,
+        notification_container=notification_container,
+        session_key="preprocessing_tab",
+        delay=2.0  # Wait 2 seconds after last change before saving
+    )
+    
+    print(f"\n✅ [TERMINAL] Preprocessing tab rendered and auto-save configured")

@@ -4,6 +4,9 @@ import os
 import sys
 from pathlib import Path
 import time
+import json
+from datetime import datetime
+import requests
 
 # Add the root directory to Python path
 root_dir = str(Path(__file__).parent.parent.parent)
@@ -23,6 +26,8 @@ from frontend.streamlit.utils import ensure_directories, clear_cache
 from frontend.streamlit.sidebar import render_sidebar
 from shared.config_manager import get_config
 
+BACKEND_API_URL = "http://localhost:8000"
+
 # Page config
 st.set_page_config(
     page_title="AI Pipeline Dashboard",
@@ -34,13 +39,31 @@ st.set_page_config(
 # Ensure directories exist
 ensure_directories()
 
-def load_config_settings():
-    """Loads config settings using the new configuration manager."""
+def load_config_from_api():
+    """
+    Load config from the FastAPI backend /config/load endpoint.
+    This is the proper way to get the current config state.
+    """
     try:
-        config = get_config()
-        return config.to_dict()
+        print("🔄 [TERMINAL] Loading config from API...")
+        response = requests.get(f"{BACKEND_API_URL}/config/load", timeout=10)
+        if response.status_code == 200:
+            # Backend returns config directly, not nested under "config" key
+            config = response.json()
+            print(f"✅ [TERMINAL] Loaded config from API: {len(config)} top-level keys")
+            print(f"📊 [TERMINAL] Config keys: {list(config.keys())}")
+            return config
+        else:
+            print(f"❌ [TERMINAL] Failed to load config: HTTP {response.status_code}")
+            st.error(f"❌ Failed to load config: HTTP {response.status_code}")
+            return {}
+    except requests.exceptions.ConnectionError:
+        print("❌ [TERMINAL] Cannot connect to backend API on http://localhost:8000")
+        st.error("❌ Cannot connect to backend API. Please ensure the backend server is running on http://localhost:8000")
+        return {}
     except Exception as e:
-        st.error(f"Error loading config settings: {e}")
+        print(f"❌ [TERMINAL] Error loading config from API: {e}")
+        st.error(f"❌ Error loading config from API: {e}")
         return {}
 
 def run_pipeline():
@@ -56,9 +79,6 @@ def run_pipeline():
             # Run the backend pipeline
             subprocess.run([venv_python, "-m", "backend.run"], check=True, cwd=root_dir)
             
-            # Import utils for cache management
-            from frontend.streamlit.utils import clear_cache
-            
             # Clear all cached data to force fresh data loading
             clear_cache()
             
@@ -71,9 +91,6 @@ def run_pipeline():
             st.success("✅ Pipeline completed successfully!")
             st.info("🔄 Data will refresh automatically. You may need to interact with the page to see updates.")
             
-            # Don't use st.rerun() immediately as it can cause issues
-            # Let the natural Streamlit refresh cycle handle the update
-            
         except subprocess.CalledProcessError as e:
             st.error(f"❌ Pipeline failed with error: {str(e)}")
         except FileNotFoundError:
@@ -83,12 +100,40 @@ def run_pipeline():
 
 def main():
     """Main application entry point."""
+    print("\n" + "="*60)
+    print("🚀 [TERMINAL] Starting Streamlit App")
+    print("="*60)
+
+    # Load config from API on startup
+    if "config_settings" not in st.session_state:
+        print("🔄 [TERMINAL] First load - getting config from API")
+        st.session_state.config_settings = load_config_from_api()
+        
+    # Refresh config from API if it's empty (connection was down)
+    if not st.session_state.config_settings:
+        print("⚠️ [TERMINAL] Config is empty, retrying API call")
+        st.session_state.config_settings = load_config_from_api()
+
+    # Get config reference
+    cfg = st.session_state.config_settings
+
+    # Debug info - terminal and UI
+    print(f"🔧 [TERMINAL] Config loaded: {len(cfg)} keys")
+    if cfg:
+        print(f"📊 [TERMINAL] Available sections: {list(cfg.keys())}")
+    else:
+        print("❌ [TERMINAL] Config is empty!")
+
+    st.sidebar.write(f"🔧 Config loaded: {len(cfg)} keys")
+    if cfg:
+        st.sidebar.write(f"📊 Available sections: {list(cfg.keys())}")
+
     # Header
     st.title("🚀 AI Pipeline Dashboard")
     st.markdown("---")
     
     # Sidebar with automatic config saving
-    config_updates = render_sidebar() # Config is now automatically saved
+    config_updates = render_sidebar()
     
     # Sidebar controls
     st.sidebar.markdown("---")
@@ -96,9 +141,6 @@ def main():
     # Only keep the Run Pipeline button - config saves automatically
     if st.sidebar.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
         run_pipeline()
-
-    # Load config settings for the app
-    current_config_settings = load_config_settings()
 
     # Tabs - Restored with enhanced overview
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -110,10 +152,12 @@ def main():
         render_overview_tab()
     
     with tab2:
-        render_data_management_tab()
+        render_data_management_tab(cfg)
         
     with tab3:
-        render_preprocessing_tab(current_config_settings)
+        print("\n🔄 [TERMINAL] Rendering preprocessing tab...")
+        render_preprocessing_tab()
+        print("✅ [TERMINAL] Preprocessing tab rendered")
         
     with tab4:
         render_model_zoo_tab()
@@ -122,7 +166,7 @@ def main():
         render_model_analysis_tab()
     
     with tab6:
-        render_downloads_tab()
+        render_downloads_tab(cfg)
 
 if __name__ == "__main__":
     main() 
