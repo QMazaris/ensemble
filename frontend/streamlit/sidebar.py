@@ -8,6 +8,7 @@ if root_dir not in sys.path:
     sys.path.append(root_dir)
 
 from shared.config_manager import get_config
+from frontend.streamlit.utils import sync_frontend_to_backend, calculate_config_diff
 
 def auto_save_config(config_updates):
     """Automatically save configuration if changes are detected."""
@@ -40,6 +41,47 @@ def auto_save_config(config_updates):
 def render_sidebar():
     """Render the sidebar configuration with automatic saving."""
     st.sidebar.header("⚙️ Pipeline Settings")
+    
+    # ========== CONFIG SYNC SECTION ==========
+    st.sidebar.subheader("🔄 Config Sync")
+    
+    # Check if there are unsaved changes
+    current_config = st.session_state.get('config_settings', {})
+    last_synced = st.session_state.get('last_synced_config', {})
+    
+    diff = calculate_config_diff(current_config, last_synced)
+    unsaved_changes = len(diff)
+    
+    # Show sync status
+    if unsaved_changes > 0:
+        st.sidebar.warning(f"⚠️ {unsaved_changes} unsaved changes", icon="📝")
+    else:
+        st.sidebar.success("✅ Config in sync", icon="📋")
+    
+    # Sync button and notification area
+    sync_notification = st.sidebar.empty()
+    
+    # Sync button - only enabled if there are changes
+    if st.sidebar.button(
+        "🔄 Sync to Backend", 
+        use_container_width=True, 
+        disabled=(unsaved_changes == 0),
+        help="Send frontend config changes to backend" if unsaved_changes > 0 else "No changes to sync"
+    ):
+        sync_frontend_to_backend(sync_notification)
+    
+    # Show what would be synced (for debugging/transparency)
+    if unsaved_changes > 0:
+        with st.sidebar.expander(f"📋 View {unsaved_changes} pending changes"):
+            for section, changes in diff.items():
+                st.write(f"**{section}:**")
+                if isinstance(changes, dict):
+                    for key, value in changes.items():
+                        st.write(f"  • {key}: `{value}`")
+                else:
+                    st.write(f"  • {changes}")
+    
+    st.sidebar.markdown("---")
     
     # Get current config
     config = get_config()

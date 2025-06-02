@@ -11,7 +11,7 @@ root_dir = str(Path(__file__).parent.parent.parent.parent)
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-def render_data_management_tab(config_settings):
+def render_data_management_tab():
     """Render the data management tab content."""
     st.write("### Data Management")
     

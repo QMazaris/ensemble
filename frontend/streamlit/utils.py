@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 import streamlit as st
 import re
+import threading
 
 # Set up logging configuration for frontend
 # Ensure logs directory exists
@@ -947,172 +948,167 @@ def auto_save_model_config(selected_model, edited_params, config_content, config
             return False
     return False
 
-def deep_diff(prev: dict, new: dict) -> dict:
+def calculate_config_diff(current_config: dict, last_synced_config: dict) -> dict:
     """
-    Recursively compare two dicts and return ONLY the changes:
-      • keys added or whose value changed     → include with new value
-      • keys removed in `new`                 → include {"__delete__": True}
-      • nested dicts are traversed
+    Calculate the differences between two config dictionaries.
+    Returns only the changed/new values.
+    
+    Args:
+        current_config: The current config state
+        last_synced_config: The last config that was synced to backend
+        
+    Returns:
+        Dictionary containing only the differences
     """
     diff = {}
-    all_keys = set(prev) | set(new)
-
-    for k in all_keys:
-        pv = prev.get(k, "_MISSING_")
-        nv = new.get(k, "_MISSING_")
-
-        if pv == "_MISSING_":                # new key entirely
-            diff[k] = nv
-        elif nv == "_MISSING_":              # key was removed
-            diff[k] = {"__delete__": True}
-        elif isinstance(pv, dict) and isinstance(nv, dict):
-            sub = deep_diff(pv, nv)
-            if sub:                           # only include if nested diff is non‐empty
-                diff[k] = sub
-        elif pv != nv:                        # value changed (or type changed)
-            diff[k] = nv
-
+    
+    def _recursive_diff(current, last, path=""):
+        for key, value in current.items():
+            current_path = f"{path}.{key}" if path else key
+            
+            if key not in last:
+                # New key
+                if isinstance(value, dict):
+                    diff[key] = value
+                else:
+                    diff[key] = value
+            elif isinstance(value, dict) and isinstance(last[key], dict):
+                # Nested dictionary - recurse
+                nested_diff = {}
+                _recursive_diff(value, last[key], current_path)
+                if key in diff or any(k.startswith(f"{key}.") for k in diff.keys()):
+                    # If there are changes in nested structure, include the whole nested dict
+                    diff[key] = value
+            elif value != last[key]:
+                # Value changed
+                diff[key] = value
+    
+    _recursive_diff(current_config, last_synced_config)
     return diff
 
-
-def master_auto_save(endpoint: str,
-                          full_config: dict,
-                          notification_container,
-                          session_key: str,
-                          delay: float = 2.0) -> bool:
+def sync_frontend_to_backend(notification_container=None) -> bool:
     """
-    Debounced auto-save that posts ONLY the *net* changes (deep diff)
-    of `full_config` to `/config/{endpoint}`.
+    Sync the frontend config to the backend by sending only the differences.
+    Uses threading to prevent UI blocking.
+    
+    Args:
+        notification_container: Optional streamlit container for notifications
+        
+    Returns:
+        True if sync was initiated successfully, False otherwise
+    """
+    import streamlit as st
+    import threading
+    import copy
+    
+    try:
+        # Get current frontend config
+        current_config = st.session_state.get('config_settings', {})
+        
+        # Get last synced config (or empty dict if first sync)
+        last_synced = st.session_state.get('last_synced_config', {})
+        
+        # Calculate differences
+        diff = calculate_config_diff(current_config, last_synced)
+        
+        if not diff:
+            if notification_container:
+                notification_container.info("✅ Config already in sync", icon="📋")
+            return True
+        
+        # Show immediate feedback
+        if notification_container:
+            ts = datetime.now().strftime("%H:%M:%S")
+            notification_container.info(f"🔄 Syncing {len(diff)} changes... {ts}", icon="⏳")
+        
+        def _sync_to_backend():
+            """Background thread function to sync to backend"""
+            try:
+                success_count = 0
+                total_changes = len(diff)
+                
+                # Send each top-level section as a separate API call
+                for section, values in diff.items():
+                    try:
+                        response = requests.post(
+                            f"{BACKEND_API_URL}/config/update",
+                            json={section: values if isinstance(values, dict) else {section.split('.')[-1]: values}},
+                            timeout=3.0
+                        )
+                        if response.status_code == 200:
+                            success_count += 1
+                        else:
+                            print(f"[WARN] Failed to sync {section}: HTTP {response.status_code}")
+                    except Exception as e:
+                        print(f"[ERROR] Failed to sync {section}: {e}")
+                
+                # Update UI with results
+                if notification_container:
+                    if success_count == total_changes:
+                        # All succeeded
+                        ts_success = datetime.now().strftime("%H:%M:%S")
+                        notification_container.success(f"✅ Synced {success_count}/{total_changes} sections {ts_success}", icon="🔄")
+                        
+                        # Update last synced config
+                        st.session_state.last_synced_config = copy.deepcopy(current_config)
+                        
+                        # Clear success message after 5 seconds
+                        time.sleep(5)
+                        try:
+                            notification_container.empty()
+                        except:
+                            pass  # Ignore if container is no longer valid
+                    else:
+                        # Some failed
+                        notification_container.warning(f"⚠️ Synced {success_count}/{total_changes} sections (some failed)", icon="🔄")
+                
+            except Exception as e:
+                if notification_container:
+                    notification_container.error(f"❌ Sync failed: {str(e)}", icon="🔄")
+                print(f"[ERROR] Backend sync failed: {e}")
+        
+        # Start background sync
+        thread = threading.Thread(target=_sync_to_backend, daemon=True)
+        thread.start()
+        
+        return True
+        
+    except Exception as e:
+        if notification_container:
+            notification_container.error(f"❌ Failed to start sync: {str(e)}", icon="🔄")
+        print(f"[ERROR] Could not start sync: {e}")
+        return False
 
-    1) Uses deep_diff(...) to compute exactly what changed since last snapshot.
-    2) If no real diff, does nothing.
-    3) Otherwise, schedules a debounced POST (with a delay) so rapid edits collapse.
-    4) When the delay elapses, sends {diff} to `/config/{endpoint}`.
-    5) Updates the "snapshot" so future calls compare against the latest.
+def instant_update_config(endpoint: str, new_values: dict) -> bool:
+    """
+    Send a config update to the FastAPI backend without updating frontend state.
 
     Args:
-      endpoint (str):         Path under "/config/" your FastAPI expects (e.g. "data", "base-models").
-      full_config (dict):     The *entire* config dict (e.g. config.to_dict()).
-      notification_container: Streamlit placeholder (e.g. st.empty()) to show "Saved!" or errors.
-      session_key (str):      Unique key for this section (e.g. "data_tab") so multiple tabs don't collide.
-      delay (float):          Seconds to wait after last change before POSTing.
+        endpoint (str): Config section (e.g., "data", "model_params").
+        new_values (dict): Key-value pairs to update (e.g., {"target_column": "DefectType"}).
 
     Returns:
-      True if a change was scheduled (or just sent); False if no diff detected.
+        True if the request was sent (regardless of success); False on failure to start the thread.
     """
-    
-    # Define API base URL
-    API_BASE_URL = "http://localhost:8000"
+    import threading
+    import requests
 
-    print(f"\n🔍 [TERMINAL] master_auto_save called:")
-    print(f"   endpoint: {endpoint}")
-    print(f"   session_key: {session_key}")
-    print(f"   delay: {delay}")
-    print(f"   full_config size: {len(full_config)} keys")
-
-    # 1) Load previous-snapshot of the full config from session_state (default to empty)
-    snap_key = f"_snapshot_{session_key}"
-    previous_snapshot = st.session_state.get(snap_key, {})
-    
-    print(f"📸 [TERMINAL] Previous snapshot size: {len(previous_snapshot)} keys")
-
-    # 2) Check if this is the first call (no previous snapshot)
-    is_first_call = len(previous_snapshot) == 0
-    
-    # 3) Compute a deep diff: keys added/changed/removed
-    delta = deep_diff(previous_snapshot, full_config)
-    
-    # Debug: Show diff information
-    if delta:
-        print(f"🔧 [TERMINAL] Changes detected for {session_key}")
-        print(f"📝 [TERMINAL] Changes: {delta}")
-    else:
-        print(f"🔧 [TERMINAL] No changes detected for {session_key}")
-
-    # 4) If this is the first call, just take a snapshot and return False
-    if is_first_call:
-        print("⚠️ [TERMINAL] First call - taking initial snapshot without triggering save")
-        st.session_state[snap_key] = json.loads(json.dumps(full_config))
-        print(f"📸 [TERMINAL] Initial snapshot taken for {session_key}")
-        return False
-
-    # 5) If no changes detected after first call, return False
-    if not delta:
-        return False
-
-    # 6) Update the snapshot immediately so next call diffs against this state
-    st.session_state[snap_key] = json.loads(json.dumps(full_config))
-    print(f"📸 [TERMINAL] Updated snapshot for {session_key}")
-
-    # 7) Below: debounce logic and eventual POST
-
-    # A) Initialize debounce-storage dicts in session_state if missing
-    if "master_debounce_timers" not in st.session_state:
-        st.session_state.master_debounce_timers = {}
-    if "master_debounce_payloads" not in st.session_state:
-        st.session_state.master_debounce_payloads = {}
-    if "master_debounce_notifications" not in st.session_state:
-        st.session_state.master_debounce_notifications = {}
-
-    # B) Use "session_key" to identify this particular pending update
-    now = time.time()
-    st.session_state.master_debounce_timers[session_key] = now
-    # We store the "endpoint" and its payload (the diff) for later posting
-    st.session_state.master_debounce_payloads[session_key] = {
-        "endpoint": endpoint,
-        "payload": delta
-    }
-    st.session_state.master_debounce_notifications[session_key] = notification_container
-
-    print(f"🔧 [TERMINAL] Scheduled save for {session_key}, waiting {delay}s...")
-
-    # C) Find which keys have waited ≥ delay seconds
-    keys_ready = []
-    for key, timestamp in st.session_state.master_debounce_timers.items():
-        wait_time = now - timestamp
-        print(f"⏱️ [TERMINAL] Key '{key}' has been waiting {wait_time:.2f}s (needs {delay}s)")
-        if wait_time >= delay:
-            keys_ready.append(key)
-
-    # Special case: if delay is 0, immediately add the current key to ready list
-    if delay == 0.0 and session_key not in keys_ready:
-        keys_ready.append(session_key)
-        print(f"🚀 [TERMINAL] Immediate save requested for {session_key}")
-
-    print(f"📤 [TERMINAL] Keys ready to save: {keys_ready}")
-
-    # D) For each "ready" key, actually POST to /config/{endpoint}
-    for key in keys_ready:
-        data_block = st.session_state.master_debounce_payloads.get(key, {})
-        notif = st.session_state.master_debounce_notifications.get(key)
-        url = f"{API_BASE_URL}/config/{data_block['endpoint']}"
-
-        print(f"🔧 [TERMINAL] Making POST request to {url}")
-        print(f"📤 [TERMINAL] Payload: {data_block['payload']}")
-
+    def _post_update():
         try:
-            response = requests.post(url, json=data_block["payload"], timeout=5)
-            print(f"🔧 [TERMINAL] Response status: {response.status_code}")
-            print(f"📥 [TERMINAL] Response text: {response.text}")
-            
-            if response.status_code == 200:
-                ts = datetime.now().strftime("%H:%M:%S")
-                success_msg = f"✅ Auto-saved `{data_block['endpoint']}` at {ts}."
-                notif.success(success_msg, icon="💾")
-                print(f"✅ [TERMINAL] SUCCESS: Config saved to {url}")
-            else:
-                error_msg = f"❌ Auto-save failed ({response.status_code}): {response.text}"
-                notif.error(error_msg)
-                print(f"❌ [TERMINAL] ERROR: {error_msg}")
+            response = requests.post(
+                f"{BACKEND_API_URL}/config/update",
+                json={endpoint: new_values},
+                timeout=1.5,
+            )
+            if response.status_code != 200:
+                print(f"[WARN] Failed to update {endpoint}: HTTP {response.status_code}")
         except Exception as e:
-            error_msg = f"❌ Auto-save error: {e}"
-            notif.error(error_msg)
-            print(f"❌ [TERMINAL] EXCEPTION: {error_msg}")
+            print(f"[ERROR] Backend update failed for {endpoint}: {e}")
 
-        # E) Clean up so we won't post again for this key
-        del st.session_state.master_debounce_timers[key]
-        del st.session_state.master_debounce_payloads[key]
-        del st.session_state.master_debounce_notifications[key]
-        print(f"🧹 [TERMINAL] Cleaned up debounce data for key: {key}")
+    try:
+        threading.Thread(target=_post_update, daemon=True).start()
+        return True
+    except Exception as e:
+        print(f"[ERROR] Could not start background thread: {e}")
+        return False
 
-    return True

@@ -7,6 +7,7 @@ import time
 import json
 from datetime import datetime
 import requests
+import copy
 
 # Add the root directory to Python path
 root_dir = str(Path(__file__).parent.parent.parent)
@@ -45,24 +46,18 @@ def load_config_from_api():
     This is the proper way to get the current config state.
     """
     try:
-        print("🔄 [TERMINAL] Loading config from API...")
         response = requests.get(f"{BACKEND_API_URL}/config/load", timeout=10)
         if response.status_code == 200:
             # Backend returns config directly, not nested under "config" key
             config = response.json()
-            print(f"✅ [TERMINAL] Loaded config from API: {len(config)} top-level keys")
-            print(f"📊 [TERMINAL] Config keys: {list(config.keys())}")
             return config
         else:
-            print(f"❌ [TERMINAL] Failed to load config: HTTP {response.status_code}")
             st.error(f"❌ Failed to load config: HTTP {response.status_code}")
             return {}
     except requests.exceptions.ConnectionError:
-        print("❌ [TERMINAL] Cannot connect to backend API on http://localhost:8000")
         st.error("❌ Cannot connect to backend API. Please ensure the backend server is running on http://localhost:8000")
         return {}
     except Exception as e:
-        print(f"❌ [TERMINAL] Error loading config from API: {e}")
         st.error(f"❌ Error loading config from API: {e}")
         return {}
 
@@ -100,33 +95,16 @@ def run_pipeline():
 
 def main():
     """Main application entry point."""
-    print("\n" + "="*60)
-    print("🚀 [TERMINAL] Starting Streamlit App")
-    print("="*60)
-
-    # Load config from API on startup
+    
+    # Load config from API on startup - only once per session
     if "config_settings" not in st.session_state:
-        print("🔄 [TERMINAL] First load - getting config from API")
         st.session_state.config_settings = load_config_from_api()
         
-    # Refresh config from API if it's empty (connection was down)
-    if not st.session_state.config_settings:
-        print("⚠️ [TERMINAL] Config is empty, retrying API call")
-        st.session_state.config_settings = load_config_from_api()
+        # Initialize sync tracking - consider the initial load as "synced"
+        st.session_state.last_synced_config = copy.deepcopy(st.session_state.config_settings)
 
     # Get config reference
     cfg = st.session_state.config_settings
-
-    # Debug info - terminal and UI
-    print(f"🔧 [TERMINAL] Config loaded: {len(cfg)} keys")
-    if cfg:
-        print(f"📊 [TERMINAL] Available sections: {list(cfg.keys())}")
-    else:
-        print("❌ [TERMINAL] Config is empty!")
-
-    st.sidebar.write(f"🔧 Config loaded: {len(cfg)} keys")
-    if cfg:
-        st.sidebar.write(f"📊 Available sections: {list(cfg.keys())}")
 
     # Header
     st.title("🚀 AI Pipeline Dashboard")
@@ -152,12 +130,10 @@ def main():
         render_overview_tab()
     
     with tab2:
-        render_data_management_tab(cfg)
+        render_data_management_tab()
         
     with tab3:
-        print("\n🔄 [TERMINAL] Rendering preprocessing tab...")
         render_preprocessing_tab()
-        print("✅ [TERMINAL] Preprocessing tab rendered")
         
     with tab4:
         render_model_zoo_tab()
@@ -166,7 +142,7 @@ def main():
         render_model_analysis_tab()
     
     with tab6:
-        render_downloads_tab(cfg)
+        render_downloads_tab()
 
 if __name__ == "__main__":
     main() 
