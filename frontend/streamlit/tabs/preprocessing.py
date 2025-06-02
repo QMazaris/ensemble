@@ -36,15 +36,6 @@ def render_preprocessing_tab(config_settings):
     
     st.write("### Data Preprocessing & Configuration")
     
-    # Add debug info to see current config values
-    with st.expander("🔍 Debug: Current Config Values"):
-        st.write("**Raw config structure:**")
-        st.json(config_settings)
-        st.write("**Parsed values:**")
-        st.write(f"- Data path: `{config_settings.get('data', {}).get('path', 'NOT_FOUND')}`")
-        st.write(f"- Target column: `{config_settings.get('data', {}).get('target_column', 'NOT_FOUND')}`")
-        st.write(f"- Exclude columns: `{config_settings.get('data', {}).get('exclude_columns', 'NOT_FOUND')}`")
-    
     # Add cache management controls
     col1, col2 = st.columns([3, 1])
     with col1:

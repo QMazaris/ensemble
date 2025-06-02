@@ -513,3 +513,41 @@
 2025-05-30 14:41:35,256 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/base-model-columns
 2025-05-30 14:41:35,265 - ensemble_api - INFO - Updated base model columns configuration: {'AD': 'AnomalyScore', 'CL': 'CL_ConfMax', 'od': 'MaxVal'}
 2025-05-30 14:41:35,267 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/base-model-columns - Status: 200 - Time: 0.011s
+2025-06-02 07:25:38,631 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 07:25:38,665 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 07:25:38,677 - ensemble_api - INFO - ✅ Returning metrics data: 10 model metrics, 10 summaries, 10 confusion matrices
+2025-06-02 07:25:38,691 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.062s
+2025-06-02 07:25:40,849 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 07:25:40,934 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.085s
+2025-06-02 07:25:43,689 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-models
+2025-06-02 07:25:43,966 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-models - Status: 200 - Time: 0.277s
+2025-06-02 07:25:46,049 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/base-model-columns
+2025-06-02 07:25:46,082 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/base-model-columns - Status: 200 - Time: 0.033s
+2025-06-02 07:25:48,168 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/bitwise-logic
+2025-06-02 07:25:48,178 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/bitwise-logic - Status: 200 - Time: 0.010s
+2025-06-02 07:25:50,397 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-02 07:25:50,398 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-06-02 07:25:50,398 - ensemble_api - INFO - ✅ Returning predictions data: Unknown predictions
+2025-06-02 07:25:50,442 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.046s
+2025-06-02 07:26:49,586 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/docs
+2025-06-02 07:26:49,594 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/docs - Status: 200 - Time: 0.008s
+2025-06-02 07:26:49,829 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/openapi.json
+2025-06-02 07:26:49,933 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/openapi.json - Status: 200 - Time: 0.103s
+2025-06-02 07:28:05,385 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/threshold-sweep?model_name=kfold_avg_xgboost&data_type=costs
+2025-06-02 07:28:05,392 - ensemble_api - INFO - 📥 Query Params: {'model_name': 'kfold_avg_xgboost', 'data_type': 'costs'}
+2025-06-02 07:28:05,398 - ensemble_api - INFO - 🔍 Fetching threshold sweep data for model: kfold_avg_xgboost, data_type: costs
+2025-06-02 07:28:05,399 - ensemble_api - WARNING - ❌ Model 'kfold_avg_xgboost' not found. Available models: ['kfold_avg_XGBoost', 'kfold_avg_RandomForest', 'kfold_avg_AnomalyScore', 'kfold_avg_CL_ConfMax']
+2025-06-02 07:28:05,401 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/threshold-sweep?model_name=kfold_avg_xgboost&data_type=costs - Status: 404 - Time: 0.015s
+2025-06-02 07:28:17,766 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/threshold-sweep?model_name=kfold_avg_XGBoost&data_type=costs
+2025-06-02 07:28:17,766 - ensemble_api - INFO - 📥 Query Params: {'model_name': 'kfold_avg_XGBoost', 'data_type': 'costs'}
+2025-06-02 07:28:17,768 - ensemble_api - INFO - 🔍 Fetching threshold sweep data for model: kfold_avg_XGBoost, data_type: costs
+2025-06-02 07:28:17,769 - ensemble_api - INFO - ✅ Returning costs data for kfold_avg_XGBoost: 21 data points
+2025-06-02 07:28:17,770 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/threshold-sweep?model_name=kfold_avg_XGBoost&data_type=costs - Status: 200 - Time: 0.005s
+2025-06-02 08:07:41,760 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/docs
+2025-06-02 08:07:41,761 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/docs - Status: 200 - Time: 0.001s
+2025-06-02 08:07:41,967 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/openapi.json
+2025-06-02 08:07:41,987 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/openapi.json - Status: 200 - Time: 0.020s
+2025-06-02 08:07:48,748 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/
+2025-06-02 08:07:48,753 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/ - Status: 200 - Time: 0.004s
+2025-06-02 08:08:04,883 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/load
+2025-06-02 08:08:04,900 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/load - Status: 200 - Time: 0.016s

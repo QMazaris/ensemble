@@ -12,6 +12,11 @@ import numpy as np
 import logging
 import time
 from datetime import datetime
+import yaml            # PyYAML
+
+
+#  Constants
+CONFIG_PATH = Path("config.yaml")
 
 # Set up logging configuration
 logging.basicConfig(
@@ -200,6 +205,56 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "api_version": "1.0.0"}
+
+def merge_dicts(base: dict, updates: dict) -> None:
+    """
+    Recursively merge `updates` into `base`, replacing only the keys present in `updates`.
+    """
+    for key, value in updates.items():
+        if isinstance(value, dict) and key in base and isinstance(base[key], dict):
+            merge_dicts(base[key], value)
+        else:
+            base[key] = value
+
+def save_config(config: dict) -> None:
+    """
+    Save the given config dictionary to config.yaml on disk.
+    """
+    with CONFIG_PATH.open("w") as f:
+        yaml.safe_dump(config, f, sort_keys=False)
+
+# New config API functions
+@app.post("/config/load")
+def load_config() -> dict:
+    """
+    Read config.yaml from disk and return its contents as a Python dict.
+    """
+    with CONFIG_PATH.open("r") as f:
+        return yaml.safe_load(f)
+
+@app.post("/config/update")
+def update_config_partial(partial_conf: Dict[str, Any]):
+    """
+    Accept a nested dict of changes and merge them into config.yaml.
+    Only the keys present in `partial_conf` will be replaced.
+    """
+    try:
+        conf = load_config()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read config.yaml: {e}")
+
+    try:
+        merge_dicts(conf, partial_conf)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to merge config updates: {e}")
+
+    try:
+        save_config(conf)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to write config.yaml: {e}")
+
+    return {"message": "Configuration partially updated successfully", "updated": partial_conf}
+
 
 @app.get("/pipeline/status", response_model=PipelineStatus)
 def get_pipeline_status():
