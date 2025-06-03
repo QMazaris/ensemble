@@ -87,19 +87,24 @@ def render_preprocessing_tab():
     # ========== 3. BASE MODEL DECISION COLUMNS ==========
     st.write("#### Base Model Decision Configuration")
 
-    current_decision_columns = config.get("data", {}).get("base_model_decisions", [])
+    # Use a safe key
+    key = "decision_columns_select"
+
+    # Initialize state only once
+    if key not in st.session_state:
+        st.session_state[key] = config.get("data", {}).get("base_model_decisions", [])
 
     selected_decision_columns = st.multiselect(
         "Select Base Model Decision Columns",
         all_columns,
-        default=current_decision_columns,
-        key="decision_columns_select",
-        help="Choose the columns that contain base model decisions (e.g., labeled good/bad)",
+        key=key,
+        help="Choose the columns that contain base model decisions (e.g., labeled good/bad)"
     )
 
     if st.button("Save Decision Columns", key="save_decision_cols"):
         update_config_direct("data", "base_model_decisions", selected_decision_columns)
         st.toast("Decision columns saved!", icon="✅")
+
 
     # ========== 4. GOOD/BAD TAGS ==========
     st.write("#### Good/Bad Tags Configuration")
@@ -139,12 +144,18 @@ def render_preprocessing_tab():
     # Only keep exclude columns that are still valid options
     valid_current_exclude = [col for col in current_exclude if col in exclude_column_options]
     
+    # Use a safe key for exclude columns
+    exclude_key = "exclude_columns_select"
+    
+    # Initialize state only once
+    if exclude_key not in st.session_state:
+        st.session_state[exclude_key] = valid_current_exclude
+    
     selected_exclude_columns = st.multiselect(
         "Additional Columns to Exclude",
         exclude_column_options,
-        default=valid_current_exclude,
         help="These columns will not be used as features for model training",
-        key="exclude_columns_select"
+        key=exclude_key
     )
     
     if st.button("Save Exclude Columns", key="save_exclude_cols"):
@@ -299,11 +310,18 @@ def Bitwise_Logic(config, all_columns, selected_decision_columns):
     available_decision_columns = [col for col in all_columns if col in selected_decision_columns]
     
     if available_decision_columns:
+        # Use a safe key for rule columns
+        rule_columns_key = "new_rule_columns"
+        
+        # Initialize state only once
+        if rule_columns_key not in st.session_state:
+            st.session_state[rule_columns_key] = []
+        
         selected_rule_columns = st.multiselect(
             "Select Columns for Rule",
             available_decision_columns,
             help="Choose decision columns to combine with the selected logic",
-            key="new_rule_columns"
+            key=rule_columns_key
         )
         
         col1, col2 = st.columns(2)
@@ -318,6 +336,9 @@ def Bitwise_Logic(config, all_columns, selected_decision_columns):
                     current_rules.append(new_rule)
                     update_config_direct("bitwise_logic", "rules", current_rules)
                     st.toast(f"Rule '{rule_name}' added!", icon="✅")
+                    # Clear the form by resetting session state
+                    st.session_state[rule_columns_key] = []
+                    st.session_state["new_rule_name"] = ""
                     st.rerun()
                 else:
                     st.error("Please provide both rule name and select columns.")

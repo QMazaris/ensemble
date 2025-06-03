@@ -596,11 +596,18 @@ def render_threshold_comparison_plots(sweep_data, summary_df):
     available_models = list(sweep_data.keys())
     if not available_models:
         return
-        
+    
+    # Use a safe key for model selection
+    threshold_models_key = "threshold_comparison_models"
+    
+    # Initialize state only once
+    if threshold_models_key not in st.session_state:
+        st.session_state[threshold_models_key] = available_models[:min(3, len(available_models))]  # Default to first 3 models
+    
     selected_models = st.multiselect(
         "Select models for threshold comparison",
         options=available_models,
-        default=available_models[:min(3, len(available_models))]  # Default to first 3 models
+        key=threshold_models_key
     )
     
     if not selected_models:

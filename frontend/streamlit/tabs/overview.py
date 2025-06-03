@@ -239,11 +239,17 @@ def render_overview_tab():
             with col3:
                 current_model_filter = config.get('overview', {}).get('model_filter', list(summary_df['model_name'].unique()))
                 
+                # Use a safe key for model filter
+                model_filter_key = "overview_model_filter"
+                
+                # Initialize state only once
+                if model_filter_key not in st.session_state:
+                    st.session_state[model_filter_key] = current_model_filter
+                
                 model_filter = st.multiselect(
                     "Filter by Models",
                     options=summary_df['model_name'].unique(),
-                    default=current_model_filter,
-                    key="overview_model_filter"
+                    key=model_filter_key
                 )
                 
                 # Button-based save for multiselect
