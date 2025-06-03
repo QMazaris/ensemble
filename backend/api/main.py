@@ -253,6 +253,8 @@ def update_config_partial(partial_conf: Dict[str, Any]):
         conf = load_config()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to read config.yaml: {e}")
+    
+    print(f"partial_conf: {partial_conf}")
 
     try:
         merge_dicts(conf, partial_conf)

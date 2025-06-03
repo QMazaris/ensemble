@@ -22,6 +22,7 @@ from utils import (
     get_cached_data, clear_cache, plot_confusion_matrix, 
     render_model_curves
 )
+from config_util import on_config_change
 
 def render_model_analysis_tab():
     """Render the model analysis tab content."""
@@ -66,17 +67,44 @@ def render_model_analysis_tab():
     
     if summary_df is not None and not summary_df.empty:
         try:
-            # Model Selection
+            # Model Selection with config integration
             model_options = summary_df['model_name'].unique()
-            model = st.selectbox("Select Model", model_options)
+            config = st.session_state.get('config_settings', {})
+            current_model = config.get('model_analysis', {}).get('selected_model', model_options[0])
+            
+            try:
+                model_index = list(model_options).index(current_model)
+            except ValueError:
+                model_index = 0
+            
+            model = st.selectbox(
+                "Select Model", 
+                model_options,
+                index=model_index,
+                key="model_analysis_model_select",
+                on_change=lambda: on_config_change("model_analysis", "selected_model", "model_analysis_model_select")
+            )
             
             # Filter data for selected model
             model_data = summary_df[summary_df['model_name'] == model]
             model_cm = cm_df[cm_df['model_name'] == model]
 
-            # Split Selection
+            # Split Selection with config integration
             split_options = model_data['split'].unique()
-            selected_split = st.selectbox("Select Split", split_options)
+            current_split = config.get('model_analysis', {}).get('selected_split', split_options[0])
+            
+            try:
+                split_index = list(split_options).index(current_split)
+            except ValueError:
+                split_index = 0
+            
+            selected_split = st.selectbox(
+                "Select Split", 
+                split_options,
+                index=split_index,
+                key="model_analysis_split_select",
+                on_change=lambda: on_config_change("model_analysis", "selected_split", "model_analysis_split_select")
+            )
 
             # Filter data for selected split
             model_data_split = model_data[model_data['split'] == selected_split]

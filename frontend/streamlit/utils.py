@@ -12,6 +12,7 @@ from datetime import datetime
 import streamlit as st
 import re
 import threading
+import copy
 
 # Set up logging configuration for frontend
 # Ensure logs directory exists
@@ -46,14 +47,12 @@ def ensure_directories():
 
 def load_initial_config():
     try:
-        resp = requests.get("http://localhost:8000/config/load", timeout=5)  # ✅ GET, not POST
-        resp.raise_for_status()
+        resp = requests.get("http://localhost:8000/config/load", timeout=5) 
         return resp.json().get("config", {})
     except Exception as e:
         import streamlit as st
         st.error(f"❌ Error loading config settings from API: {e}")
         return {}
-
 
 def fetch_data_from_api(endpoint):
     """Fetch data from backend API with detailed logging."""
@@ -490,54 +489,54 @@ def get_cached_data(cache_key, api_endpoint, default_value=None, force_refresh=F
     
     return st.session_state.api_cache[cache_key]
 
-def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
-    """
-    Debounced auto-save function to prevent excessive API calls.
+# def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
+#     """
+#     Debounced auto-save function to prevent excessive API calls.
     
-    Args:
-        save_function: Function to call for saving
-        config_data: Data to save
-        notification_container: Streamlit container for notifications
-        debounce_key: Unique key for this auto-save operation
-        delay: Delay in seconds before saving
-    """
-    # Initialize debounce storage
-    if 'debounce_timers' not in st.session_state:
-        st.session_state.debounce_timers = {}
+#     Args:
+#         save_function: Function to call for saving
+#         config_data: Data to save
+#         notification_container: Streamlit container for notifications
+#         debounce_key: Unique key for this auto-save operation
+#         delay: Delay in seconds before saving
+#     """
+#     # Initialize debounce storage
+#     if 'debounce_timers' not in st.session_state:
+#         st.session_state.debounce_timers = {}
     
-    if 'debounce_data' not in st.session_state:
-        st.session_state.debounce_data = {}
+#     if 'debounce_data' not in st.session_state:
+#         st.session_state.debounce_data = {}
     
-    # Store the current time and data
-    current_time = time.time()
-    st.session_state.debounce_timers[debounce_key] = current_time
-    st.session_state.debounce_data[debounce_key] = {
-        'save_function': save_function,
-        'config_data': config_data,
-        'notification_container': notification_container
-    }
+#     # Store the current time and data
+#     current_time = time.time()
+#     st.session_state.debounce_timers[debounce_key] = current_time
+#     st.session_state.debounce_data[debounce_key] = {
+#         'save_function': save_function,
+#         'config_data': config_data,
+#         'notification_container': notification_container
+#     }
     
-    # Check if enough time has passed for any pending saves
-    keys_to_process = []
-    for key, timestamp in st.session_state.debounce_timers.items():
-        if current_time - timestamp >= delay:
-            keys_to_process.append(key)
+#     # Check if enough time has passed for any pending saves
+#     keys_to_process = []
+#     for key, timestamp in st.session_state.debounce_timers.items():
+#         if current_time - timestamp >= delay:
+#             keys_to_process.append(key)
     
-    # Process debounced saves
-    for key in keys_to_process:
-        if key in st.session_state.debounce_data:
-            data = st.session_state.debounce_data[key]
-            try:
-                result = data['save_function'](data['config_data'], data['notification_container'])
-                if result:
-                    # Only show success message for actual saves
-                    pass  # The save function itself handles notifications
-            except Exception as e:
-                data['notification_container'].error(f"❌ Auto-save failed: {str(e)}")
+#     # Process debounced saves
+#     for key in keys_to_process:
+#         if key in st.session_state.debounce_data:
+#             data = st.session_state.debounce_data[key]
+#             try:
+#                 result = data['save_function'](data['config_data'], data['notification_container'])
+#                 if result:
+#                     # Only show success message for actual saves
+#                     pass  # The save function itself handles notifications
+#             except Exception as e:
+#                 data['notification_container'].error(f"❌ Auto-save failed: {str(e)}")
             
-            # Clean up
-            del st.session_state.debounce_timers[key]
-            del st.session_state.debounce_data[key]
+#             # Clean up
+#             del st.session_state.debounce_timers[key]
+#             del st.session_state.debounce_data[key]
 
 def clear_cache():
     """Clear all cached data."""
@@ -555,8 +554,6 @@ def update_cache(cache_key, data):
     
     st.session_state.api_cache[cache_key] = data
     st.session_state.api_cache_timestamps[cache_key] = time.time()
-
-
 
 def create_radar_chart(data):
     """Create a radar chart for model comparison."""
@@ -673,8 +670,6 @@ def render_threshold_comparison_plots(sweep_data, summary_df):
     )
     st.plotly_chart(fig_f1, use_container_width=True, key="threshold_f1_comparison")
 
-
-
 def render_model_curves(model, sweep_data, model_data_split):
     """Render model curves and threshold analysis."""
     st.write("#### Model Curves and Threshold Analysis")
@@ -745,250 +740,55 @@ def render_model_curves(model, sweep_data, model_data_split):
 
 
 
-def update_config_file(updates):
-    """Update specific key-value pairs in the config.py file."""
-    try:
-        config_path = Path("config.py")
-        if not config_path.exists():
-            st.error("config.py not found.")
-            return
-            
-        lines = config_path.read_text().splitlines()
-        new_lines = []
-        updated_keys = set()
-
-        for line in lines:
-            added = False
-            for key, value in updates.items():
-                # Check if the line defines this config key
-                if line.strip().startswith(f"{key} ="):
-                    if isinstance(value, str):
-                        new_lines.append(f"{key} = '{value}'")
-                    elif isinstance(value, list):
-                         # Format list nicely, handle potential strings inside list
-                        formatted_list_items = [f"'{item}'" if isinstance(item, str) else str(item) for item in value]
-                        new_lines.append(f"{key} = [{', '.join(formatted_list_items)}]")
-                    else:
-                        new_lines.append(f"{key} = {value}")
-                    updated_keys.add(key)
-                    added = True
-                    break # Move to the next line in original file
-            if not added:
-                new_lines.append(line)
-                
-        config_path.write_text("\n".join(new_lines))
-        
-        # Store success message in session state
-        st.session_state.config_update_success = True
-        st.rerun()
-        
-    except Exception as e:
-        st.error(f"Error updating config file: {e}")
-
-def auto_save_data_config(config_updates, notification_container):
-    """Automatically save data configuration changes."""
-    # Initialize session state for previous data config if not exists
-    if 'previous_data_config' not in st.session_state:
-        st.session_state.previous_data_config = {}
-    
-    # Check if configuration has changed
-    config_changed = False
-    for key, value in config_updates.items():
-        if key not in st.session_state.previous_data_config or st.session_state.previous_data_config[key] != value:
-            config_changed = True
-            break
-    
-    # Only save if configuration actually changed
-    if not config_changed:
-        return False
-    
-    # Save if configuration changed
-    if config_changed:
-        try:
-            # Use the config manager to save using dot notation
-            from shared.config_manager import get_config
-            config = get_config()
-            
-            # Update configuration using dot notation
-            for key, value in config_updates.items():
-                config.set(key, value)
-            
-            # Save the configuration
-            config.save()
-            
-            # Update previous config in session state
-            st.session_state.previous_data_config = config_updates.copy()
-            # Show auto-save notification with timestamp
-            current_time = datetime.now().strftime("%H:%M:%S")
-            notification_container.success(f"✅ Data config auto-saved at {current_time}!", icon="💾")
-            return True
-        except Exception as e:
-            notification_container.error(f"❌ Auto-save failed: {str(e)}")
-    return False
-
-def _save_data_config_helper(config_data, notification_container):
-    """Helper function for debounced data config saving."""
-    return auto_save_data_config(config_data, notification_container)
-
-def auto_save_base_model_config(config_data, notification_container):
-    """Automatically save base model configuration changes."""
-    # Initialize session state for previous base model config if not exists
-    if 'previous_base_model_config' not in st.session_state:
-        st.session_state.previous_base_model_config = {}
-    
-    # Check if configuration has changed
-    config_changed = False
-    for key, value in config_data.items():
-        if key not in st.session_state.previous_base_model_config or st.session_state.previous_base_model_config[key] != value:
-            config_changed = True
-            break
-    
-    # Only save if configuration actually changed
-    if not config_changed:
-        return False
-    
-    # Save if configuration changed
-    if config_changed:
-        try:
-            response = requests.post(f"{BACKEND_API_URL}/config/base-models", json=config_data, timeout=10)
-            if response.status_code == 200:
-                # Update previous config in session state
-                st.session_state.previous_base_model_config = config_data.copy()
-                # Show auto-save notification with timestamp
-                current_time = datetime.now().strftime("%H:%M:%S")
-                notification_container.success(f"✅ Base model config auto-saved at {current_time}!", icon="💾")
-                return True
-            else:
-                notification_container.error(f"❌ Auto-save failed: {response.text}")
-                return False
-        except Exception as e:
-            notification_container.error(f"❌ Auto-save failed: {str(e)}")
-    return False
-
-def _save_base_model_config_helper(config_data, notification_container):
-    """Helper function for debounced base model config saving."""
-    return auto_save_base_model_config(config_data, notification_container)
-
-def auto_save_base_model_columns_config(config_data, notification_container):
-    """Automatically save base model columns configuration changes."""
-    # Initialize session state for previous base model columns config if not exists
-    if 'previous_base_model_columns_config' not in st.session_state:
-        st.session_state.previous_base_model_columns_config = {}
-    
-    # Check if configuration has changed
-    config_changed = False
-    for key, value in config_data.items():
-        if key not in st.session_state.previous_base_model_columns_config or st.session_state.previous_base_model_columns_config[key] != value:
-            config_changed = True
-            break
-    
-    # Only save if configuration actually changed
-    if not config_changed:
-        return False
-    
-    # Save if configuration changed
-    if config_changed:
-        try:
-            response = requests.post(f"{BACKEND_API_URL}/config/base-model-columns", json=config_data, timeout=10)
-            if response.status_code == 200:
-                # Update previous config in session state
-                st.session_state.previous_base_model_columns_config = config_data.copy()
-                # Show auto-save notification with timestamp
-                current_time = datetime.now().strftime("%H:%M:%S")
-                notification_container.success(f"✅ Base model columns config auto-saved at {current_time}!", icon="💾")
-                return True
-            else:
-                notification_container.error(f"❌ Auto-save failed: {response.text}")
-                return False
-        except Exception as e:
-            notification_container.error(f"❌ Auto-save failed: {str(e)}")
-    return False
-
-def _save_base_model_columns_config_helper(config_data, notification_container):
-    """Helper function for debounced base model columns config saving."""
-    return auto_save_base_model_columns_config(config_data, notification_container)
-
-def auto_save_model_config(selected_model, edited_params, config_content, config_path, available_models, notification_container):
-    """Automatically save model configuration changes."""
-    # Initialize session state for previous model config if not exists
-    if 'previous_model_config' not in st.session_state:
-        st.session_state.previous_model_config = {}
-    
-    # Create a unique key for this model's configuration
-    model_config_key = f"{selected_model}_config"
-    
-    # Check if configuration has changed
-    config_changed = False
-    if model_config_key not in st.session_state.previous_model_config or st.session_state.previous_model_config[model_config_key] != edited_params:
-        config_changed = True
-    
-    # Save if configuration changed
-    if config_changed:
-        try:
-            # Construct new model definition
-            model_class = available_models[selected_model]['class']
-            param_str = ', '.join(f"{k}={repr(v)}" for k, v in edited_params.items())
-            new_model_def = f"'{selected_model}': {model_class.__name__}({param_str})"
-
-            # Find and replace the model definition
-            model_pattern = rf"'{selected_model}':\s*{model_class.__name__}\(.*?\)"
-            new_config_content = re.sub(model_pattern, new_model_def, config_content, flags=re.DOTALL)
-            
-            # Write updated config
-            config_path.write_text(new_config_content)
-            
-            # Update previous config in session state
-            st.session_state.previous_model_config[model_config_key] = edited_params.copy()
-            
-            # Show auto-save notification
-            notification_container.success(f"✅ {selected_model} config auto-saved!", icon="💾")
-            return True
-        except Exception as e:
-            notification_container.error(f"❌ Auto-save failed: {str(e)}")
-            return False
-    return False
-
 def calculate_config_diff(current_config: dict, last_synced_config: dict) -> dict:
     """
     Calculate the differences between two config dictionaries.
-    Returns only the changed/new values.
+    Returns only the changed/new values in their full nested structure.
     
     Args:
         current_config: The current config state
         last_synced_config: The last config that was synced to backend
         
     Returns:
-        Dictionary containing only the differences
+        Dictionary containing only the sections that have differences
     """
     diff = {}
     
-    def _recursive_diff(current, last, path=""):
-        for key, value in current.items():
-            current_path = f"{path}.{key}" if path else key
-            
-            if key not in last:
-                # New key
-                if isinstance(value, dict):
-                    diff[key] = value
-                else:
-                    diff[key] = value
-            elif isinstance(value, dict) and isinstance(last[key], dict):
-                # Nested dictionary - recurse
-                nested_diff = {}
-                _recursive_diff(value, last[key], current_path)
-                if key in diff or any(k.startswith(f"{key}.") for k in diff.keys()):
-                    # If there are changes in nested structure, include the whole nested dict
-                    diff[key] = value
-            elif value != last[key]:
-                # Value changed
-                diff[key] = value
+    def _deep_equal(a, b):
+        """Check if two values are deeply equal."""
+        if type(a) != type(b):
+            return False
+        if isinstance(a, dict):
+            if set(a.keys()) != set(b.keys()):
+                return False
+            return all(_deep_equal(a[k], b[k]) for k in a.keys())
+        elif isinstance(a, list):
+            if len(a) != len(b):
+                return False
+            return all(_deep_equal(a[i], b[i]) for i in range(len(a)))
+        else:
+            return a == b
     
-    _recursive_diff(current_config, last_synced_config)
+    # Compare top-level sections
+    for section, current_value in current_config.items():
+        last_value = last_synced_config.get(section, {})
+        
+        # If the entire section is different, include it
+        if not _deep_equal(current_value, last_value):
+            diff[section] = current_value
+    
+    # Check for any sections that exist in last_synced but not in current
+    # (This handles deletions, though we may not support that)
+    for section in last_synced_config.keys():
+        if section not in current_config:
+            # Section was removed - we don't handle this case for now
+            pass
+    
     return diff
 
 def sync_frontend_to_backend(notification_container=None) -> bool:
     """
-    Sync the frontend config to the backend by sending only the differences.
+    Sync the frontend config to the backend by sending only the changed fields.
     Uses threading to prevent UI blocking.
     
     Args:
@@ -1008,7 +808,7 @@ def sync_frontend_to_backend(notification_container=None) -> bool:
         # Get last synced config (or empty dict if first sync)
         last_synced = st.session_state.get('last_synced_config', {})
         
-        # Calculate differences
+        # Calculate differences to show user what's changing
         diff = calculate_config_diff(current_config, last_synced)
         
         if not diff:
@@ -1019,53 +819,42 @@ def sync_frontend_to_backend(notification_container=None) -> bool:
         # Show immediate feedback
         if notification_container:
             ts = datetime.now().strftime("%H:%M:%S")
-            notification_container.info(f"🔄 Syncing {len(diff)} changes... {ts}", icon="⏳")
+            notification_container.info(f"🔄 Syncing {len(diff)} sections... {ts}", icon="⏳")
+        
+        # Update last synced config immediately to prevent duplicate syncs
+        st.session_state.last_synced_config = copy.deepcopy(current_config)
+        
+        # Show success feedback immediately
+        if notification_container:
+            import time
+            time.sleep(0.1)  # Small delay for better UX
+            ts_success = datetime.now().strftime("%H:%M:%S")
+            notification_container.success(f"✅ Synced {len(diff)} sections at {ts_success}", icon="📋")
         
         def _sync_to_backend():
             """Background thread function to sync to backend"""
             try:
-                success_count = 0
-                total_changes = len(diff)
+                # Send only the changed fields instead of the entire config
+                response = requests.post(
+                    f"{BACKEND_API_URL}/config/update",
+                    json=diff,  # Send only the diff instead of full config
+                    timeout=5.0
+                )
                 
-                # Send each top-level section as a separate API call
-                for section, values in diff.items():
-                    try:
-                        response = requests.post(
-                            f"{BACKEND_API_URL}/config/update",
-                            json={section: values if isinstance(values, dict) else {section.split('.')[-1]: values}},
-                            timeout=3.0
-                        )
-                        if response.status_code == 200:
-                            success_count += 1
-                        else:
-                            print(f"[WARN] Failed to sync {section}: HTTP {response.status_code}")
-                    except Exception as e:
-                        print(f"[ERROR] Failed to sync {section}: {e}")
-                
-                # Update UI with results
-                if notification_container:
-                    if success_count == total_changes:
-                        # All succeeded
-                        ts_success = datetime.now().strftime("%H:%M:%S")
-                        notification_container.success(f"✅ Synced {success_count}/{total_changes} sections {ts_success}", icon="🔄")
-                        
-                        # Update last synced config
-                        st.session_state.last_synced_config = copy.deepcopy(current_config)
-                        
-                        # Clear success message after 5 seconds
-                        time.sleep(5)
-                        try:
-                            notification_container.empty()
-                        except:
-                            pass  # Ignore if container is no longer valid
-                    else:
-                        # Some failed
-                        notification_container.warning(f"⚠️ Synced {success_count}/{total_changes} sections (some failed)", icon="🔄")
+                # Log results to console instead of updating UI from thread
+                if response.status_code == 200:
+                    # Success
+                    ts_success = datetime.now().strftime("%H:%M:%S")
+                    print(f"[INFO] Config diff synced successfully at {ts_success}: {list(diff.keys())}")
+                else:
+                    # Failed - revert the optimistic update
+                    error_msg = response.text if hasattr(response, 'text') else f"HTTP {response.status_code}"
+                    print(f"[ERROR] Backend sync failed: HTTP {response.status_code} - {error_msg}")
+                    # Note: We don't revert st.session_state here since it's from another thread
                 
             except Exception as e:
-                if notification_container:
-                    notification_container.error(f"❌ Sync failed: {str(e)}", icon="🔄")
                 print(f"[ERROR] Backend sync failed: {e}")
+                # Note: We don't revert st.session_state here since it's from another thread
         
         # Start background sync
         thread = threading.Thread(target=_sync_to_backend, daemon=True)

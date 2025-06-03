@@ -1,18 +1,29 @@
 costs:
-  false_negative: 30.0
-  false_positive: 1.0
+  false_negative: 50.0
+  false_positive: 2.0
 data:
-  exclude_columns: []
+  exclude_columns:
+  - CL_Decision
+  - AD_ClassID
+  - GT_Label_Num
+  - RegionRow
   path: data/training_data.csv
   random_state: 42
-  target_column: RegionCount
+  target_column: CL_ClassID
   test_size: 0.2
-  good_tag: no good
-  bad_tag: really bad
   base_model_decisions:
+  - Weld
   - GT_Label
+  - AnomalyScore
   - RegionArea
   - MaxVal
+  - RegionCount
+  - BurnThru
+  - Concavity
+  - Good
+  - Porosity
+  good_tag: quinn
+  bad_tag: is great
 export:
   export_onnx: false
   onnx_opset_version: 12
@@ -20,9 +31,9 @@ export:
   save_plots: true
   save_predictions: true
 features:
-  correlation_threshold: 0.95
+  correlation_threshold: 0.739
   filter_data: false
-  variance_threshold: 0.01
+  variance_threshold: 0.091
 hyperparam_spaces:
   RandomForest:
     bootstrap:
@@ -134,7 +145,7 @@ models:
   - RandomForest
 optimization:
   enabled: false
-  iterations: 50
+  iterations: 60
   n_jobs: -1
   optimize_final_model: false
 output:
@@ -150,3 +161,6 @@ training:
   smote_ratio: 0.5
   use_kfold: true
   use_smote: true
+bitwise_logic:
+  rules: []
+  enabled: false

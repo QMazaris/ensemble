@@ -1474,3 +1474,549 @@
 2025-06-02 14:24:09,034 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.028s
 2025-06-02 14:24:11,471 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
 2025-06-02 14:24:11,497 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.026s
+2025-06-02 14:28:52,980 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 14:28:52,992 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.012s
+2025-06-02 14:28:55,025 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 14:28:55,026 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 14:28:55,028 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 14:28:55,030 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-02 14:28:57,104 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 14:28:57,191 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.087s
+2025-06-02 14:28:59,732 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-02 14:28:59,733 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-06-02 14:28:59,734 - ensemble_api - INFO - ✅ Returning predictions data: 2412 predictions
+2025-06-02 14:28:59,836 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.105s
+2025-06-02 14:30:13,109 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:30:13,149 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.040s
+2025-06-02 14:30:15,192 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:30:15,220 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.028s
+2025-06-02 14:33:45,127 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 14:33:45,154 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.027s
+2025-06-02 14:33:47,243 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 14:33:47,246 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 14:33:47,250 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 14:33:47,256 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.013s
+2025-06-02 14:33:49,309 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 14:33:49,387 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.078s
+2025-06-02 14:33:51,993 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-02 14:33:51,995 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-06-02 14:33:51,996 - ensemble_api - INFO - ✅ Returning predictions data: 2412 predictions
+2025-06-02 14:33:52,094 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.102s
+2025-06-02 14:34:29,028 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 14:34:29,044 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.016s
+2025-06-02 14:34:31,092 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 14:34:31,093 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 14:34:31,095 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 14:34:31,099 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-02 14:34:33,141 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 14:34:33,212 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.071s
+2025-06-02 14:34:35,707 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-02 14:34:35,709 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-06-02 14:34:35,710 - ensemble_api - INFO - ✅ Returning predictions data: 2412 predictions
+2025-06-02 14:34:35,792 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.085s
+2025-06-02 14:35:56,263 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:35:56,280 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.017s
+2025-06-02 14:36:06,025 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:36:06,054 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.030s
+2025-06-02 14:36:20,145 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:36:20,189 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.043s
+2025-06-02 14:36:25,124 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:36:25,142 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.018s
+2025-06-02 14:36:36,913 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:36:36,944 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.031s
+2025-06-02 14:36:57,246 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:36:57,293 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.047s
+2025-06-02 14:37:11,029 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:37:11,056 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.027s
+2025-06-02 14:37:22,874 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:37:22,893 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.020s
+2025-06-02 14:37:34,093 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:37:34,122 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.029s
+2025-06-02 14:38:59,578 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:38:59,620 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.042s
+2025-06-02 14:39:30,766 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:39:30,817 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.051s
+2025-06-02 14:39:31,137 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 14:39:31,139 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 14:39:31,140 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 14:39:31,144 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-02 14:39:39,410 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:39:39,436 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 14:39:39,448 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.038s
+2025-06-02 14:39:39,522 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.086s
+2025-06-02 14:39:42,012 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-02 14:39:42,014 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-06-02 14:39:42,015 - ensemble_api - INFO - ✅ Returning predictions data: 2412 predictions
+2025-06-02 14:39:42,106 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.095s
+2025-06-02 14:39:55,613 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 14:39:55,676 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.063s
+2025-06-02 14:58:00,764 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 14:58:00,785 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.021s
+2025-06-02 14:58:02,835 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 14:58:02,836 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 14:58:02,838 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 14:58:02,841 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-02 14:58:04,883 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 14:58:04,959 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.077s
+2025-06-02 14:58:07,436 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-02 14:58:07,438 - ensemble_api - INFO - 🔍 Fetching predictions data from data service...
+2025-06-02 14:58:07,438 - ensemble_api - INFO - ✅ Returning predictions data: 2412 predictions
+2025-06-02 14:58:07,534 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.098s
+2025-06-02 15:00:43,556 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:00:43,569 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.013s
+2025-06-02 15:00:45,586 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:00:45,587 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:00:45,588 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:00:45,590 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-02 15:00:47,636 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:00:47,710 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.075s
+2025-06-02 15:01:13,135 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:01:13,150 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.015s
+2025-06-02 15:01:15,670 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:01:15,672 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:01:15,673 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:01:15,679 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-06-02 15:01:17,753 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:01:17,785 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.033s
+2025-06-02 15:03:33,984 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:03:34,007 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.023s
+2025-06-02 15:03:36,053 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:03:36,054 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:03:36,056 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:03:36,058 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-02 15:03:38,104 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:03:38,221 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.117s
+2025-06-02 15:04:22,419 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:04:22,430 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.011s
+2025-06-02 15:04:24,485 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:04:24,487 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:04:24,489 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:04:24,491 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-02 15:04:26,532 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:04:26,604 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.072s
+2025-06-02 15:06:50,967 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:06:50,995 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.027s
+2025-06-02 15:06:53,056 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:06:53,058 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:06:53,061 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:06:53,066 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-06-02 15:06:55,123 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:06:55,226 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.103s
+2025-06-02 15:07:50,061 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:07:50,084 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.023s
+2025-06-02 15:07:52,154 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:07:52,156 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:07:52,158 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:07:52,160 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-02 15:07:54,190 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:07:54,305 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.115s
+2025-06-02 15:09:29,210 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:09:29,220 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.010s
+2025-06-02 15:09:31,265 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:09:31,266 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:09:31,268 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:09:31,270 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-02 15:09:33,357 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:09:33,441 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.085s
+2025-06-02 15:11:57,327 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:11:57,340 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.013s
+2025-06-02 15:11:59,389 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:11:59,392 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:11:59,396 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:11:59,402 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.013s
+2025-06-02 15:12:01,485 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:12:01,569 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.084s
+2025-06-02 15:14:24,387 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:14:24,410 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.023s
+2025-06-02 15:14:26,427 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:14:26,429 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:14:26,431 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:14:26,434 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-02 15:14:28,490 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:14:28,570 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.081s
+2025-06-02 15:19:56,928 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:19:56,944 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.016s
+2025-06-02 15:19:58,960 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:19:58,961 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:19:58,963 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:19:58,965 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-02 15:20:01,027 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:20:01,105 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.078s
+2025-06-02 15:22:38,297 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:22:38,320 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.023s
+2025-06-02 15:22:40,360 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:22:40,362 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:22:40,365 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:22:40,368 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.008s
+2025-06-02 15:22:42,396 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:22:42,463 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.067s
+2025-06-02 15:22:56,548 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:22:56,584 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.036s
+2025-06-02 15:24:23,471 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:24:23,485 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.014s
+2025-06-02 15:24:25,527 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:24:25,528 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:24:25,530 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:24:25,533 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-02 15:24:27,577 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:24:27,645 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.068s
+2025-06-02 15:24:59,397 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:24:59,438 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.041s
+2025-06-02 15:27:13,876 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:27:13,889 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.013s
+2025-06-02 15:27:15,927 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:27:15,929 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:27:15,931 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:27:15,934 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-02 15:27:17,963 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:27:18,037 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.074s
+2025-06-02 15:27:27,978 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:27:28,021 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.043s
+2025-06-02 15:28:04,696 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:28:04,715 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.019s
+2025-06-02 15:28:06,750 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:28:06,752 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:28:06,753 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:28:06,759 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-06-02 15:28:08,807 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:28:08,853 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.046s
+2025-06-02 15:29:37,351 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:29:37,378 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.028s
+2025-06-02 15:29:39,463 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:29:39,465 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:29:39,470 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:29:39,476 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.014s
+2025-06-02 15:29:41,533 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:29:41,620 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.087s
+2025-06-02 15:29:51,864 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:29:51,906 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.043s
+2025-06-02 15:30:09,281 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:30:09,325 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.044s
+2025-06-02 15:34:12,550 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:34:12,572 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.022s
+2025-06-02 15:34:14,614 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:34:14,617 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:34:14,621 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:34:14,627 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.013s
+2025-06-02 15:34:16,699 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:34:16,787 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.088s
+2025-06-02 15:36:29,334 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:36:29,381 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.047s
+2025-06-02 15:37:11,084 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:37:11,130 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.047s
+2025-06-02 15:37:46,366 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:37:46,392 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.026s
+2025-06-02 15:37:48,984 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:37:48,987 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:37:48,988 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:37:48,994 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-06-02 15:37:51,050 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:37:51,096 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.045s
+2025-06-02 15:38:51,499 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:38:51,549 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.050s
+2025-06-02 15:39:28,003 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:39:28,028 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.026s
+2025-06-02 15:44:13,778 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:44:13,794 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.016s
+2025-06-02 15:44:15,830 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:44:15,832 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:44:15,834 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:44:15,837 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-02 15:44:17,870 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:44:17,948 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.078s
+2025-06-02 15:44:26,479 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:44:26,498 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.019s
+2025-06-02 15:45:01,260 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:45:01,306 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.046s
+2025-06-02 15:46:02,749 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:46:02,800 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.051s
+2025-06-02 15:46:25,261 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:46:25,283 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.022s
+2025-06-02 15:48:10,745 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:48:10,773 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.028s
+2025-06-02 15:48:12,821 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:48:12,823 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:48:12,824 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:48:12,827 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-02 15:48:14,886 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:48:14,958 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.072s
+2025-06-02 15:48:24,321 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:48:24,350 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.029s
+2025-06-02 15:49:18,946 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:49:18,962 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.016s
+2025-06-02 15:49:21,041 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:49:21,042 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:49:21,044 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:49:21,046 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-02 15:49:23,088 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:49:23,168 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.080s
+2025-06-02 15:50:05,309 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:50:05,323 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.013s
+2025-06-02 15:50:07,387 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:50:07,390 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:50:07,395 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:50:07,401 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.013s
+2025-06-02 15:50:09,436 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:50:09,512 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.076s
+2025-06-02 15:50:43,388 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:50:43,420 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.032s
+2025-06-02 15:54:10,258 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:54:10,294 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.036s
+2025-06-02 15:54:12,357 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:54:12,359 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:54:12,361 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:54:12,364 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-02 15:54:14,405 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:54:14,494 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.089s
+2025-06-02 15:54:42,940 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:54:42,977 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.037s
+2025-06-02 15:55:14,630 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:55:14,650 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.020s
+2025-06-02 15:55:42,469 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:55:42,505 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.036s
+2025-06-02 15:56:56,875 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 15:56:56,895 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.019s
+2025-06-02 15:56:58,939 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 15:56:58,942 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 15:56:58,946 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 15:56:58,952 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.013s
+2025-06-02 15:57:01,025 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 15:57:01,108 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.083s
+2025-06-02 15:57:25,707 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 15:57:25,726 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.019s
+2025-06-02 16:00:22,116 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 16:00:22,143 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.027s
+2025-06-02 16:00:24,196 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-02 16:00:24,199 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-02 16:00:24,204 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-02 16:00:24,212 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.016s
+2025-06-02 16:00:26,276 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-02 16:00:26,332 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.056s
+2025-06-02 16:00:42,934 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-02 16:00:42,957 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.023s
+2025-06-02 16:02:57,605 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-02 16:02:57,635 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.031s
+2025-06-03 07:12:49,952 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 07:12:49,982 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.030s
+2025-06-03 07:12:52,059 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 07:12:52,060 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 07:12:52,062 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 07:12:52,065 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-03 07:12:54,109 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 07:12:54,188 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.078s
+2025-06-03 07:27:09,494 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 07:27:09,511 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.017s
+2025-06-03 07:27:11,564 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 07:27:11,566 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 07:27:11,571 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 07:27:11,574 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-06-03 07:27:13,601 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 07:27:13,688 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.087s
+2025-06-03 07:39:18,400 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 07:39:18,415 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.014s
+2025-06-03 07:39:21,157 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 07:39:21,159 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 07:39:21,163 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 07:39:21,171 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.014s
+2025-06-03 07:39:23,248 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 07:39:23,388 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.140s
+2025-06-03 07:40:06,332 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 07:40:06,378 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.046s
+2025-06-03 07:41:33,795 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 07:41:33,810 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.015s
+2025-06-03 07:41:35,855 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 07:41:35,857 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 07:41:35,858 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 07:41:35,861 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.006s
+2025-06-03 07:41:37,892 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 07:41:37,991 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.099s
+2025-06-03 07:42:06,356 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 07:42:06,377 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.021s
+2025-06-03 07:48:24,129 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 07:48:24,154 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.025s
+2025-06-03 07:48:26,194 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 07:48:26,195 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 07:48:26,197 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 07:48:26,199 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-03 07:48:28,266 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 07:48:28,347 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.081s
+2025-06-03 07:52:40,582 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 07:52:40,595 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.013s
+2025-06-03 07:52:42,645 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 07:52:42,646 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 07:52:42,648 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 07:52:42,651 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-03 07:52:44,703 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 07:52:44,783 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.081s
+2025-06-03 07:55:30,734 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 07:55:30,746 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.013s
+2025-06-03 07:55:32,776 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 07:55:32,778 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 07:55:32,780 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 07:55:32,783 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-03 07:55:34,810 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 07:55:34,881 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.072s
+2025-06-03 08:02:06,948 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:02:06,950 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:02:06,950 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:02:06,953 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-06-03 08:02:08,980 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:02:09,012 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.032s
+2025-06-03 08:06:15,370 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 08:06:15,407 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.036s
+2025-06-03 08:06:17,466 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:06:17,468 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:06:17,471 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:06:17,476 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-06-03 08:06:19,518 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:06:19,590 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.072s
+2025-06-03 08:07:08,896 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 08:07:08,908 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.012s
+2025-06-03 08:07:10,945 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:07:10,948 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:07:10,957 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:07:10,964 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.018s
+2025-06-03 08:07:13,023 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:07:13,112 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.089s
+2025-06-03 08:13:01,462 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:13:01,464 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:13:01,466 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:13:01,469 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-03 08:13:03,504 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:13:03,575 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.071s
+2025-06-03 08:14:35,169 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:14:35,203 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.034s
+2025-06-03 08:20:49,220 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 08:20:49,248 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.028s
+2025-06-03 08:20:51,290 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:20:51,293 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:20:51,297 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:20:51,306 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.016s
+2025-06-03 08:20:53,339 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:20:53,415 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.076s
+2025-06-03 08:21:32,821 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:21:32,850 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.029s
+2025-06-03 08:28:01,377 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:28:01,417 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.040s
+2025-06-03 08:28:35,069 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:28:35,092 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.022s
+2025-06-03 08:28:58,600 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:28:58,637 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.037s
+2025-06-03 08:29:27,476 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:29:27,532 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.056s
+2025-06-03 08:30:25,147 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:30:25,194 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.046s
+2025-06-03 08:30:49,775 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 08:30:49,808 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.033s
+2025-06-03 08:30:52,427 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:30:52,429 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:30:52,434 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:30:52,440 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.014s
+2025-06-03 08:30:54,493 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:30:54,572 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.078s
+2025-06-03 08:31:18,257 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:31:18,302 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.045s
+2025-06-03 08:31:29,006 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 08:31:29,047 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.041s
+2025-06-03 08:36:04,468 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:36:04,531 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.063s
+2025-06-03 08:36:12,114 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 08:36:12,148 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.034s
+2025-06-03 08:36:14,196 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:36:14,199 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:36:14,200 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:36:14,207 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-06-03 08:36:16,261 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:36:16,309 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.049s
+2025-06-03 08:44:12,571 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 08:44:12,583 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.012s
+2025-06-03 08:44:14,617 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:44:14,620 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:44:14,624 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:44:14,632 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.015s
+2025-06-03 08:44:16,699 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:44:16,787 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.087s
+2025-06-03 08:56:13,724 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:56:13,728 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:56:13,729 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:56:13,736 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.012s
+2025-06-03 08:56:15,027 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:56:15,029 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:56:15,030 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:56:15,040 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.013s
+2025-06-03 08:56:15,936 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:56:15,938 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:56:15,939 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:56:15,946 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.011s
+2025-06-03 08:56:17,137 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 08:56:17,138 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 08:56:17,138 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 08:56:17,140 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-06-03 08:56:19,184 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:56:19,241 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.057s
+2025-06-03 08:56:20,289 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 08:56:20,348 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.059s
+2025-06-03 09:01:18,438 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:01:18,442 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:01:18,443 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:01:18,457 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.018s
+2025-06-03 09:01:19,637 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:01:19,639 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:01:19,639 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:01:19,642 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-03 09:01:21,705 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 09:01:21,742 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.037s
+2025-06-03 09:02:23,357 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 09:02:23,391 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.034s
+2025-06-03 09:02:25,433 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:02:25,436 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:02:25,438 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:02:25,444 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.012s
+2025-06-03 09:02:27,487 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 09:02:27,536 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.049s
+2025-06-03 09:04:46,237 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 09:04:46,263 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.026s
+2025-06-03 09:05:02,289 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 09:05:02,320 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.031s
+2025-06-03 09:05:10,443 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/config/update
+2025-06-03 09:05:10,467 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/config/update - Status: 200 - Time: 0.025s
+2025-06-03 09:05:48,621 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 09:05:48,659 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.038s
+2025-06-03 09:05:50,736 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:05:50,739 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:05:50,740 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:05:50,745 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.009s
+2025-06-03 09:05:52,790 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 09:05:52,842 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.052s
+2025-06-03 09:06:06,228 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 09:06:06,252 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.024s
+2025-06-03 09:06:08,308 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:06:08,320 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:06:08,322 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:06:08,328 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.020s
+2025-06-03 09:06:10,376 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 09:06:10,413 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.038s
+2025-06-03 09:06:17,925 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 09:06:17,956 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.031s
+2025-06-03 09:06:19,991 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:06:19,994 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:06:19,995 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:06:20,001 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-06-03 09:06:25,755 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 09:06:25,814 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.059s
+2025-06-03 09:06:40,323 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 09:06:40,355 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.032s
+2025-06-03 09:06:42,408 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:06:42,410 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:06:42,412 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:06:42,418 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-06-03 09:06:44,475 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 09:06:44,502 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.027s
+2025-06-03 09:07:14,095 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-03 09:07:14,130 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.034s
+2025-06-03 09:07:16,178 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-03 09:07:16,181 - ensemble_api - INFO - 🔍 Fetching model metrics from data service...
+2025-06-03 09:07:16,182 - ensemble_api - INFO - ✅ Returning metrics data: 12 model metrics, 12 summaries, 12 confusion matrices
+2025-06-03 09:07:16,189 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.010s
+2025-06-03 09:07:18,242 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-03 09:07:18,283 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.041s

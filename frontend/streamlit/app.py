@@ -8,6 +8,7 @@ import json
 from datetime import datetime
 import requests
 import copy
+from utils import calculate_config_diff
 
 # Add the root directory to Python path
 root_dir = str(Path(__file__).parent.parent.parent)
@@ -16,11 +17,11 @@ if root_dir not in sys.path:
 
 # Import from individual tab files
 from tabs.overview import render_overview_tab
-from tabs.model_analysis import render_model_analysis_tab
-from tabs.model_zoo import render_model_zoo_tab
+# from tabs.model_analysis import render_model_analysis_tab
+# from tabs.model_zoo import render_model_zoo_tab
 from tabs.data_management import render_data_management_tab
 from tabs.preprocessing import render_preprocessing_tab
-from tabs.downloads import render_downloads_tab
+# from tabs.downloads import render_downloads_tab
 
 # Import from the same directory
 from frontend.streamlit.utils import ensure_directories, clear_cache
@@ -103,22 +104,6 @@ def main():
         # Initialize sync tracking - consider the initial load as "synced"
         st.session_state.last_synced_config = copy.deepcopy(st.session_state.config_settings)
 
-    # Get config reference
-    cfg = st.session_state.config_settings
-
-    # Header
-    st.title("🚀 AI Pipeline Dashboard")
-    st.markdown("---")
-    
-    # Sidebar with automatic config saving
-    config_updates = render_sidebar()
-    
-    # Sidebar controls
-    st.sidebar.markdown("---")
-    
-    # Only keep the Run Pipeline button - config saves automatically
-    if st.sidebar.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
-        run_pipeline()
 
     # Tabs - Restored with enhanced overview
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -134,15 +119,25 @@ def main():
         
     with tab3:
         render_preprocessing_tab()
+
         
-    with tab4:
-        render_model_zoo_tab()
+    # with tab4:
+    #     render_model_zoo_tab()
         
-    with tab5:
-        render_model_analysis_tab()
+    # with tab5:
+    #     render_model_analysis_tab()
     
-    with tab6:
-        render_downloads_tab()
+    # with tab6:
+    #     render_downloads_tab()
+
+    render_sidebar()
+
+        # Sidebar controls
+    st.sidebar.markdown("---")
+    
+    # Only keep the Run Pipeline button - config saves automatically
+    if st.sidebar.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
+        run_pipeline()
 
 if __name__ == "__main__":
     main() 

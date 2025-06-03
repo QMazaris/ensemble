@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
+from config_util import on_config_change, update_config_direct, on_dataset_change
+
 def render_preprocessing_tab():
     """Render the data preprocessing and configuration tab."""
     
@@ -39,17 +41,11 @@ def render_preprocessing_tab():
         "Choose a dataset", 
         dataset_options,
         index=default_index,
-        key="dataset_selection"
+        key="dataset_selection",
+        on_change=on_dataset_change
     )
     
     selected_dataset_path = data_dir / selected_dataset_name
-    
-    # Update config if dataset changed
-    if selected_dataset_path.as_posix() != current_data_path:
-        if 'data' not in config:
-            config['data'] = {}
-        config['data']['path'] = selected_dataset_path.as_posix()
-        st.session_state.config_settings = config
     
     # Load and preview dataset
     df = None
@@ -73,6 +69,7 @@ def render_preprocessing_tab():
     st.write("#### Target Column Selection")
     
     current_target = config.get('data', {}).get('target_column', '')
+
     try:
         target_index = all_columns.index(current_target) if current_target in all_columns else 0
     except ValueError:
@@ -83,35 +80,26 @@ def render_preprocessing_tab():
         all_columns,
         index=target_index,
         help="Choose the column you want to predict",
-        key="target_column_select"
+        key="target_column_select",
+        on_change=lambda: on_config_change("data", "target_column", "target_column_select")
     )
-    
-    # Update config if target column changed
-    if selected_target_column != current_target:
-        if 'data' not in config:
-            config['data'] = {}
-        config['data']['target_column'] = selected_target_column
-        st.session_state.config_settings = config
 
     # ========== 3. BASE MODEL DECISION COLUMNS ==========
     st.write("#### Base Model Decision Configuration")
-    
-    current_decision_columns = config.get('data', {}).get('base_model_decisions', [])
-    
+
+    current_decision_columns = config.get("data", {}).get("base_model_decisions", [])
+
     selected_decision_columns = st.multiselect(
         "Select Base Model Decision Columns",
         all_columns,
         default=current_decision_columns,
+        key="decision_columns_select",
         help="Choose the columns that contain base model decisions (e.g., labeled good/bad)",
-        key="decision_columns_select"
     )
-    
-    # Update config if decision columns changed
-    if selected_decision_columns != current_decision_columns:
-        if 'data' not in config:
-            config['data'] = {}
-        config['data']['base_model_decisions'] = selected_decision_columns
-        st.session_state.config_settings = config
+
+    if st.button("Save Decision Columns", key="save_decision_cols"):
+        update_config_direct("data", "base_model_decisions", selected_decision_columns)
+        st.toast("Decision columns saved!", icon="✅")
 
     # ========== 4. GOOD/BAD TAGS ==========
     st.write("#### Good/Bad Tags Configuration")
@@ -121,28 +109,22 @@ def render_preprocessing_tab():
     current_bad_tag = config.get('data', {}).get('bad_tag', 'Bad')
     
     with col1:
-        good_tag = st.text_input(
+        st.text_input(
             "Good Tag",
             value=current_good_tag,
             help="The value in decision columns that represents a 'good' classification",
-            key="good_tag_input"
+            key="good_tag_input",
+            on_change=lambda: on_config_change("data", "good_tag", "good_tag_input")
         )
     
     with col2:
-        bad_tag = st.text_input(
+        st.text_input(
             "Bad Tag", 
             value=current_bad_tag,
             help="The value in decision columns that represents a 'bad' classification",
-            key="bad_tag_input"
+            key="bad_tag_input",
+            on_change=lambda: on_config_change("data", "bad_tag", "bad_tag_input")
         )
-    
-    # Update config if tags changed
-    if good_tag != current_good_tag or bad_tag != current_bad_tag:
-        if 'data' not in config:
-            config['data'] = {}
-        config['data']['good_tag'] = good_tag
-        config['data']['bad_tag'] = bad_tag
-        st.session_state.config_settings = config
 
     # ========== 5. EXCLUDE COLUMNS ==========
     st.write("#### Exclude Columns Configuration")
@@ -165,18 +147,18 @@ def render_preprocessing_tab():
         key="exclude_columns_select"
     )
     
-    # Update config if exclude columns changed
-    if selected_exclude_columns != current_exclude:
-        if 'data' not in config:
-            config['data'] = {}
-        config['data']['exclude_columns'] = selected_exclude_columns
-        st.session_state.config_settings = config
+    if st.button("Save Exclude Columns", key="save_exclude_cols"):
+        update_config_direct("data", "exclude_columns", selected_exclude_columns)
+        st.toast("Exclude columns saved!", icon="✅")
     
     # Show what's being automatically excluded
     if columns_to_filter_out:
         st.info(f"🔒 **Automatically excluded:** {', '.join(columns_to_filter_out)} (target and base decision columns)")
 
-    # ========== 6. FEATURE SETTINGS ==========
+    # ========== 6. BITWISE LOGIC CONFIGURATION ==========
+    Bitwise_Logic(config, all_columns, selected_decision_columns)
+
+    # ========== 7. FEATURE SETTINGS ==========
     st.write("#### Feature Engineering Settings")
     
     current_variance_threshold = config.get('features', {}).get('variance_threshold', 0.01)
@@ -189,7 +171,8 @@ def render_preprocessing_tab():
             min_value=0.0, max_value=1.0, step=0.001,
             value=float(current_variance_threshold),
             format="%.3f", 
-            key="variance_threshold_input"
+            key="variance_threshold_input",
+            on_change=lambda: on_config_change("features", "variance_threshold", "variance_threshold_input")
         )
     with col_filter2:
         correlation_threshold = st.number_input(
@@ -197,19 +180,11 @@ def render_preprocessing_tab():
             min_value=0.0, max_value=1.0, step=0.001,
             value=float(current_correlation_threshold),
             format="%.3f", 
-            key="correlation_threshold_input"
+            key="correlation_threshold_input",
+            on_change=lambda: on_config_change("features", "correlation_threshold", "correlation_threshold_input")
         )
 
-    # Update config if thresholds changed
-    if variance_threshold != current_variance_threshold or correlation_threshold != current_correlation_threshold:
-        if 'features' not in config:
-            config['features'] = {}
-        config['features']['variance_threshold'] = variance_threshold
-        config['features']['correlation_threshold'] = correlation_threshold
-        st.session_state.config_settings = config
-
-    # ========== 7. PREPROCESSING PREVIEW ==========
-    st.write("#### Preprocessing Preview")
+    # ========== 8. PREPROCESSING PREVIEW ==========
     
     # Prepare data - using the properly filtered columns
     cols_to_process = [
@@ -272,3 +247,80 @@ def render_preprocessing_tab():
         
     except Exception as e:
         st.error(f"Error during preprocessing preview: {e}")
+
+def Bitwise_Logic(config, all_columns, selected_decision_columns):
+    st.write("#### Bitwise Logic Configuration")
+    st.write("Create logical combinations of decision columns:")
+    
+    # Initialize bitwise_logic in config if not exists
+    if 'bitwise_logic' not in config:
+        config['bitwise_logic'] = {'rules': []}
+        st.session_state['config_settings'] = config
+    
+    current_rules = config.get('bitwise_logic', {}).get('rules', [])
+    
+    # Display existing rules
+    if current_rules:
+        st.write("**Existing Rules:**")
+        for i, rule in enumerate(current_rules):
+            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+            with col1:
+                st.write(f"• **{rule.get('name', f'Rule {i+1}')}**")
+            with col2:
+                st.write(f"Logic: {rule.get('logic', 'OR')}")
+            with col3:
+                st.write(f"Columns: {len(rule.get('columns', []))}")
+            with col4:
+                if st.button("🗑️", key=f"delete_rule_{i}", help="Delete this rule"):
+                    current_rules.pop(i)
+                    update_config_direct("bitwise_logic", "rules", current_rules)
+                    st.toast("Rule deleted!", icon="🗑️")
+                    st.rerun()
+    
+    # New rule creation
+    st.write("**Add New Rule:**")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        rule_name = st.text_input(
+            "Rule Name",
+            placeholder="e.g., Combined_Decision",
+            key="new_rule_name"
+        )
+    
+    with col2:
+        logic_type = st.selectbox(
+            "Logic Type",
+            ["OR", "AND", "XOR","|","&","^"],
+            key="new_rule_logic"
+        )
+    
+    # Only show decision columns for bitwise logic
+    available_decision_columns = [col for col in all_columns if col in selected_decision_columns]
+    
+    if available_decision_columns:
+        selected_rule_columns = st.multiselect(
+            "Select Columns for Rule",
+            available_decision_columns,
+            help="Choose decision columns to combine with the selected logic",
+            key="new_rule_columns"
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Add Rule", key="add_bitwise_rule"):
+                if rule_name and selected_rule_columns:
+                    new_rule = {
+                        "name": rule_name,
+                        "logic": logic_type,
+                        "columns": selected_rule_columns
+                    }
+                    current_rules.append(new_rule)
+                    update_config_direct("bitwise_logic", "rules", current_rules)
+                    st.toast(f"Rule '{rule_name}' added!", icon="✅")
+                    st.rerun()
+                else:
+                    st.error("Please provide both rule name and select columns.")
+        
+    else:
+        st.info("Please save decision columns first to create bitwise logic rules.")

@@ -17,11 +17,10 @@ root_dir = str(Path(__file__).parent.parent.parent.parent)
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-# Import utility functions
-from utils import auto_save_model_config
+from config_util import on_config_change
 
 def render_model_zoo_tab():
-    """Render the model zoo tab content with automatic saving."""
+    """Render the model zoo tab content with standardized config handling."""
     st.write("### Model Zoo")
 
     # Import required model classes
@@ -57,13 +56,10 @@ def render_model_zoo_tab():
                     if isinstance(target, ast.Name):
                         if target.id == 'MODELS':
                             # Extract the source code for the value node
-                            # Use ast.get_source_segment which handles indentation within the segment
                             models_code = ast.get_source_segment(config_content, node) or "# MODELS section not found"
                         elif target.id == 'HYPERPARAM_SPACE':
                             # Extract the source code for the value node
                             hyperparams_code = ast.get_source_segment(config_content, node) or "# HYPERPARAM_SPACE section not found"
-
-        # The AST approach is more reliable, removing the regex fallback.
 
     except Exception as e:
         st.error(f"Error loading or parsing config.py: {e}")
@@ -107,7 +103,23 @@ def render_model_zoo_tab():
 
     # Model Selection
     st.write("#### Select and Configure Model")
-    selected_model = st.selectbox("Choose a model to configure", list(available_models.keys()), key="model_zoo_selection")
+    
+    # Get current config
+    config = st.session_state.get('config_settings', {})
+    current_model_selection = config.get('model_zoo', {}).get('selected_model', list(available_models.keys())[0])
+    
+    try:
+        default_index = list(available_models.keys()).index(current_model_selection)
+    except ValueError:
+        default_index = 0
+    
+    selected_model = st.selectbox(
+        "Choose a model to configure", 
+        list(available_models.keys()),
+        index=default_index,
+        key="model_zoo_selection",
+        on_change=lambda: on_config_change("model_zoo", "selected_model", "model_zoo_selection")
+    )
 
     if selected_model:
         st.write(f"##### Configure {selected_model} Parameters")
@@ -119,17 +131,19 @@ def render_model_zoo_tab():
             # Get parameters from the model instance
             current_config = model_instance.get_params()
 
-        # Create parameter input widgets with unique keys
+        # Create parameter input widgets with standardized callbacks
         edited_params = {}
         for param_name, param_info in available_models[selected_model]['params'].items():
             current_value = current_config.get(param_name, param_info['default'])
+            param_key = f"model_zoo_{selected_model}_{param_name}"
             
             if param_info['type'] == 'select':
                 edited_params[param_name] = st.selectbox(
                     param_name,
                     options=param_info['options'],
                     index=param_info['options'].index(current_value) if current_value in param_info['options'] else 0,
-                    key=f"model_zoo_{selected_model}_{param_name}_select"
+                    key=f"{param_key}_select",
+                    on_change=lambda section=f"model_zoo_{selected_model}", key=param_name, state_key=f"{param_key}_select": on_config_change(section, key, state_key)
                 )
             elif param_info['type'] == 'number':
                 # Convert all numeric values to float for consistency
@@ -140,16 +154,13 @@ def render_model_zoo_tab():
                     max_value=float(param_info['max']),
                     step=float(param_info.get('step', 1.0)),
                     value=current_value,
-                    key=f"model_zoo_{selected_model}_{param_name}_number"
+                    key=f"{param_key}_number",
+                    on_change=lambda section=f"model_zoo_{selected_model}", key=param_name, state_key=f"{param_key}_number": on_config_change(section, key, state_key)
                 )
 
         # Display current configuration
         st.write("##### Current Configuration")
         st.json(edited_params)
-
-        # Auto-save model configuration
-        model_config_notification = st.empty()
-        auto_save_model_config(selected_model, edited_params, config_content, config_path, available_models, model_config_notification)
 
     # Advanced Configuration Editor
     st.write("#### Advanced Configuration Editor")
@@ -160,43 +171,33 @@ def render_model_zoo_tab():
     
     # Display the cleaned-up sections
     st.write("##### Model Definitions")
-    # Now using AST extracted code, no need for cleaning here
     st.code(models_code, language='python')
     edited_models_code = st.text_area("Edit MODELS", models_code, height=300, key="advanced_models_editor")
 
     st.write("##### Hyperparameter Search Space")
-    # Now using AST extracted code, no need for cleaning here
     st.code(hyperparams_code, language='python')
     edited_hyperparams_code = st.text_area("Edit HYPERPARAM_SPACE", hyperparams_code, height=200, key="advanced_hyperparams_editor")
 
-    # Auto-save advanced configuration
-    if 'previous_advanced_config' not in st.session_state:
-        st.session_state.previous_advanced_config = {'models': '', 'hyperparams': ''}
+    # Button-based save for advanced configuration
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Save Advanced Configuration", key="save_advanced_config"):
+            try:
+                # Replace the sections in the config file while preserving the rest
+                new_config_content = config_content
+                if models_code != "# MODELS section not found":
+                    new_models_section = f"MODELS = {{\n{edited_models_code.split('=', 1)[1].strip()}\n}}"
+                    new_config_content = re.sub(r"MODELS\s*=\s*\{[^}]*\}", new_models_section, new_config_content, flags=re.DOTALL)
+                if hyperparams_code != "# HYPERPARAM_SPACE section not found":
+                    new_hyperparams_section = f"HYPERPARAM_SPACE = {{\n{edited_hyperparams_code.split('=', 1)[1].strip()}\n}}"
+                    new_config_content = re.sub(r"HYPERPARAM_SPACE\s*=\s*\{[^}]*\}", new_hyperparams_section, new_config_content, flags=re.DOTALL)
+                
+                config_path.write_text(new_config_content)
+                st.toast("Advanced configuration saved successfully!", icon="✅")
+                st.info("You may need to restart the app to see the changes take effect.")
+            except Exception as e:
+                st.error(f"Save failed: {str(e)}")
     
-    advanced_config_changed = (
-        st.session_state.previous_advanced_config['models'] != edited_models_code or
-        st.session_state.previous_advanced_config['hyperparams'] != edited_hyperparams_code
-    )
-    
-    if advanced_config_changed and edited_models_code and edited_hyperparams_code:
-        try:
-            # Replace the sections in the config file while preserving the rest
-            new_config_content = config_content
-            if models_code != "# MODELS section not found":
-                new_models_section = f"MODELS = {{\n{edited_models_code.split('=', 1)[1].strip()}\n}}"
-                new_config_content = re.sub(r"MODELS\s*=\s*\{[^}]*\}", new_models_section, new_config_content, flags=re.DOTALL)
-            if hyperparams_code != "# HYPERPARAM_SPACE section not found":
-                new_hyperparams_section = f"HYPERPARAM_SPACE = {{\n{edited_hyperparams_code.split('=', 1)[1].strip()}\n}}"
-                new_config_content = re.sub(r"HYPERPARAM_SPACE\s*=\s*\{[^}]*\}", new_hyperparams_section, new_config_content, flags=re.DOTALL)
-            
-            config_path.write_text(new_config_content)
-            
-            # Update previous config in session state
-            st.session_state.previous_advanced_config = {
-                'models': edited_models_code,
-                'hyperparams': edited_hyperparams_code
-            }
-            
-            st.success("✅ Advanced configuration auto-saved! You may need to restart the app to see the changes take effect.", icon="💾")
-        except Exception as e:
-            st.error(f"❌ Auto-save failed: {str(e)}")
+    with col2:
+        if st.button("Reset to Defaults", key="reset_advanced_config"):
+            st.rerun()

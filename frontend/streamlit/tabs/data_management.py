@@ -11,6 +11,8 @@ root_dir = str(Path(__file__).parent.parent.parent.parent)
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
+from config_util import on_config_change
+
 def render_data_management_tab():
     """Render the data management tab content."""
     st.write("### Data Management")
@@ -74,7 +76,6 @@ def render_data_management_tab():
             
             # Display data preview with type information
             st.write("#### Data Preview")
-            
             st.dataframe(df.head())
             
             st.write("##### Column Information")
@@ -121,6 +122,7 @@ def render_data_management_tab():
                 st.warning("⚠️ Some columns have non-standard data types. Consider cleaning the data before saving.")
             
             save_name = st.text_input("Save as (without .csv extension)", "training_data")
+            
             if st.button("Save Dataset"):
                 if not save_name:
                     st.error("Please provide a name for the dataset")
@@ -134,10 +136,8 @@ def render_data_management_tab():
                 file_path = data_dir / f"{save_name}.csv"
                 try:
                     df.to_csv(file_path, index=False)
-                    st.success(f"Dataset saved successfully to {file_path}")
-                    
-                    # Update config to use new dataset
-                    st.info("Please update the config file to use the new dataset path if needed")
+                    st.toast(f"Dataset saved successfully to {file_path}", icon="✅")
+                    st.info("Please update the preprocessing tab to use the new dataset.")
                 except Exception as e:
                     st.error(f"Error saving file: {str(e)}")
         
@@ -157,7 +157,7 @@ def render_data_management_tab():
                     try:
                         df = pd.read_csv(file, low_memory=False)
                         st.write(f"Shape: {df.shape[0]} rows × {df.shape[1]} columns")
-                        st.write(f"Last modified: {file.stat().st_mtime}")
+                        st.write(f"Last modified: {datetime.fromtimestamp(file.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S')}")
                         
                         # Show column types
                         st.write("Column types:")
@@ -172,7 +172,7 @@ def render_data_management_tab():
                         if st.button(f"Delete {file.name}", key=f"delete_{file.name}"):
                             try:
                                 file.unlink()
-                                st.success(f"Deleted {file.name}")
+                                st.toast(f"Deleted {file.name}", icon="🗑️")
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error deleting file: {str(e)}")

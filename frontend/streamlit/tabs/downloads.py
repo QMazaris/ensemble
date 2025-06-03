@@ -16,7 +16,7 @@ if root_dir not in sys.path:
 # Import utility functions
 from utils import get_cached_data, MODEL_DIR
 
-def render_downloads_tab(config_settings):
+def render_downloads_tab():
     """Render the downloads tab content."""
     st.write("### Download Files")
     
