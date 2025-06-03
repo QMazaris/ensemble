@@ -112,10 +112,7 @@ models:
   - CL_ConfMax
   - MaxVal
   - RegionCount
-  base_model_decisions:
-    bad_tag: Bad
-    enabled_columns: []
-    good_tag: Good
+  base_model_decisions: []
   bitwise_logic:
     enabled: true
     rules:

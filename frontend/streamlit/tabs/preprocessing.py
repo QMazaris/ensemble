@@ -103,10 +103,13 @@ def render_preprocessing_tab():
     # Get current decision columns from config
     current_decision_columns = config.get("models", {}).get("base_model_decisions", [])
     
+    # Only keep decision columns that are still valid options (exist in the dataset)
+    valid_current_decision_columns = [col for col in current_decision_columns if col in all_columns]
+    
     selected_decision_columns = st.multiselect(
         "Select Base Model Decision Columns",
         all_columns,
-        default=current_decision_columns,
+        default=valid_current_decision_columns,
         help="Choose the columns that contain base model decisions (e.g., labeled good/bad)",
         key="base_model_decisions_multi"
     )
@@ -145,10 +148,13 @@ def render_preprocessing_tab():
     # Get current base model columns from config
     current_base_model_columns = config.get("models", {}).get("base_model_columns", [])
     
+    # Only keep base model columns that are still valid options (exist in the dataset)
+    valid_current_base_model_columns = [col for col in current_base_model_columns if col in all_columns]
+    
     selected_base_model_columns_threshold = st.multiselect(
         "Select Base Model Threshold Columns",
         all_columns,
-        default=current_base_model_columns,
+        default=valid_current_base_model_columns,
         help="Choose the columns that contain base model predictions (eg. score, confidence, etc.)",
         key="base_model_columns_multi"
     )
