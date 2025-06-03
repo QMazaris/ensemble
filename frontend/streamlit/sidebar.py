@@ -170,7 +170,7 @@ def render_sidebar():
     
     # ========== CONFIG SYNC SECTION ==========
     st.sidebar.markdown("---")
-    st.sidebar.subheader("🔄 Config Sync")
+    st.sidebar.subheader("🔄 Config Status")
     
     # Check if there are unsaved changes
     current_config = st.session_state.get('config_settings', {})
@@ -190,29 +190,12 @@ def render_sidebar():
     
     # Show sync status
     if unsaved_changes > 0:
-        st.sidebar.warning(f"⚠️ {unsaved_changes} unsaved changes", icon="📝")
+        st.sidebar.warning(f"⚠️ {unsaved_changes} pending changes", icon="📝")
+        st.sidebar.info("💡 Config will sync automatically when pipeline runs", icon="ℹ️")
     elif not just_synced:
         st.sidebar.success("✅ Config in sync", icon="📋")
-    
-    # Sync button and notification area
-    sync_notification = st.sidebar.empty()
-    
-    # Sync button - only enabled if there are changes
-    if st.sidebar.button(
-        "🔄 Sync to Backend", 
-        use_container_width=True, 
-        disabled=(unsaved_changes == 0),
-        help="Send frontend config changes to backend" if unsaved_changes > 0 else "No changes to sync"
-    ):  
-        print(diff)
-        success = sync_frontend_to_backend(sync_notification)
-        if success:
-            # Set flag for immediate feedback
-            st.session_state.just_synced = True
-            # Force immediate rerun to update the UI with new sync status
-            st.rerun()
 
-    # Show what would be synced (for debugging/transparency)
+    # Show what changes are pending (for transparency)
     if unsaved_changes > 0:
         with st.sidebar.expander(f"📋 View {unsaved_changes} pending changes"):
             for section, changes in diff.items():

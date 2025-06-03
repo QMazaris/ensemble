@@ -120,6 +120,7 @@ def render_preprocessing_tab():
     if st.button("Save Decision Columns", key="save_decision_cols"):
         update_config_direct("models", "base_model_decisions", selected_decision_columns)
         st.toast("Decision columns saved!", icon="✅")
+        st.rerun()
 
     # ========== 4. GOOD/BAD TAGS ==========
     col1, col2 = st.columns(2)
@@ -168,6 +169,7 @@ def render_preprocessing_tab():
     if st.button("Save Threshold Columns", key="save_threshold_cols"):
         update_config_direct("models", "base_model_columns", selected_base_model_columns_threshold)
         st.toast("Threshold columns saved!", icon="✅")
+        st.rerun()
 
     # ========== 6. EXCLUDE COLUMNS ==========
     st.write("#### Exclude Columns Configuration")
@@ -198,6 +200,7 @@ def render_preprocessing_tab():
     if st.button("Save Exclude Columns", key="save_exclude_cols"):
         update_config_direct("data", "exclude_columns", selected_exclude_columns)
         st.toast("Exclude columns saved!", icon="✅")
+        st.rerun()
     
     # Show what's being automatically excluded
     st.info(f"🔒 **Automatically excluded:** {selected_target_column} (target column)")

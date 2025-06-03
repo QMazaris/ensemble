@@ -75,34 +75,33 @@ def render_overview_tab():
     # Check if we have data to display
     if summary_df is not None and not summary_df.empty:
         try:
-            # Threshold type selector - frontend only, resets to default
-            available_threshold_types = summary_df['threshold_type'].unique()
-            default_threshold_index = 0 if 'cost' not in available_threshold_types else list(available_threshold_types).index('cost')
-            
+            # ========= UPDATED THRESHOLD SELECTOR WITH "ALL" OPTION =========
+            all_threshold_types = list(summary_df['threshold_type'].unique())
+            available_threshold_types = ["All"] + all_threshold_types
+
+            default_index = available_threshold_types.index('cost') if 'cost' in all_threshold_types else 0
+
             selected_threshold_type = st.selectbox(
                 "Select Threshold Type for Analysis",
                 options=available_threshold_types,
-                index=default_threshold_index,
+                index=default_index,
                 help="Choose which threshold optimization method to display",
                 key="overview_threshold_selector"
             )
-            
-            # Use data directly from API - filter only by threshold type and split
-            overview_data_combined = summary_df[
-                (summary_df['split'] == 'Full') &
-                (summary_df['threshold_type'] == selected_threshold_type)
-            ].copy()
+
+            # Conditional filtering logic
+            if selected_threshold_type == "All":
+                overview_data_combined = summary_df[summary_df['split'] == 'Full'].copy()
+            else:
+                overview_data_combined = summary_df[
+                    (summary_df['split'] == 'Full') &
+                    (summary_df['threshold_type'] == selected_threshold_type)
+                ].copy()
+
             
             if overview_data_combined.empty:
                 st.warning(f"No model data found for threshold type: {selected_threshold_type}")
                 return
-            
-            # Add model type for visualization
-            overview_data_combined['model_type'] = overview_data_combined['model_name'].apply(
-                lambda x: 'Base Model' if x in ['AD_Decision', 'CL_Decision', 'AD_or_CL_Fail'] 
-                         else 'Combined Model' if 'Combined' in x or '_Combined' in x
-                         else 'ML Model'
-            )
             
             # Enhanced Performance Overview with F1 Score and Thresholds
             overview_data_combined['model_display'] = overview_data_combined.apply(
@@ -153,7 +152,7 @@ def render_overview_tab():
 
             # Add threshold information table
             st.write("##### Threshold Values Used")
-            threshold_info = overview_data_combined[['model_name', 'threshold', 'threshold_type', 'model_type']].copy()
+            threshold_info = overview_data_combined[['model_name', 'threshold', 'threshold_type']].copy()
             threshold_info['threshold'] = threshold_info['threshold'].round(4)
             
             st.dataframe(
@@ -162,34 +161,42 @@ def render_overview_tab():
                 hide_index=True
             )
 
-            # Cost Analysis
+            # Cost Analysis - uses same filtering as main chart
             st.write("#### 💰 Cost Analysis")
             
-            # Cost comparison
-            fig_cost_bar = px.bar(overview_data_combined,
-                            x='model_name',
-                            y='cost',
-                            title='Model Costs (Lower is Better)',
-                            labels={'cost': 'Cost', 'model_name': 'Model'},
-                            color='model_type',
-                            color_discrete_map={
-                                'ML Model': '#1f77b4', 
-                                'Base Model': '#ff7f0e',
-                                'Combined Model': '#2ca02c'
-                            })
-            fig_cost_bar.update_layout(height=500)
-            st.plotly_chart(fig_cost_bar, use_container_width=True, key="cost_comparison_bar_chart")
+            # Create separate cost charts for accuracy and cost optimized models
+            if selected_threshold_type == "All":
+                # Show separate charts for each threshold type
+                for threshold_type in summary_df['threshold_type'].unique():
+                    threshold_data = summary_df[
+                        (summary_df['split'] == 'Full') &
+                        (summary_df['threshold_type'] == threshold_type)
+                    ].copy()
+                    
+                    if not threshold_data.empty:
+                        fig_cost_bar = px.bar(threshold_data,
+                                        x='model_name',
+                                        y='cost',
+                                        title=f'Model Costs - {threshold_type.title()} Optimized (Lower is Better)',
+                                        labels={'cost': 'Cost', 'model_name': 'Model'})
+                        fig_cost_bar.update_layout(height=400)
+                        st.plotly_chart(fig_cost_bar, use_container_width=True, key=f"cost_comparison_{threshold_type}")
+            else:
+                # Show single chart for selected threshold type
+                fig_cost_bar = px.bar(overview_data_combined,
+                                x='model_name',
+                                y='cost',
+                                title=f'Model Costs - {selected_threshold_type.title()} Optimized (Lower is Better)',
+                                labels={'cost': 'Cost', 'model_name': 'Model'})
+                fig_cost_bar.update_layout(height=500)
+                st.plotly_chart(fig_cost_bar, use_container_width=True, key="cost_comparison_bar_chart")
             
-            # Radar chart for model comparison (ML models and combined models)
-            radar_data = overview_data_combined[
-                overview_data_combined['model_type'].isin(['ML Model', 'Combined Model'])
-            ]
-            
-            if not radar_data.empty and len(radar_data) > 1:
-                st.write("#### 📈 ML & Combined Models Radar Chart")
-                fig_radar = create_radar_chart(radar_data)
+            # Radar chart for model comparison (all models in filtered data)
+            if not overview_data_combined.empty and len(overview_data_combined) > 1:
+                st.write("#### 📈 Model Comparison Radar Chart")
+                fig_radar = create_radar_chart(overview_data_combined)
                 if fig_radar:
-                    st.plotly_chart(fig_radar, use_container_width=True, key="ml_combined_models_radar_chart")
+                    st.plotly_chart(fig_radar, use_container_width=True, key="model_comparison_radar_chart")
             
             # Detailed tables section
             st.write("#### 🔍 Detailed Metrics Table")

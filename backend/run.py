@@ -209,9 +209,20 @@ def main(config_dict=None):
     # This section calculates results for the original base models (AD_Decision, CL_Decision, etc.).
     # These runs will always be created here, and added to base_model_runs below.
     structured_base_model_runs = []
-    base_models_to_process = config.get("models", {}).get("base_model_decisions", {}).get("enabled_columns", [])
+    # Safely handle base_model_decisions - it can be either a list or a dictionary
+    base_model_decisions_config = config.get("models", {}).get("base_model_decisions", [])
+    
+    # Handle both list and dictionary formats
+    if isinstance(base_model_decisions_config, list):
+        # If it's a list, use it directly as the column names
+        base_models_to_process = base_model_decisions_config
+    elif isinstance(base_model_decisions_config, dict):
+        # If it's a dictionary, get the enabled_columns
+        base_models_to_process = base_model_decisions_config.get("enabled_columns", [])
+    else:
+        # Fallback to empty list if neither format
+        base_models_to_process = []
 
-    # For K-fold, we don't need train/test indices, so pass None
     decision_base_model_runs = Legacy_Base(config, C_FP, C_FN, df, y, base_models_to_process)
 
     results_total.extend(decision_base_model_runs)
@@ -314,8 +325,17 @@ def Legacy_Base(
     from .helpers import ModelEvaluationResult, ModelEvaluationRun
 
     runs: list[ModelEvaluationRun] = []
-    good_tag = config.get("models", {}).get("base_model_decisions", {}).get("good_tag", "Good")
-    bad_tag  = config.get("models", {}).get("base_model_decisions", {}).get("bad_tag", "Bad")
+    # Safely handle base_model_decisions for good/bad tags
+    base_model_decisions_config = config.get("models", {}).get("base_model_decisions", {})
+    
+    # Handle both list and dictionary formats for good/bad tags
+    if isinstance(base_model_decisions_config, dict):
+        good_tag = base_model_decisions_config.get("good_tag", "Good")
+        bad_tag = base_model_decisions_config.get("bad_tag", "Bad")
+    else:
+        # If it's a list format, use defaults from data section or fallback
+        good_tag = config.get("data", {}).get("good_tag", "Good")
+        bad_tag = config.get("data", {}).get("bad_tag", "Bad")
 
     for column in base_models_to_process:
         if column not in df.columns:

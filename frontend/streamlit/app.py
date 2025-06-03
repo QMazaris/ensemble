@@ -26,7 +26,7 @@ from tabs.model_analysis import render_model_analysis_tab
 from tabs.downloads import render_downloads_tab
 
 # Import from the same directory
-from frontend.streamlit.utils import ensure_directories, clear_cache
+from frontend.streamlit.utils import ensure_directories, clear_cache, sync_frontend_to_backend
 from frontend.streamlit.sidebar import render_sidebar
 from shared.config_manager import get_config
 
@@ -66,8 +66,26 @@ def load_config_from_api():
 
 def run_pipeline():
     """Run the main pipeline using the virtual environment's Python."""
-    with st.spinner("Running pipeline..."):
+    with st.spinner("Syncing configuration and running pipeline..."):
         try:
+            # First, always sync config to backend and wait for completion
+            st.info("🔄 Syncing configuration to backend...")
+            sync_notification = st.empty()
+            
+            # Sync config and wait for completion
+            sync_success = sync_frontend_to_backend(sync_notification)
+            if not sync_success:
+                st.error("❌ Failed to sync configuration to backend. Pipeline aborted.")
+                return
+            
+            st.success("✅ Configuration synced successfully!")
+            
+            # Small delay to ensure sync is fully complete
+            time.sleep(0.5)
+            
+            # Now run the pipeline
+            st.info("🚀 Starting pipeline execution...")
+            
             # Get the path to the virtual environment's Python
             venv_python = os.path.join("venv", "Scripts", "python.exe")
             if not os.path.exists(venv_python):
@@ -82,12 +100,15 @@ def run_pipeline():
             
             # Use a single timestamp-based refresh mechanism instead of multiple flags
             # This prevents race conditions between tabs
-            import time
             st.session_state.pipeline_completed_at = time.time()
+            
+            # Update sync tracking since we just synced
+            st.session_state.last_synced_config = copy.deepcopy(st.session_state.config_settings)
             
             # Show success message
             st.success("✅ Pipeline completed successfully!")
             st.info("🔄 Data will refresh automatically. You may need to interact with the page to see updates.")
+            st.balloons()
             
         except subprocess.CalledProcessError as e:
             st.error(f"❌ Pipeline failed with error: {str(e)}")

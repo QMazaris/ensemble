@@ -140,7 +140,12 @@ class BaseModelColumnsResponse(BaseModel):
 class BitwiseLogicRule(BaseModel):
     name: str
     columns: List[str]
-    logic: str  # 'OR', 'AND', 'XOR', '|', '&', '^'
+    logic: str  # 'OR', 'AND', 'XOR', 'NOR', 'NAND', 'NXOR', '|', '&', '^'
+
+class BitwiseLogicRequest(BaseModel):
+    rules: List[BitwiseLogicRule]
+    model_thresholds: Dict[str, float] = {}
+    enabled: bool = True
 
 class BitwiseLogicConfig(BaseModel):
     rules: List[BitwiseLogicRule]
@@ -866,19 +871,14 @@ def cleanup_output_files():
         raise HTTPException(status_code=500, detail=f"Failed to cleanup files: {str(e)}")
 
 @app.post("/config/bitwise-logic/apply")
-def apply_bitwise_logic():
-    """Apply current bitwise logic configuration to existing model results."""
+def apply_bitwise_logic(request: BitwiseLogicRequest):
+    """Apply bitwise logic rules to existing model results."""
     try:
-        # Get current configuration
-        config_data = load_config()
-        bitwise_config = config_data.get("models", {}).get("bitwise_logic", {})
-        
-        if not bitwise_config.get('enabled', False):
+        if not request.enabled:
             return {"message": "Bitwise logic is disabled", "combined_models_created": 0}
         
-        rules = bitwise_config.get('rules', [])
-        if not rules:
-            return {"message": "No bitwise logic rules configured", "combined_models_created": 0}
+        if not request.rules:
+            return {"message": "No bitwise logic rules provided", "combined_models_created": 0}
         
         # Get existing model results
         metrics_data = data_service.get_metrics_data()
@@ -923,7 +923,7 @@ def apply_bitwise_logic():
             )
             model_runs[model_name].append(result)
         
-        # Create runs with probabilities
+        # Create runs with probabilities from predictions data
         for model_name, results in model_runs.items():
             probabilities = {}
             if model_name in predictions_df.columns:
@@ -936,18 +936,16 @@ def apply_bitwise_logic():
             )
             runs.append(run)
         
-        # Apply bitwise logic rules
+        # Convert request rules to the format expected by generate_combined_runs
         combined_logic = {}
-        for rule in rules:
-            combined_logic[rule['name']] = {
-                'columns': rule['columns'],
-                'logic': rule['logic']
+        for rule in request.rules:
+            combined_logic[rule.name] = {
+                'columns': rule.columns,
+                'logic': rule.logic
             }
         
-        # Get model thresholds configuration
-        model_thresholds = config_data.get("model_thresholds", {})
-        
-        # Get cost parameters from config
+        # Get cost parameters from config (these are still needed for cost calculation)
+        config_data = load_config()
         C_FP = config_data.get("costs", {}).get("false_positive", 1.0)
         C_FN = config_data.get("costs", {}).get("false_negative", 50.0)
         N_SPLITS = config_data.get("training", {}).get("n_splits", 5)
@@ -960,7 +958,7 @@ def apply_bitwise_logic():
             C_FP=C_FP,
             C_FN=C_FN,
             N_SPLITS=N_SPLITS,
-            model_thresholds=model_thresholds
+            model_thresholds=request.model_thresholds
         )
         
         # Add new combined runs to the existing metrics data

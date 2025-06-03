@@ -1,15 +1,18 @@
 costs:
-  false_negative: 200.0
+  false_negative: 100.0
   false_positive: 1.0
 data:
   exclude_columns:
   - GT_Label_Num
+  - Image
+  - ClassThresh
+  - SegThresh
   path: data/training_data.csv
   random_state: 42
   target_column: GT_Label
   test_size: 0.2
 export:
-  export_onnx: false
+  export_onnx: true
   onnx_opset_version: 12
   save_models: true
   save_plots: true
@@ -110,24 +113,15 @@ models:
   base_model_columns:
   - AnomalyScore
   - CL_ConfMax
-  - MaxVal
-  - RegionCount
   base_model_decisions:
   - CL_Decision
-  bitwise_logic:
-    enabled: true
-    rules:
-    - columns:
-      - AD_Decision
-      - CL_Decision
-      logic: OR
-      name: Test_Combined
+  - AD_Decision
   enabled:
   - XGBoost
   - RandomForest
 optimization:
-  enabled: false
-  iterations: 60
+  enabled: true
+  iterations: 10
   n_jobs: -1
   optimize_final_model: false
 output:

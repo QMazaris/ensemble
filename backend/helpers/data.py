@@ -19,8 +19,20 @@ def prepare_data(df, config):
     if y.isnull().any():
         raise ValueError(f"Found unmapped values in {target}. Expected values: '{good_tag}' or '{bad_tag}'")
     
-    # Automatically exclude decision columns from training if they exist
-    decision_columns = config.get("models", {}).get("base_model_decisions", {}).get("enabled_columns", [])
+    # Safely handle base_model_decisions - it can be either a list or a dictionary
+    base_model_decisions_config = config.get("models", {}).get("base_model_decisions", [])
+    
+    # Handle both list and dictionary formats
+    if isinstance(base_model_decisions_config, list):
+        # If it's a list, use it directly as the column names
+        decision_columns = base_model_decisions_config
+    elif isinstance(base_model_decisions_config, dict):
+        # If it's a dictionary, get the enabled_columns
+        decision_columns = base_model_decisions_config.get("enabled_columns", [])
+    else:
+        # Fallback to empty list if neither format
+        decision_columns = []
+    
     decision_columns_in_data = [col for col in decision_columns if col in df.columns]
     
     # Only exclude columns that actually exist in the dataframe

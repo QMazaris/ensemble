@@ -46,15 +46,24 @@ def generate_combined_runs(
     Returns:
         List of ModelEvaluationRun for each combined model.
     """
-    # Map operator names to numpy functions
+    # Map operator names to numpy functions and custom functions for negated operations
     ops = {
         'OR':  np.bitwise_or, '|':  np.bitwise_or,
         'AND': np.bitwise_and, '&':  np.bitwise_and,
-        'XOR': np.bitwise_xor, '^':  np.bitwise_xor
+        'XOR': np.bitwise_xor, '^':  np.bitwise_xor,
+        'NOR': lambda a, b: ~np.bitwise_or(a, b),
+        'NAND': lambda a, b: ~np.bitwise_and(a, b),
+        'NXOR': lambda a, b: ~np.bitwise_xor(a, b)
     }
 
-    # Helper: look up a run by model_name
-    name_to_run = {run.model_name: run for run in runs}
+    # Helper: look up a run by model_name with flexible matching
+    name_to_run = {}
+    for run in runs:
+        # Store both the exact name and cleaned name for lookup
+        name_to_run[run.model_name] = run
+        # Also store with cleaned name (remove kfold_avg_ prefix if present)
+        clean_name = run.model_name.replace('kfold_avg_', '')
+        name_to_run[clean_name] = run
     
     # Default thresholds if not provided
     if model_thresholds is None:
@@ -75,12 +84,19 @@ def generate_combined_runs(
         try:
             arrays = []
             for col in cols:
-                if col not in name_to_run:
-                    missing = [c for c in cols if c not in name_to_run]
-                    raise ValueError(f"Missing runs for models: {missing}")
+                # Try to find the run with flexible name matching
+                run = None
+                if col in name_to_run:
+                    run = name_to_run[col]
+                elif f"kfold_avg_{col}" in name_to_run:
+                    run = name_to_run[f"kfold_avg_{col}"]
+                
+                if run is None:
+                    available_models = list(set([run.model_name for run in runs] + [run.model_name.replace('kfold_avg_', '') for run in runs]))
+                    raise ValueError(f"Model '{col}' not found in available runs. Available models: {available_models}")
                 
                 # Use the helper function to get the right probability array
-                probas = pick_oof_or_full_or_longest(name_to_run[col].probabilities)
+                probas = pick_oof_or_full_or_longest(run.probabilities)
                 if probas is None:
                     raise ValueError(f"No valid probabilities found for model {col}")
                 
@@ -98,8 +114,8 @@ def generate_combined_runs(
                 
                 arrays.append(decisions)
         except KeyError as e:
-            missing = [c for c in cols if c not in name_to_run]
-            raise ValueError(f"Missing runs for models: {missing}") from e
+            available_models = list(set([run.model_name for run in runs] + [run.model_name.replace('kfold_avg_', '') for run in runs]))
+            raise ValueError(f"Missing runs for models: {cols}. Available models: {available_models}") from e
 
         # Ensure all arrays have the same length
         array_lengths = [len(arr) for arr in arrays]
