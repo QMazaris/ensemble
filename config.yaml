@@ -112,7 +112,8 @@ models:
   - CL_ConfMax
   - MaxVal
   - RegionCount
-  base_model_decisions: []
+  base_model_decisions:
+  - CL_Decision
   bitwise_logic:
     enabled: true
     rules:
