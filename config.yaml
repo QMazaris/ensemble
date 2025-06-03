@@ -18,9 +18,9 @@ export:
   save_plots: true
   save_predictions: true
 features:
-  correlation_threshold: 0.739
+  correlation_threshold: 1.0
   filter_data: false
-  variance_threshold: 0.091
+  variance_threshold: 0.0
 hyperparam_spaces:
   RandomForest:
     bootstrap:
@@ -123,7 +123,7 @@ optimization:
   enabled: true
   iterations: 10
   n_jobs: -1
-  optimize_final_model: false
+  optimize_final_model: true
 output:
   base_dir: output
   subdirs:
