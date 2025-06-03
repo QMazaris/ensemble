@@ -1,5 +1,5 @@
 costs:
-  false_negative: 50.0
+  false_negative: 200.0
   false_positive: 1.0
 data:
   exclude_columns:
@@ -8,9 +8,6 @@ data:
   random_state: 42
   target_column: GT_Label
   test_size: 0.2
-  base_model_decisions: []
-  good_tag: Good
-  bad_tag: Bad
 export:
   export_onnx: false
   onnx_opset_version: 12
@@ -113,11 +110,11 @@ models:
   base_model_columns:
   - AnomalyScore
   - CL_ConfMax
+  - MaxVal
+  - RegionCount
   base_model_decisions:
     bad_tag: Bad
-    enabled_columns:
-    - MaxVal
-    - RegionCount
+    enabled_columns: []
     good_tag: Good
   bitwise_logic:
     enabled: true

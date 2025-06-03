@@ -2,8 +2,21 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import requests
+import time
 
 from config_util import on_config_change, update_config_direct, on_dataset_change
+
+# Backend API URL
+BACKEND_API_URL = "http://localhost:8000"
+
+# Import utility functions
+import sys
+parent_dir = str(Path(__file__).parent.parent)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+from utils import clear_cache
 
 def render_preprocessing_tab():
     """Render the data preprocessing and configuration tab."""
@@ -85,29 +98,24 @@ def render_preprocessing_tab():
     )
 
     # ========== 3. BASE MODEL DECISION COLUMNS ==========
-    st.write("#### Base Model Decision Configuration")
+    st.write("#### Base Model Configuration")
 
-    # Use a safe key
-    key = "decision_columns_select"
-
-    # Initialize state only once
-    if key not in st.session_state:
-        st.session_state[key] = config.get("data", {}).get("base_model_decisions", [])
-
+    # Get current decision columns from config
+    current_decision_columns = config.get("models", {}).get("base_model_decisions", [])
+    
     selected_decision_columns = st.multiselect(
         "Select Base Model Decision Columns",
         all_columns,
-        key=key,
-        help="Choose the columns that contain base model decisions (e.g., labeled good/bad)"
+        default=current_decision_columns,
+        help="Choose the columns that contain base model decisions (e.g., labeled good/bad)",
+        key="base_model_decisions_multi"
     )
 
-    if st.button("Save Decision Columns", key="save_decision_cols"):
-        update_config_direct("data", "base_model_decisions", selected_decision_columns)
-        st.toast("Decision columns saved!", icon="✅")
-
+    # Update config when selection changes
+    if selected_decision_columns != current_decision_columns:
+        update_config_direct("models", "base_model_decisions", selected_decision_columns)
 
     # ========== 4. GOOD/BAD TAGS ==========
-    st.write("#### Good/Bad Tags Configuration")
     col1, col2 = st.columns(2)
     
     current_good_tag = config.get('data', {}).get('good_tag', 'Good')
@@ -131,45 +139,55 @@ def render_preprocessing_tab():
             on_change=lambda: on_config_change("data", "bad_tag", "bad_tag_input")
         )
 
-    # ========== 5. EXCLUDE COLUMNS ==========
+    # ========== 5. BASE MODEL THRESHOLD COLUMNS ==========
+    st.write("#### Base Model Threshold Columns")
+
+    # Get current base model columns from config
+    current_base_model_columns = config.get("models", {}).get("base_model_columns", [])
+    
+    selected_base_model_columns_threshold = st.multiselect(
+        "Select Base Model Threshold Columns",
+        all_columns,
+        default=current_base_model_columns,
+        help="Choose the columns that contain base model predictions (eg. score, confidence, etc.)",
+        key="base_model_columns_multi"
+    )
+
+    # Update config when selection changes
+    if selected_base_model_columns_threshold != current_base_model_columns:
+        update_config_direct("models", "base_model_columns", selected_base_model_columns_threshold)
+
+    # ========== 6. EXCLUDE COLUMNS ==========
     st.write("#### Exclude Columns Configuration")
-    st.write("Select additional columns to exclude from model training (target and base decision columns are automatically excluded):")
+    st.write("Select additional columns to exclude from model training (target column is automatically excluded):")
     
     current_exclude = config.get('data', {}).get('exclude_columns', [])
     
-    # Filter out target column and selected decision columns from exclude options
-    columns_to_filter_out = [selected_target_column] + selected_decision_columns
-    exclude_column_options = [col for col in all_columns if col not in columns_to_filter_out]
+    # Only filter out target column from exclude options
+    exclude_column_options = [col for col in all_columns if col != selected_target_column]
     
     # Only keep exclude columns that are still valid options
     valid_current_exclude = [col for col in current_exclude if col in exclude_column_options]
     
-    # Use a safe key for exclude columns
-    exclude_key = "exclude_columns_select"
-    
-    # Initialize state only once
-    if exclude_key not in st.session_state:
-        st.session_state[exclude_key] = valid_current_exclude
-    
     selected_exclude_columns = st.multiselect(
         "Additional Columns to Exclude",
         exclude_column_options,
+        default=valid_current_exclude,
         help="These columns will not be used as features for model training",
-        key=exclude_key
+        key="exclude_columns_multi"
     )
     
-    if st.button("Save Exclude Columns", key="save_exclude_cols"):
+    # Update config when selection changes
+    if selected_exclude_columns != valid_current_exclude:
         update_config_direct("data", "exclude_columns", selected_exclude_columns)
-        st.toast("Exclude columns saved!", icon="✅")
     
     # Show what's being automatically excluded
-    if columns_to_filter_out:
-        st.info(f"🔒 **Automatically excluded:** {', '.join(columns_to_filter_out)} (target and base decision columns)")
+    st.info(f"🔒 **Automatically excluded:** {selected_target_column} (target column)")
 
-    # ========== 6. BITWISE LOGIC CONFIGURATION ==========
+    # ========== 7. BITWISE LOGIC CONFIGURATION ==========
     Bitwise_Logic(config, all_columns, selected_decision_columns)
 
-    # ========== 7. FEATURE SETTINGS ==========
+    # ========== 8. FEATURE SETTINGS ==========
     st.write("#### Feature Engineering Settings")
     
     current_variance_threshold = config.get('features', {}).get('variance_threshold', 0.01)
@@ -195,12 +213,34 @@ def render_preprocessing_tab():
             on_change=lambda: on_config_change("features", "correlation_threshold", "correlation_threshold_input")
         )
 
-    # ========== 8. PREPROCESSING PREVIEW ==========
+    # ========== 9. SUBMIT CONFIGURATION BUTTON ==========
+    st.write("---")
+    st.write("#### 🚀 Apply Configuration Changes")
+    
+    if st.button("💾 Save Config & Apply Bitwise Logic", 
+                 type="primary", 
+                 help="Save current configuration to backend and apply bitwise logic rules",
+                 key="submit_config_button"):
+        
+        with st.spinner("Saving configuration and applying changes..."):
+            success = save_and_apply_config()
+            
+            if success:
+                st.success("✅ Configuration saved and applied successfully!")
+                # Force refresh of cached data
+                clear_frontend_cache()
+                st.session_state.pipeline_completed_at = time.time()
+                time.sleep(1)  # Brief pause to ensure backend processing completes
+                st.rerun()
+            else:
+                st.error("❌ Failed to save configuration. Please check the logs.")
+
+    # ========== 10. PREPROCESSING PREVIEW ==========
     
     # Prepare data - using the properly filtered columns
     cols_to_process = [
         c for c in all_columns
-        if c != selected_target_column and c not in selected_decision_columns and c not in selected_exclude_columns
+        if c != selected_target_column and c not in selected_exclude_columns
     ]
     df_processed = df[cols_to_process].copy()
 
@@ -259,6 +299,48 @@ def render_preprocessing_tab():
     except Exception as e:
         st.error(f"Error during preprocessing preview: {e}")
 
+def save_and_apply_config():
+    """Save current session config to backend and apply bitwise logic."""
+    try:
+        # Get current config from session state
+        config = st.session_state.get('config_settings', {})
+        
+        # Send config update to backend
+        response = requests.post(
+            f"{BACKEND_API_URL}/config/update",
+            json=config,
+            timeout=10
+        )
+        
+        if response.status_code != 200:
+            st.error(f"Failed to save config: {response.text}")
+            return False
+        
+        # Apply bitwise logic if any rules exist
+        bitwise_rules = config.get('bitwise_logic', {}).get('rules', [])
+        if bitwise_rules:
+            response = requests.post(
+                f"{BACKEND_API_URL}/config/bitwise-logic/apply",
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('combined_models_created', 0) > 0:
+                    st.info(f"🔗 Created {result['combined_models_created']} combined models using bitwise logic rules")
+            else:
+                st.warning(f"Config saved but failed to apply bitwise logic: {response.text}")
+                
+        return True
+        
+    except Exception as e:
+        st.error(f"Error saving configuration: {str(e)}")
+        return False
+
+def clear_frontend_cache():
+    """Clear the frontend cache to force data refresh."""
+    clear_cache()
+
 def Bitwise_Logic(config, all_columns, selected_decision_columns):
     st.write("#### Bitwise Logic Configuration")
     st.write("Create logical combinations of decision columns:")
@@ -310,18 +392,11 @@ def Bitwise_Logic(config, all_columns, selected_decision_columns):
     available_decision_columns = [col for col in all_columns if col in selected_decision_columns]
     
     if available_decision_columns:
-        # Use a safe key for rule columns
-        rule_columns_key = "new_rule_columns"
-        
-        # Initialize state only once
-        if rule_columns_key not in st.session_state:
-            st.session_state[rule_columns_key] = []
-        
         selected_rule_columns = st.multiselect(
             "Select Columns for Rule",
             available_decision_columns,
             help="Choose decision columns to combine with the selected logic",
-            key=rule_columns_key
+            key="new_rule_columns"
         )
         
         col1, col2 = st.columns(2)
@@ -336,12 +411,9 @@ def Bitwise_Logic(config, all_columns, selected_decision_columns):
                     current_rules.append(new_rule)
                     update_config_direct("bitwise_logic", "rules", current_rules)
                     st.toast(f"Rule '{rule_name}' added!", icon="✅")
-                    # Clear the form by resetting session state
-                    st.session_state[rule_columns_key] = []
-                    st.session_state["new_rule_name"] = ""
                     st.rerun()
                 else:
                     st.error("Please provide both rule name and select columns.")
         
     else:
-        st.info("Please save decision columns first to create bitwise logic rules.")
+        st.info("Please select decision columns first to create bitwise logic rules.")
