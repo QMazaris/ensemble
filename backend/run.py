@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 import pickle
+import requests
 
 # Third-party imports
 import joblib
@@ -25,8 +26,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
-
-from . import config_adapter as config  # Import the config adapter
 
 # Import from helpers package
 from .helpers import (
@@ -78,35 +77,91 @@ from .helpers.modeling import FinalModelCreateAndAnalyize
 # Import bitwise logic functionality
 from .helpers.stacked_logic import generate_combined_runs
 
+
+def load_config():
+    """Load configuration from API endpoint."""
+    try:
+        response = requests.get("http://localhost:8000/config/load")
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Error loading config from API: {e}")
+        print("Please ensure the API server is running on http://localhost:8000")
+        sys.exit(1)
+
+
+def create_model_instances(config):
+    """Create model instances based on configuration."""
+    models = {}
+    enabled_models = config.get("models", {}).get("enabled", [])
+    model_params = config.get("model_params", {})
+    
+    for model_name in enabled_models:
+        if model_name == "XGBoost":
+            models[model_name] = xgb.XGBClassifier(**model_params.get("XGBoost", {}))
+        elif model_name == "RandomForest":
+            models[model_name] = RandomForestClassifier(**model_params.get("RandomForest", {}))
+        elif model_name == "LogisticRegression":
+            models[model_name] = LogisticRegression(**model_params.get("LogisticRegression", {}))
+        elif model_name == "SVM":
+            models[model_name] = SVC(**model_params.get("SVM", {}))
+        elif model_name == "KNN":
+            models[model_name] = KNeighborsClassifier(**model_params.get("KNN", {}))
+        elif model_name == "MLP":
+            models[model_name] = MLPClassifier(**model_params.get("MLP", {}))
+    
+    return models
+
+
+def create_output_directories(config):
+    """Create output directories based on configuration."""
+    base_dir = config.get("output", {}).get("base_dir", "output")
+    subdirs = config.get("output", {}).get("subdirs", {})
+    
+    dirs_to_create = []
+    for subdir_name, subdir_path in subdirs.items():
+        full_path = os.path.join(base_dir, subdir_path)
+        dirs_to_create.append(full_path)
+    
+    return dirs_to_create
+
+
 # ---------- Main Function ----------
-def main(config):
+def main(config_dict=None):
     """Main function to run the entire pipeline.
     
     Args:
-        config: Configuration object containing paths and parameters
+        config_dict: Configuration dictionary. If None, loads from API.
     """
+    # Load configuration from API if not provided
+    if config_dict is None:
+        config = load_config()
+    else:
+        config = config_dict
+
     # Create output directories
-    create_directories(config.dirs_to_create, summary=config.SUMMARY)
+    dirs_to_create = create_output_directories(config)
+    summary = config.get("logging", {}).get("summary", True)
+    create_directories(dirs_to_create, summary=summary)
 
     # Unpack config
-    C_FP = config.C_FP
-    C_FN = config.C_FN
+    C_FP = config.get("costs", {}).get("false_positive", 1.0)
+    C_FN = config.get("costs", {}).get("false_negative", 50.0)
 
     # raw‑output lookup
-    base_cols = config.BASE_MODEL_OUTPUT_COLUMNS
-    base_cols = ["AnomalyScore", "CL_ConfMax"]
+    base_cols = config.get("models", {}).get("base_model_columns", ["AnomalyScore", "CL_ConfMax"])
 
-    SAVE_PREDICTIONS = getattr(config, 'SAVE_PREDICTIONS', True)
-    SAVE_MODEL = getattr(config, 'SAVE_MODEL', True)
-    SUMMARY = getattr(config, 'SUMMARY', True)
+    SAVE_PREDICTIONS = config.get("export", {}).get("save_predictions", True)
+    SAVE_MODEL = config.get("export", {}).get("save_models", True)
+    SUMMARY = config.get("logging", {}).get("summary", True)
 
     # Define model zoo
-    MODELS = config.MODELS
+    MODELS = create_model_instances(config)
     
     df, X, y = Initalize(config, SAVE_MODEL)
 
     # Add detailed feature information logging and saving
-    if config.SUMMARY:
+    if SUMMARY:
         print("=== TRAINING FEATURE INFO ===")
         print(f"Final X shape: {X.shape}")
         print(f"Number of features: {X.shape[1]}")
@@ -122,28 +177,29 @@ def main(config):
         print(X.describe())
 
     # Save the exact feature info for inference
+    filter_data = config.get("features", {}).get("filter_data", False)
     feature_mapping = {
         'feature_columns': list(X.columns),
         'feature_count': X.shape[1],
         'sample_features': X.iloc[0].to_dict(),
         'feature_dtypes': X.dtypes.to_dict(),
         'preprocessing_steps': {
-            'variance_filter': config.FilterData and hasattr(config, 'VARIANCE_THRESH'),
-            'correlation_filter': config.FilterData and hasattr(config, 'CORRELATION_THRESH'),
-            'variance_threshold': getattr(config, 'VARIANCE_THRESH', None),
-            'correlation_threshold': getattr(config, 'CORRELATION_THRESH', None)
+            'variance_filter': filter_data and config.get("features", {}).get("variance_threshold") is not None,
+            'correlation_filter': filter_data and config.get("features", {}).get("correlation_threshold") is not None,
+            'variance_threshold': config.get("features", {}).get("variance_threshold"),
+            'correlation_threshold': config.get("features", {}).get("correlation_threshold")
         }
     }
 
-    feature_info_path = os.path.join(config.MODEL_DIR, 'exact_training_features.pkl')
+    base_dir = config.get("output", {}).get("base_dir", "output")
+    model_dir = os.path.join(base_dir, config.get("output", {}).get("subdirs", {}).get("models", "models"))
+    feature_info_path = os.path.join(model_dir, 'exact_training_features.pkl')
     with open(feature_info_path, 'wb') as f:
         pickle.dump(feature_mapping, f)
         
-    if config.SUMMARY:
+    if SUMMARY:
         print(f"Saved exact training features to '{feature_info_path}'")
         print()
-
-    
 
     meta, base = Core_KFold(config, C_FP, C_FN, base_cols, MODELS, df, X, y)
     # These are the averaged base model runs from output columns
@@ -153,7 +209,7 @@ def main(config):
     # This section calculates results for the original base models (AD_Decision, CL_Decision, etc.).
     # These runs will always be created here, and added to base_model_runs below.
     structured_base_model_runs = []
-    base_models_to_process = config.BASE_MODEL_DECISION_COLUMNS
+    base_models_to_process = config.get("models", {}).get("base_model_decisions", {}).get("enabled_columns", [])
 
     # For K-fold, we don't need train/test indices, so pass None
     decision_base_model_runs = Legacy_Base(config, C_FP, C_FN, df, y, base_models_to_process)
@@ -163,16 +219,11 @@ def main(config):
     # ========== BITWISE LOGIC SECTION ==========
     # Apply bitwise logic rules if enabled and configured
     try:
-        from shared.config_manager import config_manager
-        
         # Get bitwise logic configuration
-        bitwise_config = config_manager.get('models.bitwise_logic', {
-            'rules': [],
-            'enabled': False
-        })
+        bitwise_config = config.get("models", {}).get("bitwise_logic", {})
         
         if bitwise_config.get('enabled', False) and bitwise_config.get('rules', []):
-            if config.SUMMARY:
+            if SUMMARY:
                 print("\n" + "="*80)
                 print("APPLYING BITWISE LOGIC RULES")
                 print("="*80)
@@ -185,7 +236,7 @@ def main(config):
                     'logic': rule['logic']
                 }
             
-            if config.SUMMARY:
+            if SUMMARY:
                 print(f"Applying {len(combined_logic)} bitwise logic rules:")
                 for rule_name, rule_config in combined_logic.items():
                     print(f"  • {rule_name}: {' '.join(rule_config['columns'])} with {rule_config['logic']} logic")
@@ -197,25 +248,25 @@ def main(config):
                 y_true=y.values,
                 C_FP=C_FP,
                 C_FN=C_FN,
-                N_SPLITS=config.N_SPLITS
+                N_SPLITS=config.get("training", {}).get("n_splits", 5)
             )
             
             # Add combined runs to the total results
             results_total.extend(combined_runs)
             
-            if config.SUMMARY:
+            if SUMMARY:
                 print(f"✅ Created {len(combined_runs)} combined models:")
                 for run in combined_runs:
                     print(f"  • {run.model_name}")
                 print()
         
     except Exception as e:
-        if config.SUMMARY:
+        if SUMMARY:
             print(f"⚠️ Warning: Could not apply bitwise logic rules: {str(e)}")
             print("Continuing without bitwise logic combinations...")
             print()
 
-    if config.SUMMARY:
+    if SUMMARY:
         print_performance_summary(
         runs=results_total,
         meta_model_names=set(MODELS.keys())
@@ -223,18 +274,18 @@ def main(config):
 
     if SAVE_PREDICTIONS:
         y_full = y.loc[df.index].values # Get true y for the full dataset
+        predictions_dir = os.path.join(base_dir, config.get("output", {}).get("subdirs", {}).get("predictions", "predictions"))
         predictions_data = save_all_model_probabilities_from_structure(
-            results_total, config.PREDICTIONS_DIR, df.index, y_full, 
-            SUMMARY=config.SUMMARY, save_csv_backup=False
+            results_total, predictions_dir, df.index, y_full, 
+            SUMMARY=SUMMARY, save_csv_backup=False
         )
-      
-
 
     # ========== FINAL PRODUCTION MODELS SECTION ==========
     # When using k-fold, the final model should be trained on the full data after hyperparameter tuning (if enabled)
     # based on the average performance across folds.
     # When using single-split, the final model is trained on the training split and evaluated on the test split.
-    FinalModelCreateAndAnalyize(config, config.MODEL_DIR, config.PLOT_DIR, C_FP, C_FN, X, y)
+    plot_dir = os.path.join(base_dir, config.get("output", {}).get("subdirs", {}).get("plots", "plots"))
+    FinalModelCreateAndAnalyize(config, model_dir, plot_dir, C_FP, C_FN, X, y)
 
     print("\nPipeline complete")
 
@@ -262,8 +313,8 @@ def Legacy_Base(
     from .helpers import ModelEvaluationResult, ModelEvaluationRun
 
     runs: list[ModelEvaluationRun] = []
-    good_tag = config.GOOD_TAG
-    bad_tag  = config.BAD_TAG
+    good_tag = config.get("models", {}).get("base_model_decisions", {}).get("good_tag", "Good")
+    bad_tag  = config.get("models", {}).get("base_model_decisions", {}).get("bad_tag", "Bad")
 
     for column in base_models_to_process:
         if column not in df.columns:
@@ -283,7 +334,7 @@ def Legacy_Base(
 
         # 2) Compute confusion & cost
         tn, fp, fn, tp = confusion_matrix(y_true, decisions).ravel()
-        cost = (C_FP * fp + C_FN * fn) / config.N_SPLITS
+        cost = (C_FP * fp + C_FN * fn) / config.get("training", {}).get("n_splits", 5)
 
         # 3) Compute standard metrics
         metrics = compute_metrics(y_true, decisions, C_FP, C_FN)
@@ -307,7 +358,7 @@ def Legacy_Base(
             is_base_model  = True
         )
 
-        # 5) Wrap in a ModelEvaluationRun, with the “Full”‐split probabilities
+        # 5) Wrap in a ModelEvaluationRun, with the "Full"‐split probabilities
         run = ModelEvaluationRun(
             model_name   = column,
             results      = [result],
@@ -399,7 +450,7 @@ def Core_KFold(config, C_FP, C_FN, base_cols, MODELS, df, X, y):
 
         for column_name in base_cols:
             if column_name not in df:
-                if config.SUMMARY:
+                if config.get("logging", {}).get("summary", True):
                     print(f"⚠️ missing '{column_name}', skipping.")
                 continue
 
@@ -408,7 +459,7 @@ def Core_KFold(config, C_FP, C_FN, base_cols, MODELS, df, X, y):
 
             sweep, cost_opt, acc_opt = threshold_sweep_with_cost(
                 scores, y_te, C_FP, C_FN,
-                SUMMARY   = config.SUMMARY,
+                SUMMARY   = config.get("logging", {}).get("summary", True),
                 split_name= f"{column_name}_Fold{fold_idx}"
             )
 
@@ -448,30 +499,37 @@ def Core_KFold(config, C_FP, C_FN, base_cols, MODELS, df, X, y):
 
 def Initalize(config, SAVE_MODEL):
     # Load data
-    df = pd.read_csv(config.DATA_PATH)
+    data_path = config.get("data", {}).get("path", "data/training_data.csv")
+    df = pd.read_csv(data_path)
     
     # Prepare data
     X, y, numeric_cols, encoded_cols = prepare_data(df, config)
     
     # Apply feature filtering if enabled
-    if config.FilterData:
-        if config.SUMMARY:
+    filter_data = config.get("features", {}).get("filter_data", False)
+    if filter_data:
+        summary = config.get("logging", {}).get("summary", True)
+        if summary:
             print(f"Original feature count: {X.shape[1]}")
         
         # Apply variance filter
-        X = apply_variance_filter(X, threshold=config.VARIANCE_THRESH, SUMMARY=config.SUMMARY)
+        variance_thresh = config.get("features", {}).get("variance_threshold", 0.01)
+        X = apply_variance_filter(X, threshold=variance_thresh, SUMMARY=summary)
         
         # Apply correlation filter
-        X = apply_correlation_filter(X, threshold=config.CORRELATION_THRESH, SUMMARY=config.SUMMARY)
+        correlation_thresh = config.get("features", {}).get("correlation_threshold", 0.95)
+        X = apply_correlation_filter(X, threshold=correlation_thresh, SUMMARY=summary)
         
-        if config.SUMMARY:
+        if summary:
             print(f"Final feature count after filtering: {X.shape[1]}")
     
     # Save feature information if model saving is enabled
     if SAVE_MODEL:
-        Save_Feature_Info(config.MODEL_DIR, df, numeric_cols, encoded_cols)
+        base_dir = config.get("output", {}).get("base_dir", "output")
+        model_dir = os.path.join(base_dir, config.get("output", {}).get("subdirs", {}).get("models", "models"))
+        Save_Feature_Info(model_dir, df, numeric_cols, encoded_cols)
     
     return df, X, y
 
 if __name__ == "__main__":
-    main(config) 
+    main() 

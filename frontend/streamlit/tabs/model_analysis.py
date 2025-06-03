@@ -67,43 +67,28 @@ def render_model_analysis_tab():
     
     if summary_df is not None and not summary_df.empty:
         try:
-            # Model Selection with config integration
+            # Model Selection - frontend only, resets to default
             model_options = summary_df['model_name'].unique()
-            config = st.session_state.get('config_settings', {})
-            current_model = config.get('model_analysis', {}).get('selected_model', model_options[0])
-            
-            try:
-                model_index = list(model_options).index(current_model)
-            except ValueError:
-                model_index = 0
             
             model = st.selectbox(
                 "Select Model", 
                 model_options,
-                index=model_index,
-                key="model_analysis_model_select",
-                on_change=lambda: on_config_change("model_analysis", "selected_model", "model_analysis_model_select")
+                index=0,  # Always default to first model
+                key="model_analysis_model_select"
             )
             
             # Filter data for selected model
             model_data = summary_df[summary_df['model_name'] == model]
             model_cm = cm_df[cm_df['model_name'] == model]
 
-            # Split Selection with config integration
+            # Split Selection - frontend only, resets to default
             split_options = model_data['split'].unique()
-            current_split = config.get('model_analysis', {}).get('selected_split', split_options[0])
-            
-            try:
-                split_index = list(split_options).index(current_split)
-            except ValueError:
-                split_index = 0
             
             selected_split = st.selectbox(
                 "Select Split", 
                 split_options,
-                index=split_index,
-                key="model_analysis_split_select",
-                on_change=lambda: on_config_change("model_analysis", "selected_split", "model_analysis_split_select")
+                index=0,  # Always default to first split
+                key="model_analysis_split_select"
             )
 
             # Filter data for selected split

@@ -18,13 +18,14 @@ from .model_export import export_model
 def optimize_hyperparams(model_name, model, X_train, y_train, config):
     """Bayesian optimization using Optuna to find optimal hyperparameters.
     
-    The hyperparameter space is defined in config.HYPERPARAM_SPACE with a nested structure:
+    The hyperparameter space is defined in config hyperparam_spaces with a nested structure:
     - 'shared': Parameters shared across all models
     - model_name: Model-specific parameters
     """
-    space = config.HYPERPARAM_SPACE
-    if not space or 'shared' not in space:
-        if config.SUMMARY:
+    hyperparam_spaces = config.get("hyperparam_spaces", {})
+    if not hyperparam_spaces:
+        summary = config.get("logging", {}).get("summary", True)
+        if summary:
             print(f"⚠️ No hyperparameter space defined for {model_name}, using default parameters")
         return model
 
@@ -35,26 +36,27 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
         # Build parameters from the config space
         params = {}
         
-        # Add shared parameters
-        for param_name, param_space in space['shared'].items():
-            if isinstance(param_space, list):
-                # Categorical parameter
-                params[param_name] = trial.suggest_categorical(f"shared_{param_name}", param_space)
-            elif isinstance(param_space, tuple):
-                if len(param_space) != 2:
-                    raise ValueError(f"Parameter space for {param_name} must be a tuple of (min, max)")
-                if isinstance(param_space[0], int):
-                    # Integer parameter
-                    params[param_name] = trial.suggest_int(f"shared_{param_name}", param_space[0], param_space[1])
+        # Add shared parameters if they exist
+        if 'shared' in hyperparam_spaces:
+            for param_name, param_space in hyperparam_spaces['shared'].items():
+                if isinstance(param_space, list):
+                    # Categorical parameter
+                    params[param_name] = trial.suggest_categorical(f"shared_{param_name}", param_space)
+                elif isinstance(param_space, tuple):
+                    if len(param_space) != 2:
+                        raise ValueError(f"Parameter space for {param_name} must be a tuple of (min, max)")
+                    if isinstance(param_space[0], int):
+                        # Integer parameter
+                        params[param_name] = trial.suggest_int(f"shared_{param_name}", param_space[0], param_space[1])
+                    else:
+                        # Float parameter
+                        params[param_name] = trial.suggest_float(f"shared_{param_name}", param_space[0], param_space[1])
                 else:
-                    # Float parameter
-                    params[param_name] = trial.suggest_float(f"shared_{param_name}", param_space[0], param_space[1])
-            else:
-                raise ValueError(f"Invalid parameter space type for {param_name}. Must be list or tuple.")
+                    raise ValueError(f"Invalid parameter space type for {param_name}. Must be list or tuple.")
         
-        # Add model-specific parameters if they exist
-        if model_name in space:
-            for param_name, param_space in space[model_name].items():
+        # Add model-specific parameters
+        if model_name in hyperparam_spaces:
+            for param_name, param_space in hyperparam_spaces[model_name].items():
                 if isinstance(param_space, list):
                     # Categorical parameter
                     params[param_name] = trial.suggest_categorical(f"{model_name}_{param_name}", param_space)
@@ -69,37 +71,35 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
                         params[param_name] = trial.suggest_float(f"{model_name}_{param_name}", param_space[0], param_space[1])
                 else:
                     raise ValueError(f"Invalid parameter space type for {param_name}. Must be list or tuple.")
-
-        # Set the parameters
-        model_clone.set_params(**params)
         
-        # Use cross-validation to evaluate the model
-        scores = cross_val_score(
-            model_clone, X_train, y_train,
-            cv=3,
-            scoring='neg_log_loss',
-            n_jobs=config.N_JOBS
-        )
-        
-        # Return the mean score (Optuna minimizes, so we negate the score)
-        return -scores.mean()
-
-    # Create and run the study
-    study = optuna.create_study(
-        direction='minimize',
-        sampler=optuna.samplers.TPESampler(seed=config.RANDOM_STATE)
-    )
+        # Set parameters and evaluate
+        try:
+            model_clone.set_params(**params)
+            scores = cross_val_score(model_clone, X_train, y_train, cv=3, scoring='neg_log_loss', n_jobs=1)
+            return scores.mean()
+        except Exception as e:
+            # Return a poor score if parameter combination is invalid
+            return -10.0
     
-    if config.SUMMARY:
-        print(f"\n🔍 Optimizing hyperparameters for {model_name}...")
-        print(f"   Shared parameters: {space['shared']}")
-        if model_name in space:
-            print(f"   Model-specific parameters: {space[model_name]}")
+    # Run optimization
+    import optuna
+    optuna.logging.set_verbosity(optuna.logging.WARNING)  # Reduce optuna log noise
+    study = optuna.create_study(direction='maximize')
+    
+    hyperparams_enabled = config.get("optimization", {}).get("enabled", False)
+    if not hyperparams_enabled:
+        summary = config.get("logging", {}).get("summary", True)
+        if summary:
+            print(f"⚠️ Hyperparameter optimization disabled for {model_name}, using default parameters")
+        return model
+    
+    iterations = config.get("optimization", {}).get("iterations", 50)
+    summary = config.get("logging", {}).get("summary", True)
     
     study.optimize(
         objective,
-        n_trials=config.HYPERPARAM_ITER,
-        show_progress_bar=config.SUMMARY
+        n_trials=iterations,
+        show_progress_bar=summary
     )
 
     # Get the best parameters and create a new model with them
@@ -115,7 +115,7 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
     best_model = clone(model)
     best_model.set_params(**cleaned_params)
     
-    if config.SUMMARY:
+    if summary:
         print(f"✅ {model_name} optimization complete:")
         print(f"   Best parameters: {cleaned_params}")
         print(f"   Best CV score: {-study.best_value:.4f}")
@@ -125,8 +125,11 @@ def optimize_hyperparams(model_name, model, X_train, y_train, config):
 def train_and_evaluate_model(model, X_train, y_train, splits: dict, model_name: str = None, model_dir: str = None, save_model: bool = True, SUMMARY = None, config=None, feature_names=None):
     """Train a model and evaluate it on multiple splits."""
     # Apply SMOTE if configured
-    if getattr(model, 'use_smote', True):  # Default to True if not specified
-        smote = SMOTE(random_state=42)
+    use_smote = config.get("training", {}).get("use_smote", True) if config else True
+    if use_smote:
+        smote_ratio = config.get("training", {}).get("smote_ratio", 0.5) if config else 0.5
+        random_state = config.get("data", {}).get("random_state", 42) if config else 42
+        smote = SMOTE(sampling_strategy=smote_ratio, random_state=random_state)
         X_bal, y_bal = smote.fit_resample(X_train, y_train)
     else:
         X_bal, y_bal = X_train, y_train
@@ -173,7 +176,7 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, X, y
     """Create and analyze final production models.
     
     Args:
-        config: Configuration object containing model settings
+        config: Configuration dictionary containing model settings
         model_path: Directory to save models
         image_path: Directory to save plots
         C_FP: Cost of false positive
@@ -181,23 +184,33 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, X, y
         X: Feature matrix
         y: Target vector
     """
-    if not config.OPTIMIZE_FINAL_MODEL:
-        if config.SUMMARY:
+    optimize_final_model = config.get("optimization", {}).get("optimize_final_model", False)
+    if not optimize_final_model:
+        summary = config.get("logging", {}).get("summary", True)
+        if summary:
             print("\n⚠️ Final model optimization is disabled. Skipping production model training.")
         return
 
-    if config.SAVE_MODEL:
-        if config.SUMMARY:
+    save_models = config.get("export", {}).get("save_models", True)
+    summary = config.get("logging", {}).get("summary", True)
+    
+    if save_models:
+        if summary:
             print("\n" + "="*80)
             print("FINAL PRODUCTION MODELS")
             print("="*80)
 
-        for name, prototype in config.MODELS.items():
-            if config.SUMMARY:
+        # Create model instances
+        from ..run import create_model_instances
+        models = create_model_instances(config)
+
+        for name, prototype in models.items():
+            if summary:
                 print(f"\n🏭 Optimizing final production model: {name}")
             # Get fresh instance and optimize hyperparameters
             base = clone(prototype)
-            if config.OPTIMIZE_HYPERPARAMS:
+            optimize_hyperparams_enabled = config.get("optimization", {}).get("enabled", False)
+            if optimize_hyperparams_enabled:
                 best = optimize_hyperparams(name, base, X, y, config)
             else:
                 best = base  # Use default parameters if optimization is disabled
@@ -206,19 +219,19 @@ def FinalModelCreateAndAnalyize(config, model_path, image_path, C_FP, C_FN, X, y
             best.fit(X, y)
             
             # Perform threshold sweep on full dataset
-            if config.SUMMARY:
+            if summary:
                 print(f"\n📊 Performing threshold sweep for {name} on full dataset...")
             proba = best.predict_proba(X)[:, 1]
             sweep_results, best_cost, best_acc = threshold_sweep_with_cost(
                 proba, y, C_FP=C_FP, C_FN=C_FN,
-                SUMMARY=config.SUMMARY,
+                SUMMARY=summary,
                 split_name=f"FINAL PRODUCTION {name}"
             )
             
             
             # Save the model
             out_path = export_model(best, f"{name}_production", model_path, config, feature_names=X.columns.tolist())
-            if config.SUMMARY:
+            if summary:
                 print(f"✅ Saved production model: {out_path}")
                 print(f"   • Cost-optimal threshold: {best_cost['threshold']:.3f}")
                 print(f"   • Accuracy-optimal threshold: {best_acc['threshold']:.3f}")
@@ -231,7 +244,7 @@ def process_cv_fold(model_prototype, X_tr, y_tr, X_te, y_te, fold_idx, config, C
         X_tr, y_tr: Training data for this fold
         X_te, y_te: Test data for this fold  
         fold_idx: Fold number
-        config: Configuration object
+        config: Configuration dictionary
         C_FP, C_FN: Cost parameters
         
     Returns:
@@ -241,7 +254,8 @@ def process_cv_fold(model_prototype, X_tr, y_tr, X_te, y_te, fold_idx, config, C
     from sklearn.base import clone
     
     # Hyperparameter optimization for this fold
-    if config.OPTIMIZE_HYPERPARAMS:
+    optimize_hyperparams_enabled = config.get("optimization", {}).get("enabled", False)
+    if optimize_hyperparams_enabled:
         tuned = optimize_hyperparams(
             f"fold_{fold_idx}",
             clone(model_prototype),
@@ -252,6 +266,7 @@ def process_cv_fold(model_prototype, X_tr, y_tr, X_te, y_te, fold_idx, config, C
         tuned = clone(model_prototype)
     
     # Train and predict on this fold
+    summary = config.get("logging", {}).get("summary", True)
     split_preds, _ = train_and_evaluate_model(
         tuned,
         X_tr, y_tr,
@@ -259,7 +274,7 @@ def process_cv_fold(model_prototype, X_tr, y_tr, X_te, y_te, fold_idx, config, C
         model_name=None,
         model_dir=None,
         save_model=False,
-        SUMMARY=config.SUMMARY,
+        SUMMARY=summary,
         config=config
     )
     
@@ -268,7 +283,7 @@ def process_cv_fold(model_prototype, X_tr, y_tr, X_te, y_te, fold_idx, config, C
     # Threshold sweep for this fold
     sweep, bc, ba = threshold_sweep_with_cost(
         proba, y_eval, C_FP=C_FP, C_FN=C_FN,
-        SUMMARY=config.SUMMARY, split_name=f"Fold{fold_idx}"
+        SUMMARY=summary, split_name=f"Fold{fold_idx}"
     )
     
     # Create results

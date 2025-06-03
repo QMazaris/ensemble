@@ -1,27 +1,16 @@
 costs:
   false_negative: 50.0
-  false_positive: 2.0
+  false_positive: 1.0
 data:
   exclude_columns:
-  - Skip
-  - CL_Decision
-  - SegThresh
-  - AD_Decision
-  - BurnThru
+  - GT_Label_Num
   path: data/training_data.csv
   random_state: 42
-  target_column: MaxVal
+  target_column: GT_Label
   test_size: 0.2
-  base_model_decisions:
-  - Weld
-  - Image
-  - GT_Label
-  - AnomalyScore
-  - RegionArea
-  - MaxVal
-  - RegionCount
-  good_tag: 'no'
-  bad_tag: thanks
+  base_model_decisions: []
+  good_tag: Good
+  bad_tag: Bad
 export:
   export_onnx: false
   onnx_opset_version: 12
@@ -162,5 +151,3 @@ training:
 bitwise_logic:
   rules: []
   enabled: false
-overview:
-  selected_threshold_type: cost

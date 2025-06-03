@@ -13,6 +13,11 @@ import logging
 import time
 from datetime import datetime
 import yaml            # PyYAML
+import asyncio
+import shutil
+import subprocess
+import threading
+import traceback
 
 
 #  Constants
@@ -283,36 +288,33 @@ async def run_pipeline_endpoint(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="Pipeline is already running")
     
     def run_pipeline_task():
-        global pipeline_status
         try:
-            pipeline_status = {"status": "running", "message": "Pipeline started", "progress": 0.0}
+            global pipeline_status
+            pipeline_status = {"status": "running", "message": "Pipeline started...", "progress": 0.1}
             
-            # Clear any existing data
-            data_service.clear_all_data()
+            # Load current config
+            config_data = load_config()
             
-            # Run the pipeline directly in this process
-            pipeline_status["message"] = "Loading data and preparing features"
-            pipeline_status["progress"] = 0.2
+            # Import and run the main pipeline function
+            from backend.run import main
             
-            # Import and run the pipeline function directly
-            from backend.run import main as run_pipeline_main
-            results = run_pipeline_main(config)
+            # Clear any existing cached data
+            data_service.clear_cache()
             
-            pipeline_status["message"] = "Training models"
-            pipeline_status["progress"] = 0.6
+            # Run the pipeline with the loaded config
+            main(config_data)
             
-            pipeline_status["message"] = "Evaluating models and generating reports"
-            pipeline_status["progress"] = 0.9
-            
-            # Data should now be available in data_service since we ran in the same process
             pipeline_status = {"status": "completed", "message": "Pipeline completed successfully", "progress": 1.0}
+            api_logger.info("✅ Pipeline completed successfully")
             
         except Exception as e:
-            pipeline_status = {"status": "failed", "message": f"Pipeline failed: {str(e)}", "progress": 0.0}
-            # Log the full traceback for debugging
             import traceback
-            print(f"Pipeline failed with exception: {e}")
-            print(f"Traceback: {traceback.format_exc()}")
+            error_msg = f"Pipeline failed: {str(e)}"
+            error_details = f"Error in pipeline: {str(e)}\nTraceback: {traceback.format_exc()}"
+            
+            pipeline_status = {"status": "failed", "message": error_msg, "progress": None}
+            api_logger.error(f"❌ {error_details}")
+            print(f"Pipeline error: {error_details}")  # Also print to console for debugging
     
     background_tasks.add_task(run_pipeline_task)
     return {"message": "Pipeline started in background", "status": "running"}
@@ -320,7 +322,10 @@ async def run_pipeline_endpoint(background_tasks: BackgroundTasks):
 @app.get("/models/list")
 def list_available_models():
     """List all available trained models."""
-    model_dir = Path(config.MODEL_DIR)
+    config_data = load_config()
+    base_dir = config_data.get("output", {}).get("base_dir", "output")
+    model_dir = Path(base_dir) / config_data.get("output", {}).get("subdirs", {}).get("models", "models")
+    
     if not model_dir.exists():
         return {"models": []}
     
@@ -338,7 +343,10 @@ def list_available_models():
 @app.post("/models/predict", response_model=ModelPredictionResponse)
 def predict_with_model(request: ModelPredictionRequest):
     """Make a prediction using a specific model."""
-    model_path = Path(config.MODEL_DIR) / f"{request.model_name}.pkl"
+    config_data = load_config()
+    base_dir = config_data.get("output", {}).get("base_dir", "output")
+    model_dir = Path(base_dir) / config_data.get("output", {}).get("subdirs", {}).get("models", "models")
+    model_path = model_dir / f"{request.model_name}.pkl"
     
     if not model_path.exists():
         raise HTTPException(status_code=404, detail=f"Model {request.model_name} not found")
@@ -371,10 +379,14 @@ def get_data_info():
         return training_data_info
     
     try:
-        if not os.path.exists(config.DATA_PATH):
+        config_data = load_config()
+        data_path = config_data.get("data", {}).get("path", "data/training_data.csv")
+        target_column = config_data.get("data", {}).get("target_column", "target")
+        
+        if not os.path.exists(data_path):
             raise HTTPException(status_code=404, detail="Training data not found")
         
-        df = pd.read_csv(config.DATA_PATH)
+        df = pd.read_csv(data_path)
         
         # Store in memory for future requests
         training_data_info = {
@@ -382,7 +394,7 @@ def get_data_info():
             "columns": df.columns.tolist(),
             "dtypes": {col: str(dtype) for col, dtype in df.dtypes.to_dict().items()},
             "missing_values": df.isnull().sum().to_dict(),
-            "target_distribution": df[config.TARGET].value_counts().to_dict() if config.TARGET in df.columns else None
+            "target_distribution": df[target_column].value_counts().to_dict() if target_column in df.columns else None
         }
         
         return training_data_info
@@ -527,23 +539,27 @@ def get_predictions_data():
 
 @app.post("/data/load")
 def load_training_data():
-    """Load training data into memory and return basic info."""
+    """Force reload training data and return basic info."""
     global training_data_info
     
     try:
-        if not os.path.exists(config.DATA_PATH):
-            raise HTTPException(status_code=404, detail="Training data not found")
+        config_data = load_config()
+        data_path = config_data.get("data", {}).get("path", "data/training_data.csv")
+        target_column = config_data.get("data", {}).get("target_column", "target")
         
-        df = pd.read_csv(config.DATA_PATH)
+        if not os.path.exists(data_path):
+            raise HTTPException(status_code=404, detail=f"Training data not found at {data_path}")
         
-        # Store in memory for future requests
+        df = pd.read_csv(data_path)
+        
+        # Update cached info
         training_data_info = {
             "shape": df.shape,
             "columns": df.columns.tolist(),
             "dtypes": {col: str(dtype) for col, dtype in df.dtypes.to_dict().items()},
             "missing_values": df.isnull().sum().to_dict(),
-            "target_distribution": df[config.TARGET].value_counts().to_dict() if config.TARGET in df.columns else None,
-            "sample_data": df.head().to_dict('records')  # Include sample data
+            "target_distribution": df[target_column].value_counts().to_dict() if target_column in df.columns else None,
+            "sample_data": df.head().to_dict('records')
         }
         
         return {"message": "Training data loaded successfully", "data_info": training_data_info}
@@ -561,11 +577,15 @@ def clear_cached_data():
 
 @app.post("/data/save-csv-backup")
 def save_csv_backup():
-    """Force save CSV backup files for debugging purposes."""
+    """Save predictions data as CSV backup."""
     try:
-        output_dir = Path(config.OUTPUT_DIR) / "streamlit_data"
+        config_data = load_config()
+        base_dir = config_data.get("output", {}).get("base_dir", "output")
+        output_dir = Path(base_dir) / "streamlit_data"
+        
         data_service.save_to_files(output_dir, save_csv_backup=True)
         return {"message": "CSV backup files saved successfully", "output_dir": str(output_dir)}
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save CSV backup: {str(e)}")
 
@@ -800,154 +820,58 @@ def update_config(updates: Dict[str, Any]):
 
 @app.get("/files/list")
 def list_output_files():
-    """List all output files generated by the pipeline."""
-    output_dir = Path(config.OUTPUT_DIR)
-    if not output_dir.exists():
-        return {"files": []}
-    
-    files = []
-    for file_path in output_dir.rglob("*"):
-        if file_path.is_file():
-            files.append({
-                "name": file_path.name,
-                "path": str(file_path.relative_to(output_dir)),
-                "size": file_path.stat().st_size,
-                "modified": file_path.stat().st_mtime,
-                "type": file_path.suffix
-            })
-    
-    return {"files": files}
+    """List all files in the output directory."""
+    try:
+        config_data = load_config()
+        base_dir = config_data.get("output", {}).get("base_dir", "output")
+        output_dir = Path(base_dir)
+        
+        if not output_dir.exists():
+            return {"files": []}
+        
+        files = []
+        for file_path in output_dir.rglob("*"):
+            if file_path.is_file():
+                files.append({
+                    "name": file_path.name,
+                    "path": str(file_path.relative_to(output_dir)),
+                    "size": file_path.stat().st_size,
+                    "modified": file_path.stat().st_mtime
+                })
+        
+        return {"files": files}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list files: {str(e)}")
 
 @app.delete("/files/cleanup")
 def cleanup_output_files():
-    """Clean up all output files."""
+    """Clean up output files."""
     try:
-        output_dir = Path(config.OUTPUT_DIR)
+        config_data = load_config()
+        base_dir = config_data.get("output", {}).get("base_dir", "output")
+        output_dir = Path(base_dir)
+        
         if output_dir.exists():
-            import shutil
             shutil.rmtree(output_dir)
-            output_dir.mkdir(exist_ok=True)
+            output_dir.mkdir(parents=True, exist_ok=True)
         
-        return {"message": "Output files cleaned up successfully"}
+        # Clear cached data
+        global training_data_info
+        training_data_info = None
+        data_service.clear_cache()
         
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}")
-
-@app.get("/debug/data-service")
-def debug_data_service():
-    """Debug endpoint to see what data is stored in data_service."""
-    return {
-        "has_metrics": data_service.get_metrics_data() is not None,
-        "has_predictions": data_service.get_predictions_data() is not None,
-        "has_sweep": data_service.get_sweep_data() is not None,
-        "metrics_keys": list(data_service.get_metrics_data().keys()) if data_service.get_metrics_data() else None,
-        "metrics_sample": str(data_service.get_metrics_data())[:500] if data_service.get_metrics_data() else None,
-        "predictions_sample": str(data_service.get_predictions_data())[:500] if data_service.get_predictions_data() else None,
-        "sweep_sample": str(data_service.get_sweep_data())[:500] if data_service.get_sweep_data() else None
-    }
-
-@app.get("/config/bitwise-logic", response_model=BitwiseLogicConfigResponse)
-def get_bitwise_logic_config():
-    """Get the current bitwise logic configuration and available models."""
-    try:
-        # Get current configuration from config manager
-        from shared.config_manager import config_manager
-        
-        # Get bitwise logic config (with defaults if not present)
-        bitwise_config = config_manager.get('models.bitwise_logic', {
-            'rules': [],
-            'enabled': False
-        })
-        
-        # Get available models from current metrics data
-        available_models = []
-        try:
-            metrics_data = data_service.get_metrics_data()
-            if metrics_data and 'model_summary' in metrics_data:
-                available_models = list(set(
-                    metric.get('model_name', '') 
-                    for metric in metrics_data['model_summary']
-                    if metric.get('model_name')
-                ))
-        except Exception as e:
-            api_logger.warning(f"Could not get available models from metrics: {e}")
-        
-        # Add base models that should always be available
-        base_decision_models = config.BASE_MODEL_DECISION_COLUMNS
-        available_models.extend(base_decision_models)
-        
-        # Remove duplicates and sort
-        available_models = sorted(list(set(available_models)))
-        
-        # Available logic operations
-        available_logic_ops = ['OR', 'AND', 'XOR', '|', '&', '^']
-        
-        return BitwiseLogicConfigResponse(
-            config=BitwiseLogicConfig(**bitwise_config),
-            available_models=available_models,
-            available_logic_ops=available_logic_ops
-        )
+        return {"status": "success", "message": "Output files cleaned up"}
         
     except Exception as e:
-        api_logger.error(f"Failed to get bitwise logic config: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to get bitwise logic config: {str(e)}")
-
-@app.post("/config/bitwise-logic")
-def update_bitwise_logic_config(bitwise_config: BitwiseLogicConfig):
-    """Update bitwise logic configuration."""
-    try:
-        from shared.config_manager import config_manager
-        
-        # Validate the configuration
-        for rule in bitwise_config.rules:
-            if rule.logic not in ['OR', 'AND', 'XOR', '|', '&', '^']:
-                raise HTTPException(
-                    status_code=400, 
-                    detail=f"Invalid logic operation '{rule.logic}'. Must be one of: OR, AND, XOR, |, &, ^"
-                )
-            
-            if len(rule.columns) < 2:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Rule '{rule.name}' must have at least 2 columns"
-                )
-        
-        # Update the configuration
-        config_updates = {
-            'models.bitwise_logic.rules': [rule.dict() for rule in bitwise_config.rules],
-            'models.bitwise_logic.enabled': bitwise_config.enabled
-        }
-        
-        config_manager.update(config_updates)
-        config_manager.save()
-        
-        # Reload the config adapter to pick up the changes
-        config._adapter.config = config_manager
-        
-        api_logger.info(f"Updated bitwise logic configuration: {len(bitwise_config.rules)} rules, enabled: {bitwise_config.enabled}")
-        
-        return {
-            "message": "Bitwise logic configuration updated successfully",
-            "updated_config": bitwise_config.dict()
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        api_logger.error(f"Failed to update bitwise logic config: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to update bitwise logic config: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to cleanup files: {str(e)}")
 
 @app.post("/config/bitwise-logic/apply")
 def apply_bitwise_logic():
-    """Apply bitwise logic rules to current results and update the data service."""
+    """Apply current bitwise logic configuration to existing model results."""
     try:
-        from shared.config_manager import config_manager
-        
-        # Get current bitwise logic configuration
-        bitwise_config = config_manager.get('models.bitwise_logic', {
-            'rules': [],
-            'enabled': False
-        })
+        # Get current configuration
+        config_data = load_config()
+        bitwise_config = config_data.get("models", {}).get("bitwise_logic", {})
         
         if not bitwise_config.get('enabled', False):
             return {"message": "Bitwise logic is disabled", "combined_models_created": 0}
@@ -956,7 +880,7 @@ def apply_bitwise_logic():
         if not rules:
             return {"message": "No bitwise logic rules configured", "combined_models_created": 0}
         
-        # Get current results from data service
+        # Get existing model results
         metrics_data = data_service.get_metrics_data()
         if not metrics_data:
             raise HTTPException(status_code=404, detail="No model results available. Run the pipeline first.")
@@ -1020,14 +944,19 @@ def apply_bitwise_logic():
                 'logic': rule['logic']
             }
         
+        # Get cost parameters from config
+        C_FP = config_data.get("costs", {}).get("false_positive", 1.0)
+        C_FN = config_data.get("costs", {}).get("false_negative", 50.0)
+        N_SPLITS = config_data.get("training", {}).get("n_splits", 5)
+        
         # Generate combined runs
         new_runs = generate_combined_runs(
             runs=runs,
             combined_logic=combined_logic,
             y_true=y_true,
-            C_FP=config.C_FP,
-            C_FN=config.C_FN,
-            N_SPLITS=config.N_SPLITS
+            C_FP=C_FP,
+            C_FN=C_FN,
+            N_SPLITS=N_SPLITS
         )
         
         # Add new combined runs to the existing metrics data
@@ -1085,8 +1014,8 @@ def apply_bitwise_logic():
         raise
     except Exception as e:
         import traceback
-        error_details = f"Failed to apply bitwise logic: {str(e)}\nTraceback: {traceback.format_exc()}"
-        api_logger.error(error_details)
+        error_details = f"Error applying bitwise logic: {str(e)}\nTraceback: {traceback.format_exc()}"
+        api_logger.error(f"❌ {error_details}")
         raise HTTPException(status_code=500, detail=f"Failed to apply bitwise logic: {str(e)}")
 
 if __name__ == "__main__":

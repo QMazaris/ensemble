@@ -8,11 +8,11 @@ from sklearn.feature_selection import VarianceThreshold
 def prepare_data(df, config):
     """Prepare data for modeling by encoding categorical variables and handling the target."""
     df = df.copy()
-    target = config.TARGET
+    target = config.get("data", {}).get("target_column", "target")
     
     # Get configurable good/bad tags
-    good_tag = getattr(config, 'GOOD_TAG', 'Good')
-    bad_tag = getattr(config, 'BAD_TAG', 'Bad')
+    good_tag = config.get("data", {}).get("good_tag", "Good")
+    bad_tag = config.get("data", {}).get("bad_tag", "Bad")
     
     # Handle target mapping with configurable tags
     y = df[target].map({good_tag: 0, bad_tag: 1})
@@ -20,22 +20,23 @@ def prepare_data(df, config):
         raise ValueError(f"Found unmapped values in {target}. Expected values: '{good_tag}' or '{bad_tag}'")
     
     # Automatically exclude decision columns from training if they exist
-    decision_columns = getattr(config, 'BASE_MODEL_DECISION_COLUMNS', [])
+    decision_columns = config.get("models", {}).get("base_model_decisions", {}).get("enabled_columns", [])
     decision_columns_in_data = [col for col in decision_columns if col in df.columns]
     
     # Only exclude columns that actually exist in the dataframe
-    exclude_cols_config = getattr(config, 'EXCLUDE_COLS', [])
+    exclude_cols_config = config.get("data", {}).get("exclude_columns", [])
     exclude_cols_existing = [col for col in exclude_cols_config if col in df.columns]
     
     # Combine regular exclude columns with decision columns and target
-    exclude_cols = exclude_cols_existing + [config.TARGET] + decision_columns_in_data
+    exclude_cols = exclude_cols_existing + [target] + decision_columns_in_data
     
-    if config.SUMMARY and decision_columns_in_data:
+    summary = config.get("logging", {}).get("summary", True)
+    if summary and decision_columns_in_data:
         print(f"📊 Automatically excluding decision columns from training: {decision_columns_in_data}")
     
     X = df.drop(columns=exclude_cols)
 
-    if config.SUMMARY:
+    if summary:
         features_before_encoding = X.columns.tolist()
         print(f"Features before encoding ({len(features_before_encoding)}):")
         for feat in features_before_encoding:
@@ -48,33 +49,63 @@ def prepare_data(df, config):
     categorical_cols = X.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
     X_encoded = pd.get_dummies(X, columns=categorical_cols, drop_first=True)
     encoded_cols = [col for col in X_encoded.columns if col not in numeric_cols]
+    
     return X_encoded, y, numeric_cols, encoded_cols
 
-def apply_variance_filter(X, threshold=0.01, SUMMARY=None):
-    """Remove features with variance below threshold."""
+def apply_variance_filter(X, threshold=0.01, SUMMARY=True):
+    """Apply variance threshold filter to remove low-variance features."""
+    if SUMMARY:
+        print(f"\nApplying variance filter (threshold={threshold})...")
+        print(f"Features before variance filter: {X.shape[1]}")
+    
     selector = VarianceThreshold(threshold=threshold)
-    X_reduced = selector.fit_transform(X)
-    kept_cols = X.columns[selector.get_support()]
+    X_filtered = selector.fit_transform(X)
+    
+    # Get feature names for the filtered dataset
+    feature_mask = selector.get_support()
+    filtered_feature_names = X.columns[feature_mask]
+    X_filtered = pd.DataFrame(X_filtered, columns=filtered_feature_names, index=X.index)
+    
     if SUMMARY:
-        print(f"🔍 Variance Filter: Kept {len(kept_cols)}/{X.shape[1]} features (threshold = {threshold})")
-    return pd.DataFrame(X_reduced, columns=kept_cols, index=X.index)
+        removed_count = X.shape[1] - X_filtered.shape[1]
+        print(f"Features after variance filter: {X_filtered.shape[1]} (removed {removed_count})")
+    
+    return X_filtered
 
-def apply_correlation_filter(X, threshold=0.9, SUMMARY=None):
-    """Remove features that are positively correlated above the threshold."""
-    corr_matrix = X.corr()  # KEEP the sign
-    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-    # Only drop features with positive correlation above the threshold
-    to_drop = [column for column in upper.columns if (upper[column] > threshold).any()]
-    X_reduced = X.drop(columns=to_drop)
+def apply_correlation_filter(X, threshold=0.95, SUMMARY=True):
+    """Remove highly correlated features."""
     if SUMMARY:
-        print(f"🔍 Correlation Filter: Dropped {len(to_drop)} features (threshold = {threshold})")
-    return X_reduced
+        print(f"\nApplying correlation filter (threshold={threshold})...")
+        print(f"Features before correlation filter: {X.shape[1]}")
+    
+    # Calculate correlation matrix
+    corr_matrix = X.corr().abs()
+    
+    # Find pairs of highly correlated features
+    upper_tri = corr_matrix.where(
+        np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
+    )
+    
+    # Find features to drop
+    to_drop = [column for column in upper_tri.columns if any(upper_tri[column] > threshold)]
+    
+    # Drop the features
+    X_filtered = X.drop(columns=to_drop)
+    
+    if SUMMARY:
+        print(f"Features after correlation filter: {X_filtered.shape[1]} (removed {len(to_drop)})")
+        if to_drop and len(to_drop) <= 10:  # Only show if not too many
+            print(f"Removed features: {to_drop}")
+    
+    return X_filtered
 
 def Regular_Split(config, X, y):
     """Create a regular train/test split."""
+    test_size = config.get("data", {}).get("test_size", 0.2)
+    random_state = config.get("data", {}).get("random_state", 42)
+    
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.20, random_state=getattr(config,'RANDOM_STATE',42),
-        stratify=y
+        X, y, test_size=test_size, random_state=random_state, stratify=y
     )
     train_idx = X_train.index
     test_idx  = X_test.index
@@ -87,10 +118,13 @@ def Regular_Split(config, X, y):
 
 def get_cv_splitter(config):
     """Get a configured StratifiedKFold splitter for consistent cross-validation."""
+    n_splits = config.get("training", {}).get("n_splits", 5)
+    random_state = config.get("data", {}).get("random_state", 42)
+    
     return StratifiedKFold(
-        n_splits=config.N_SPLITS,
+        n_splits=n_splits,
         shuffle=True,
-        random_state=getattr(config, 'RANDOM_STATE', 42)
+        random_state=random_state
     )
 
 def CV_Split(config, X, y):
@@ -103,19 +137,17 @@ def CV_Split(config, X, y):
         cv_splits.append((f"Fold{fold_idx}", (X_tr, y_tr), (X_te, y_te)))
     return cv_splits
 
-def Save_Feature_Info(model_path, df, feature_cols, encoded_cols):
-    """Save feature encoding information for later use."""
-    encoding_info = {}
-    for col in df.columns:
-        if col not in feature_cols and col in df.select_dtypes(include=['object', 'category', 'bool']).columns:
-            encoding_info[col] = {
-                'type': 'one_hot',
-                'original_column': col,
-                'categories': sorted(df[col].unique().tolist())
-            }
+def Save_Feature_Info(model_dir, df, numeric_cols, encoded_cols):
+    """Save feature information for later use."""
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    
     feature_info = {
-        'feature_cols': feature_cols,  # Original numeric features
-        'encoded_cols': encoded_cols,  # One-hot encoded columns
-        'encoding': encoding_info
+        'numeric_cols': numeric_cols,
+        'encoded_cols': encoded_cols,
+        'all_columns': df.columns.tolist()
     }
-    joblib.dump(feature_info, os.path.join(model_path, "feature_info.pkl")) 
+    
+    feature_info_path = os.path.join(model_dir, 'feature_info.pkl')
+    joblib.dump(feature_info, feature_info_path)
+    print(f"Feature information saved to {feature_info_path}") 

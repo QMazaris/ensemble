@@ -75,23 +75,16 @@ def render_overview_tab():
     # Check if we have data to display
     if summary_df is not None and not summary_df.empty:
         try:
-            # Threshold type selector with config integration
+            # Threshold type selector - frontend only, resets to default
             available_threshold_types = summary_df['threshold_type'].unique()
-            config = st.session_state.get('config_settings', {})
-            current_threshold_type = config.get('overview', {}).get('selected_threshold_type', 'cost' if 'cost' in available_threshold_types else available_threshold_types[0])
-            
-            try:
-                default_index = list(available_threshold_types).index(current_threshold_type)
-            except ValueError:
-                default_index = 0 if 'cost' not in available_threshold_types else list(available_threshold_types).index('cost')
+            default_threshold_index = 0 if 'cost' not in available_threshold_types else list(available_threshold_types).index('cost')
             
             selected_threshold_type = st.selectbox(
                 "Select Threshold Type for Analysis",
                 options=available_threshold_types,
-                index=default_index,
+                index=default_threshold_index,
                 help="Choose which threshold optimization method to display",
-                key="overview_threshold_selector",
-                on_change=lambda: on_config_change("overview", "selected_threshold_type", "overview_threshold_selector")
+                key="overview_threshold_selector"
             )
             
             # Use data directly from API - filter only by threshold type and split
@@ -201,42 +194,32 @@ def render_overview_tab():
             # Detailed tables section
             st.write("#### 🔍 Detailed Metrics Table")
             
-            # Add filtering options with config integration
+            # Add filtering options - frontend only, reset to defaults on reload
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                current_split_filter = config.get('overview', {}).get('split_filter', 'All')
                 split_options = ['All'] + list(summary_df['split'].unique())
-                try:
-                    split_index = split_options.index(current_split_filter)
-                except ValueError:
-                    split_index = 0
                 
                 split_filter = st.selectbox(
                     "Filter by Split", 
                     options=split_options,
-                    index=split_index,
-                    key="overview_split_filter",
-                    on_change=lambda: on_config_change("overview", "split_filter", "overview_split_filter")
+                    index=0,  # Always default to 'All'
+                    key="overview_split_filter"
                 )
                 
             with col2:
-                current_threshold_filter = config.get('overview', {}).get('threshold_filter', 'All')
                 threshold_options = ['All'] + list(summary_df['threshold_type'].unique())
-                try:
-                    threshold_index = threshold_options.index(current_threshold_filter)
-                except ValueError:
-                    threshold_index = 0
                     
                 threshold_filter = st.selectbox(
                     "Filter by Threshold Type",
                     options=threshold_options,
-                    index=threshold_index,
-                    key="overview_threshold_filter",
-                    on_change=lambda: on_config_change("overview", "threshold_filter", "overview_threshold_filter")
+                    index=0,  # Always default to 'All'
+                    key="overview_threshold_filter"
                 )
                 
             with col3:
+                # Keep model filter with config persistence since it wasn't mentioned to change
+                config = st.session_state.get('config_settings', {})
                 current_model_filter = config.get('overview', {}).get('model_filter', list(summary_df['model_name'].unique()))
                 
                 # Use a safe key for model filter
@@ -259,6 +242,7 @@ def render_overview_tab():
                     config['overview']['model_filter'] = model_filter
                     st.session_state['config_settings'] = config
                     st.toast("Model filter saved!", icon="✅")
+
             
             # Apply filters directly to API data
             filtered_df = summary_df.copy()
@@ -318,15 +302,3 @@ def render_overview_tab():
                 st.session_state.pipeline_completed_at = time.time()
                 st.rerun()
                 
-        # Additional debugging info
-        with st.expander("🔧 Debug Information"):
-            st.write("**Session State Keys:**", list(st.session_state.keys()))
-            st.write("**Pipeline Completed At:**", st.session_state.get('pipeline_completed_at', 'Not set'))
-            st.write("**Force Refresh:**", force_refresh)
-            st.write("**Metrics Data Keys:**", list(metrics_data.keys()) if metrics_data else "None")
-            if metrics_data and 'results' in metrics_data:
-                results = metrics_data['results']
-                st.write("**Results Keys:**", list(results.keys()))
-                st.write("**Model Summary Count:**", len(results.get('model_summary', [])))
-                st.write("**Model Metrics Count:**", len(results.get('model_metrics', [])))
-                st.write("**Confusion Matrices Count:**", len(results.get('confusion_matrices', [])))
