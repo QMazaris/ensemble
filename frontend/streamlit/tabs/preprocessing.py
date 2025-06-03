@@ -202,10 +202,7 @@ def render_preprocessing_tab():
     # Show what's being automatically excluded
     st.info(f"🔒 **Automatically excluded:** {selected_target_column} (target column)")
 
-    # ========== 7. BITWISE LOGIC CONFIGURATION ==========
-    Bitwise_Logic(config, all_columns, selected_decision_columns)
-
-    # ========== 8. FEATURE SETTINGS ==========
+    # ========== 7. FEATURE SETTINGS ==========
     st.write("#### Feature Engineering Settings")
     
     current_variance_threshold = config.get('features', {}).get('variance_threshold', 0.01)
@@ -231,29 +228,8 @@ def render_preprocessing_tab():
             on_change=lambda: on_config_change("features", "correlation_threshold", "correlation_threshold_input")
         )
 
-    # ========== 9. SUBMIT CONFIGURATION BUTTON ==========
-    st.write("---")
-    st.write("#### 🚀 Apply Configuration Changes")
-    
-    if st.button("💾 Save Config & Apply Bitwise Logic", 
-                 type="primary", 
-                 help="Save current configuration to backend and apply bitwise logic rules",
-                 key="submit_config_button"):
-        
-        with st.spinner("Saving configuration and applying changes..."):
-            success = save_and_apply_config()
-            
-            if success:
-                st.success("✅ Configuration saved and applied successfully!")
-                # Force refresh of cached data
-                clear_frontend_cache()
-                st.session_state.pipeline_completed_at = time.time()
-                time.sleep(1)  # Brief pause to ensure backend processing completes
-                st.rerun()
-            else:
-                st.error("❌ Failed to save configuration. Please check the logs.")
 
-    # ========== 10. PREPROCESSING PREVIEW ==========
+    # ========== 9. PREPROCESSING PREVIEW ==========
     
     # Prepare data - using the properly filtered columns
     cols_to_process = [
@@ -317,8 +293,8 @@ def render_preprocessing_tab():
     except Exception as e:
         st.error(f"Error during preprocessing preview: {e}")
 
-def save_and_apply_config():
-    """Save current session config to backend and apply bitwise logic."""
+def save_preprocessing_config():
+    """Save current preprocessing configuration to backend."""
     try:
         # Get current config from session state
         config = st.session_state.get('config_settings', {})
@@ -334,21 +310,6 @@ def save_and_apply_config():
             st.error(f"Failed to save config: {response.text}")
             return False
         
-        # Apply bitwise logic if any rules exist
-        bitwise_rules = config.get('bitwise_logic', {}).get('rules', [])
-        if bitwise_rules:
-            response = requests.post(
-                f"{BACKEND_API_URL}/config/bitwise-logic/apply",
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                if result.get('combined_models_created', 0) > 0:
-                    st.info(f"🔗 Created {result['combined_models_created']} combined models using bitwise logic rules")
-            else:
-                st.warning(f"Config saved but failed to apply bitwise logic: {response.text}")
-                
         return True
         
     except Exception as e:
@@ -358,89 +319,3 @@ def save_and_apply_config():
 def clear_frontend_cache():
     """Clear the frontend cache to force data refresh."""
     clear_cache()
-
-def Bitwise_Logic(config, all_columns, selected_decision_columns):
-    st.write("#### Bitwise Logic Configuration")
-    st.write("Create logical combinations of decision columns:")
-    
-    # Initialize bitwise_logic in config if not exists
-    if 'bitwise_logic' not in config:
-        config['bitwise_logic'] = {'rules': []}
-        st.session_state['config_settings'] = config
-    
-    current_rules = config.get('bitwise_logic', {}).get('rules', [])
-    
-    # Display existing rules
-    if current_rules:
-        st.write("**Existing Rules:**")
-        for i, rule in enumerate(current_rules):
-            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
-            with col1:
-                st.write(f"• **{rule.get('name', f'Rule {i+1}')}**")
-            with col2:
-                st.write(f"Logic: {rule.get('logic', 'OR')}")
-            with col3:
-                st.write(f"Columns: {len(rule.get('columns', []))}")
-            with col4:
-                if st.button("🗑️", key=f"delete_rule_{i}", help="Delete this rule"):
-                    current_rules.pop(i)
-                    update_config_direct("bitwise_logic", "rules", current_rules)
-                    st.toast("Rule deleted!", icon="🗑️")
-                    st.rerun()
-    
-    # New rule creation
-    st.write("**Add New Rule:**")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        rule_name = st.text_input(
-            "Rule Name",
-            placeholder="e.g., Combined_Decision",
-            key="new_rule_name"
-        )
-    
-    with col2:
-        logic_type = st.selectbox(
-            "Logic Type",
-            ["OR", "AND", "XOR","|","&","^"],
-            key="new_rule_logic"
-        )
-    
-    # Only show decision columns for bitwise logic
-    available_decision_columns = [col for col in all_columns if col in selected_decision_columns]
-    
-    if available_decision_columns:
-        # Use a safe key
-        key = "new_rule_columns_select"
-
-        # Initialize state only once
-        if key not in st.session_state:
-            st.session_state[key] = []
-
-        selected_rule_columns = st.multiselect(
-            "Select Columns for Rule",
-            available_decision_columns,
-            key=key,
-            help="Choose decision columns to combine with the selected logic"
-        )
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Add Rule", key="add_bitwise_rule"):
-                if rule_name and selected_rule_columns:
-                    new_rule = {
-                        "name": rule_name,
-                        "logic": logic_type,
-                        "columns": selected_rule_columns
-                    }
-                    current_rules.append(new_rule)
-                    update_config_direct("bitwise_logic", "rules", current_rules)
-                    # Clear the rule columns selection after adding
-                    st.session_state[key] = []
-                    st.toast(f"Rule '{rule_name}' added!", icon="✅")
-                    st.rerun()
-                else:
-                    st.error("Please provide both rule name and select columns.")
-        
-    else:
-        st.info("Please select decision columns first to create bitwise logic rules.")

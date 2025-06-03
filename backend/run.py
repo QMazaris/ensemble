@@ -248,7 +248,8 @@ def main(config_dict=None):
                 y_true=y.values,
                 C_FP=C_FP,
                 C_FN=C_FN,
-                N_SPLITS=config.get("training", {}).get("n_splits", 5)
+                N_SPLITS=config.get("training", {}).get("n_splits", 5),
+                model_thresholds=config.get("model_thresholds", {})
             )
             
             # Add combined runs to the total results

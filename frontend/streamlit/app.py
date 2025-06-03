@@ -21,6 +21,7 @@ from tabs.overview import render_overview_tab
 from tabs.model_zoo import render_model_zoo_tab
 from tabs.data_management import render_data_management_tab
 from tabs.preprocessing import render_preprocessing_tab
+from tabs.bitwise_logic import render_bitwise_logic_tab
 from tabs.model_analysis import render_model_analysis_tab
 from tabs.downloads import render_downloads_tab
 
@@ -107,9 +108,9 @@ def main():
 
 
     # Tabs - Restored with enhanced overview
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
         "📊 Overview", "📁 Data Management", "⚙️ Preprocessing Config", 
-        "🎯 Model Zoo", "📈 Model Analysis", "📥 Downloads"
+        "🔗 Bitwise Logic", "🎯 Model Zoo", "📈 Model Analysis", "📥 Downloads"
     ])
 
     render_sidebar()
@@ -131,12 +132,15 @@ def main():
         render_preprocessing_tab()
         
     with tab4:
-        render_model_zoo_tab()
+        render_bitwise_logic_tab()
         
     with tab5:
+        render_model_zoo_tab()
+        
+    with tab6:
         render_model_analysis_tab()
     
-    with tab6:
+    with tab7:
         render_downloads_tab()
 
     

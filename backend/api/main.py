@@ -944,6 +944,9 @@ def apply_bitwise_logic():
                 'logic': rule['logic']
             }
         
+        # Get model thresholds configuration
+        model_thresholds = config_data.get("model_thresholds", {})
+        
         # Get cost parameters from config
         C_FP = config_data.get("costs", {}).get("false_positive", 1.0)
         C_FN = config_data.get("costs", {}).get("false_negative", 50.0)
@@ -956,7 +959,8 @@ def apply_bitwise_logic():
             y_true=y_true,
             C_FP=C_FP,
             C_FN=C_FN,
-            N_SPLITS=N_SPLITS
+            N_SPLITS=N_SPLITS,
+            model_thresholds=model_thresholds
         )
         
         # Add new combined runs to the existing metrics data

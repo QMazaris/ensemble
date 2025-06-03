@@ -24,7 +24,8 @@ def generate_combined_runs(
     y_true: np.ndarray,
     C_FP: float,
     C_FN: float,
-    N_SPLITS: int
+    N_SPLITS: int,
+    model_thresholds: Dict[str, float] = None
 ) -> List[ModelEvaluationRun]:
     """
     Create new ModelEvaluationRun entries by bitwise-combining
@@ -39,6 +40,8 @@ def generate_combined_runs(
         y_true: ground-truth labels as a 1D array of 0/1.
         C_FP, C_FN: false-positive/false-negative costs.
         N_SPLITS: number of folds for cost normalization.
+        model_thresholds: optional dict mapping column names to custom thresholds.
+                         If None or missing for a column, defaults to 0.5.
 
     Returns:
         List of ModelEvaluationRun for each combined model.
@@ -52,6 +55,10 @@ def generate_combined_runs(
 
     # Helper: look up a run by model_name
     name_to_run = {run.model_name: run for run in runs}
+    
+    # Default thresholds if not provided
+    if model_thresholds is None:
+        model_thresholds = {}
 
     new_runs = []
     for new_name, cfg in combined_logic.items():
@@ -77,14 +84,17 @@ def generate_combined_runs(
                 if probas is None:
                     raise ValueError(f"No valid probabilities found for model {col}")
                 
-                # Convert to binary decisions (assuming probabilities > 0.5 = positive class)
+                # Convert to binary decisions using custom thresholds
+                # Get threshold for this column (default to 0.5 if not specified)
+                threshold = model_thresholds.get(col, 0.5)
+                
                 # For base models like AD_Decision/CL_Decision, these might already be binary
                 if np.all(np.isin(probas, [0, 1])):
-                    # Already binary decisions
+                    # Already binary decisions - use as is
                     decisions = probas.astype(int)
                 else:
-                    # Convert probabilities to binary decisions using 0.5 threshold
-                    decisions = (probas > 0.5).astype(int)
+                    # Convert probabilities to binary decisions using custom threshold
+                    decisions = (probas >= threshold).astype(int)
                 
                 arrays.append(decisions)
         except KeyError as e:
