@@ -6,12 +6,14 @@ import os
 import joblib
 import numpy as np
 from pathlib import Path
+import xgboost as xgb
 
 # Try to import ONNX dependencies, but make them optional
 try:
     import onnx
     from skl2onnx import convert_sklearn
     from skl2onnx.common.data_types import FloatTensorType
+    from onnxmltools.convert import convert_xgboost
     ONNX_AVAILABLE = True
 except ImportError:
     ONNX_AVAILABLE = False
@@ -111,11 +113,14 @@ def export_model_onnx(model, model_name, model_dir, config, feature_names=None):
     try:
         # Convert the model to ONNX format
         print(f"Converting {model_name} to ONNX...")
-        onnx_model = convert_sklearn(
-            model,
-            initial_types=initial_type,
-            target_opset=opset_version
-        )
+        if isinstance(model, xgb.XGBClassifier):
+            onnx_model = convert_xgboost(model, initial_types=initial_type, target_opset=opset_version)
+        else:
+            onnx_model = convert_sklearn(
+                model,
+                initial_types=initial_type,
+                target_opset=opset_version
+            )
         
         # Save the ONNX model
         onnx_path = os.path.join(model_dir, f"{model_name}.onnx")
