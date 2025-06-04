@@ -80,7 +80,7 @@ hyperparam_spaces:
     - 0.8
     - 1.0
 logging:
-  enabled: true
+  enabled: false
   summary: true
 model_params:
   RandomForest:

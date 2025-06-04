@@ -24,6 +24,12 @@ joblib>=1.2.0
 pathlib2>=2.3.0
 
 # ONNX support (with all required dependencies)
+onnx==1.16.1
+skl2onnx==1.17.0
+onnxconverter-common==1.17.0
+protobuf==3.20.0
+
+
 onnx>=1.12.0
 skl2onnx>=1.12.0
 onnxconverter-common>=1.13.0

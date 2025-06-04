@@ -1032,6 +1032,105 @@ def apply_bitwise_logic(request: BitwiseLogicRequest):
         api_logger.error(f"❌ {error_details}")
         raise HTTPException(status_code=500, detail=f"Failed to apply bitwise logic: {str(e)}")
 
+@app.post("/debug/recover-predictions")
+def recover_predictions():
+    """Debug endpoint to manually trigger predictions data recovery."""
+    api_logger.info("🔧 Manual predictions recovery triggered")
+    
+    try:
+        # Force recovery of predictions data
+        success = data_service.recover_predictions_data(force_recreate=True)
+        
+        if success:
+            # Check what we recovered
+            predictions_data = data_service.get_predictions_data()
+            if predictions_data:
+                if isinstance(predictions_data, dict):
+                    model_count = len([k for k in predictions_data.keys() if k not in ['GT', 'index']])
+                    sample_count = len(predictions_data.get('GT', []))
+                elif isinstance(predictions_data, list):
+                    sample_count = len(predictions_data)
+                    model_count = len(predictions_data[0].keys()) - 2 if predictions_data else 0
+                else:
+                    sample_count = "Unknown"
+                    model_count = "Unknown"
+                
+                api_logger.info(f"✅ Predictions recovery successful: {model_count} models, {sample_count} samples")
+                return {
+                    "status": "success",
+                    "message": f"Predictions data recovered successfully",
+                    "models_recovered": model_count,
+                    "samples_recovered": sample_count
+                }
+            else:
+                api_logger.warning("⚠️ Recovery completed but no predictions data available")
+                return {
+                    "status": "warning", 
+                    "message": "Recovery completed but no predictions data available"
+                }
+        else:
+            api_logger.error("❌ Predictions recovery failed")
+            return {
+                "status": "error",
+                "message": "Failed to recover predictions data"
+            }
+            
+    except Exception as e:
+        import traceback
+        error_msg = f"Predictions recovery error: {str(e)}"
+        api_logger.error(f"❌ {error_msg}\nTraceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=error_msg)
+
+@app.get("/debug/data-service")
+def debug_data_service():
+    """Debug endpoint to check data service status."""
+    try:
+        status = {
+            "has_metrics": data_service.get_metrics_data() is not None,
+            "has_predictions": data_service.get_predictions_data() is not None,
+            "has_sweep": data_service.get_sweep_data() is not None,
+            "backup_files": {}
+        }
+        
+        # Check backup files
+        backup_dir = Path("output/data_service_backup")
+        if backup_dir.exists():
+            for backup_file in backup_dir.glob("*.json"):
+                try:
+                    file_size = backup_file.stat().st_size
+                    status["backup_files"][backup_file.name] = f"{file_size} bytes"
+                except:
+                    status["backup_files"][backup_file.name] = "error reading"
+        
+        # If we have data, get some stats
+        if status["has_predictions"]:
+            predictions_data = data_service.get_predictions_data()
+            if isinstance(predictions_data, dict):
+                status["predictions_info"] = {
+                    "type": "dict",
+                    "model_count": len([k for k in predictions_data.keys() if k not in ['GT', 'index']]),
+                    "sample_count": len(predictions_data.get('GT', []))
+                }
+            elif isinstance(predictions_data, list):
+                status["predictions_info"] = {
+                    "type": "list",
+                    "sample_count": len(predictions_data),
+                    "model_count": len(predictions_data[0].keys()) - 2 if predictions_data else 0
+                }
+        
+        if status["has_metrics"]:
+            metrics_data = data_service.get_metrics_data()
+            status["metrics_info"] = {
+                "model_metrics_count": len(metrics_data.get('model_metrics', [])),
+                "model_summary_count": len(metrics_data.get('model_summary', [])),
+                "confusion_matrices_count": len(metrics_data.get('confusion_matrices', []))
+            }
+            
+        return status
+        
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Data service debug failed: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000) 
