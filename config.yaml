@@ -1,13 +1,9 @@
 costs:
-  false_negative: 100.0
+  false_negative: 30.0
   false_positive: 1.0
 data:
-  exclude_columns:
-  - GT_Label_Num
-  - Image
-  - ClassThresh
-  - SegThresh
-  path: data/training_data.csv
+  exclude_columns: []
+  path: data/Better IC_AI.csv
   random_state: 42
   target_column: GT_Label
   test_size: 0.2
@@ -112,16 +108,14 @@ model_params:
 models:
   base_model_columns:
   - AnomalyScore
-  - CL_ConfMax
-  base_model_decisions:
-  - CL_Decision
-  - AD_Decision
+  - Good
+  base_model_decisions: []
   enabled:
   - XGBoost
   - RandomForest
 optimization:
-  enabled: true
-  iterations: 10
+  enabled: false
+  iterations: 25
   n_jobs: -1
   optimize_final_model: true
 output:
@@ -140,3 +134,5 @@ training:
 bitwise_logic:
   rules: []
   enabled: true
+model_zoo:
+  selected_model: XGBoost

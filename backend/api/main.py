@@ -303,11 +303,23 @@ async def run_pipeline_endpoint(background_tasks: BackgroundTasks):
             # Import and run the main pipeline function
             from backend.run import main
             
-            # Clear any existing cached data
-            data_service.clear_cache()
+            # Don't clear cache here - let main() handle it to avoid double clearing
+            # and ensure the same data service instance is used
+            
+            # Also clear training_data_info since we're starting fresh
+            global training_data_info
+            training_data_info = None
+            
+            api_logger.info("🚀 Starting pipeline execution via main()")
             
             # Run the pipeline with the loaded config
+            pipeline_status = {"status": "running", "message": "Running pipeline...", "progress": 0.3}
             main(config_data)
+            
+            # After main() completes, the data should be in the data service
+            api_logger.info("🔍 Checking data service state after pipeline completion...")
+            api_logger.info(f"Data service keys: {list(data_service._data.keys())}")
+            api_logger.info(f"Has metrics: {'metrics' in data_service._data}")
             
             pipeline_status = {"status": "completed", "message": "Pipeline completed successfully", "progress": 1.0}
             api_logger.info("✅ Pipeline completed successfully")
@@ -579,6 +591,37 @@ def clear_cached_data():
     training_data_info = None
     data_service.clear_all_data()
     return {"message": "All cached data cleared successfully"}
+
+@app.delete("/data/force-clear")
+def force_clear_all_data():
+    """Force clear all data including backup files and restart data service."""
+    global training_data_info
+    training_data_info = None
+    
+    # Clear data service completely
+    data_service.clear_all_data()
+    
+    # Also manually remove backup directory if it exists
+    import shutil
+    backup_dir = Path("output/data_service_backup")
+    if backup_dir.exists():
+        try:
+            shutil.rmtree(backup_dir)
+            api_logger.info(f"🗑️ Removed backup directory: {backup_dir}")
+        except Exception as e:
+            api_logger.warning(f"⚠️ Could not remove backup directory: {e}")
+    
+    # Recreate backup directory
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Force recreate data service instance
+    try:
+        data_service._data.clear()
+        api_logger.info("🔄 Data service reset successfully")
+    except Exception as e:
+        api_logger.warning(f"⚠️ Could not reset data service: {e}")
+    
+    return {"message": "All data forcefully cleared and data service reset"}
 
 @app.post("/data/save-csv-backup")
 def save_csv_backup():
@@ -1019,6 +1062,21 @@ def apply_bitwise_logic(request: BitwiseLogicRequest):
         error_details = f"Error applying bitwise logic: {str(e)}\nTraceback: {traceback.format_exc()}"
         api_logger.error(f"❌ {error_details}")
         raise HTTPException(status_code=500, detail=f"Failed to apply bitwise logic: {str(e)}")
+
+@app.get("/debug/data-service")
+def debug_data_service():
+    """Debug endpoint to check the current state of the data service."""
+    return {
+        "data_service_keys": list(data_service._data.keys()),
+        "has_metrics": 'metrics' in data_service._data,
+        "has_predictions": 'predictions' in data_service._data,
+        "has_sweep": 'sweep' in data_service._data,
+        "metrics_count": len(data_service._data.get('metrics', {}).get('model_metrics', [])) if 'metrics' in data_service._data else 0,
+        "predictions_count": len(data_service._data.get('predictions', [])) if 'predictions' in data_service._data else 0,
+        "sweep_models": list(data_service._data.get('sweep', {}).keys()) if 'sweep' in data_service._data else [],
+        "backup_dir_exists": Path("output/data_service_backup").exists(),
+        "backup_files": [f.name for f in Path("output/data_service_backup").glob("*.json")] if Path("output/data_service_backup").exists() else []
+    }
 
 if __name__ == "__main__":
     import uvicorn

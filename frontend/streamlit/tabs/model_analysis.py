@@ -67,8 +67,28 @@ def render_model_analysis_tab():
     
     if summary_df is not None and not summary_df.empty:
         try:
+            # Optimization Type Selection - new dropdown for cost vs accuracy
+            optimization_options = ['Cost Optimized', 'Accuracy Optimized']
+            selected_optimization = st.selectbox(
+                "Select Optimization", 
+                optimization_options,
+                index=0,  # Default to cost optimized
+                key="model_analysis_optimization_select"
+            )
+            
+            # Convert selection to threshold_type
+            threshold_type = 'cost' if selected_optimization == 'Cost Optimized' else 'accuracy'
+            
+            # Filter data by threshold type
+            summary_df_filtered = summary_df[summary_df['threshold_type'] == threshold_type]
+            cm_df_filtered = cm_df[cm_df['threshold_type'] == threshold_type]
+            
             # Model Selection - frontend only, resets to default
-            model_options = summary_df['model_name'].unique()
+            model_options = summary_df_filtered['model_name'].unique()
+            
+            if len(model_options) == 0:
+                st.warning(f"No data available for {selected_optimization} optimization.")
+                return
             
             model = st.selectbox(
                 "Select Model", 
@@ -78,8 +98,8 @@ def render_model_analysis_tab():
             )
             
             # Filter data for selected model
-            model_data = summary_df[summary_df['model_name'] == model]
-            model_cm = cm_df[cm_df['model_name'] == model]
+            model_data = summary_df_filtered[summary_df_filtered['model_name'] == model]
+            model_cm = cm_df_filtered[cm_df_filtered['model_name'] == model]
 
             # Split Selection - frontend only, resets to default
             split_options = model_data['split'].unique()
@@ -121,7 +141,7 @@ def render_model_analysis_tab():
                     st.plotly_chart(
                         plot_confusion_matrix(model_cm_split.iloc[0]),
                         use_container_width=True,
-                        key=f"confusion_matrix_{model}_{selected_split}"
+                        key=f"confusion_matrix_{model}_{selected_split}_{threshold_type}"
                     )
 
                 # Model Curves
@@ -130,7 +150,7 @@ def render_model_analysis_tab():
                 else:
                     st.info("Threshold sweep data not available for detailed analysis.")
             else:
-                st.warning(f"No data available for model {model} on split {selected_split}")
+                st.warning(f"No data available for model {model} on split {selected_split} with {selected_optimization} optimization")
         except Exception as e:
             st.error(f"❌ Error displaying model analysis: {str(e)}")
             st.write("**Error Details:** Please try refreshing the data or clearing the cache.")

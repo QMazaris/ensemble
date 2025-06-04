@@ -15,13 +15,15 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     """
     # Import data service
     try:
-        from ...shared import data_service
-    except ImportError:
-        # Fallback for direct execution
+        # Use consistent import path
         import sys
         from pathlib import Path
-        sys.path.append(str(Path(__file__).parent.parent.parent))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
         from shared import data_service
+    except ImportError as e:
+        print(f"Warning: Could not import data service: {e}")
+        print("This may cause data export issues")
+        return
     
     # 1. Prepare detailed metrics data
     metrics_data = []
@@ -178,13 +180,13 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     data_service.set_metrics_data(metrics_package)
     data_service.set_sweep_data(sweep_data)
     
-    # # Optionally save to files as backup
-    # if output_dir:
-    #     output_dir = Path(output_dir)
-    #     # Only save JSON files by default for efficiency, CSV files only if needed for debugging
-    #     data_service.save_to_files(output_dir, save_csv_backup=False)
+    # Save to files as backup - this is important for API access
+    if output_dir:
+        output_dir = Path(output_dir)
+        # Save JSON files for API compatibility
+        data_service.save_to_files(output_dir, save_csv_backup=False)
     
-    print(f"Metrics data stored in memory and optionally saved to {output_dir}")
+    print(f"Metrics data stored in memory and saved to {output_dir}")
     print("\nPerformance Summary:")
     if meta_model_names is not None:
         print_performance_summary(runs, meta_model_names)
