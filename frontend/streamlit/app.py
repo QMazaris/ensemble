@@ -143,6 +143,32 @@ def main():
     if st.sidebar.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
         run_pipeline()
     
+    # Add a clear cache button
+    if st.sidebar.button("🗑️ Clear All Cache", use_container_width=True, help="Clear all cached data to force fresh results"):
+        try:
+            # Clear frontend cache first
+            clear_cache()
+            
+            # Force clear backend cache via API (more thorough than regular clear)
+            response = requests.delete(f"{BACKEND_API_URL}/data/force-clear", timeout=10)
+            if response.status_code == 200:
+                st.sidebar.success("✅ All cache forcefully cleared!")
+            else:
+                st.sidebar.warning(f"⚠️ Backend cache clear returned status {response.status_code}")
+                
+            # Reset all session state cache-related items
+            cache_keys_to_clear = [
+                'pipeline_completed_at', 'api_cache', 'api_cache_timestamps',
+                'last_synced_config'
+            ]
+            for key in cache_keys_to_clear:
+                if key in st.session_state:
+                    del st.session_state[key]
+                    
+            st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"❌ Error clearing cache: {str(e)}")
+
     with tab1:
         render_overview_tab()
     

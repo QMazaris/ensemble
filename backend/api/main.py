@@ -303,11 +303,23 @@ async def run_pipeline_endpoint(background_tasks: BackgroundTasks):
             # Import and run the main pipeline function
             from backend.run import main
             
-            # Clear any existing cached data
-            data_service.clear_cache()
+            # Don't clear cache here - let main() handle it to avoid double clearing
+            # and ensure the same data service instance is used
+            
+            # Also clear training_data_info since we're starting fresh
+            global training_data_info
+            training_data_info = None
+            
+            api_logger.info("🚀 Starting pipeline execution via main()")
             
             # Run the pipeline with the loaded config
+            pipeline_status = {"status": "running", "message": "Running pipeline...", "progress": 0.3}
             main(config_data)
+            
+            # After main() completes, the data should be in the data service
+            api_logger.info("🔍 Checking data service state after pipeline completion...")
+            api_logger.info(f"Data service keys: {list(data_service._data.keys())}")
+            api_logger.info(f"Has metrics: {'metrics' in data_service._data}")
             
             pipeline_status = {"status": "completed", "message": "Pipeline completed successfully", "progress": 1.0}
             api_logger.info("✅ Pipeline completed successfully")

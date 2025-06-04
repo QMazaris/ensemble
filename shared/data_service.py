@@ -190,6 +190,28 @@ class DataService:
                 pd.DataFrame(metrics['confusion_matrices']).to_csv(
                     output_dir / "confusion_matrices.csv", index=False
                 )
+    
+    def load_from_backup(self, key: str) -> bool:
+        """Explicitly load data from backup file if needed."""
+        backup_data = self._load_backup(key)
+        if backup_data:
+            self._data[key] = backup_data
+            return True
+        return False
+    
+    def load_all_from_backup(self) -> bool:
+        """Load all available data from backup files."""
+        success = False
+        for key in ['metrics', 'predictions', 'sweep']:
+            if self.load_from_backup(key):
+                success = True
+                print(f"Loaded {key} data from backup")
+        return success
+    
+    def has_backup_data(self) -> bool:
+        """Check if any backup files exist."""
+        backup_files = list(self._backup_dir.glob("*.json"))
+        return len(backup_files) > 0
 
 # Create singleton instance
 data_service = DataService() 

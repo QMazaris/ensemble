@@ -77,6 +77,18 @@ from .helpers.modeling import FinalModelCreateAndAnalyize
 # Import bitwise logic functionality
 from .helpers.stacked_logic import generate_combined_runs
 
+# Clear all cached data at the start to ensure fresh results
+try:
+    # Use consistent import path for data service
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent))
+    from shared import data_service
+    print("🗑️ Clearing all cached data...")
+    data_service.clear_all_data()
+    print("✅ Cache cleared successfully")
+except Exception as e:
+    print(f"⚠️ Warning: Could not clear cache: {e}")
 
 def load_config():
     """Load configuration from API endpoint."""

@@ -15,13 +15,15 @@ def export_metrics_for_streamlit(runs, output_dir, meta_model_names=None):
     """
     # Import data service
     try:
-        from ...shared import data_service
-    except ImportError:
-        # Fallback for direct execution
+        # Use consistent import path
         import sys
         from pathlib import Path
-        sys.path.append(str(Path(__file__).parent.parent.parent))
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
         from shared import data_service
+    except ImportError as e:
+        print(f"Warning: Could not import data service: {e}")
+        print("This may cause data export issues")
+        return
     
     # 1. Prepare detailed metrics data
     metrics_data = []
