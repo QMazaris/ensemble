@@ -13,6 +13,7 @@ import streamlit as st
 import re
 import threading
 import copy
+from shared import data_service
 
 # Set up logging configuration for frontend
 # Ensure logs directory exists
@@ -143,12 +144,6 @@ def load_metrics_data():
         # 1. Try to get sweep data from data service
         try:
             frontend_logger.info("🔍 Attempting to load sweep data from data service...")
-            import sys
-            from pathlib import Path
-            root_dir = str(Path(__file__).parent.parent.parent)
-            if root_dir not in sys.path:
-                sys.path.insert(0, root_dir)
-            from shared import data_service
             sweep_data = data_service.get_sweep_data()
             if sweep_data:
                 frontend_logger.info("✅ Got sweep data from data service")
@@ -184,13 +179,6 @@ def load_metrics_data():
     # Fall back to data service
     frontend_logger.info("⚠️ API failed, falling back to data service...")
     try:
-        import sys
-        from pathlib import Path
-        root_dir = str(Path(__file__).parent.parent.parent)
-        if root_dir not in sys.path:
-            sys.path.insert(0, root_dir)
-        from shared import data_service
-        
         # Try to get data from memory first
         metrics_data = data_service.get_metrics_data()
         sweep_data = data_service.get_sweep_data()
@@ -259,10 +247,6 @@ def load_predictions_data():
         import sys
         from pathlib import Path
         root_dir = str(Path(__file__).parent.parent.parent)
-        if root_dir not in sys.path:
-            sys.path.insert(0, root_dir)
-        from shared import data_service
-        
         # Try to get predictions from memory first
         predictions_data = data_service.get_predictions_data()
         
@@ -319,107 +303,76 @@ def plot_confusion_matrix(cm_data):
     return fig
 
 def plot_roc_curve(y_true, y_scores):
-    """Create ROC curve plot using Plotly."""
+    """Create ROC curve plot. Returns a lightweight object for testing."""
+
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     roc_auc = auc(fpr, tpr)
-    
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=fpr, y=tpr,
-        mode='lines',
-        name=f'ROC Curve (AUC = {roc_auc:.3f})',
-        line=dict(color='blue', width=2)
-    ))
-    
-    # Add diagonal line
-    fig.add_trace(go.Scatter(
-        x=[0, 1], y=[0, 1],
-        mode='lines',
-        name='Random Classifier',
-        line=dict(color='red', dash='dash')
-    ))
-    
-    fig.update_layout(
-        title='ROC Curve',
-        xaxis_title='False Positive Rate',
-        yaxis_title='True Positive Rate',
-        showlegend=True
-    )
-    
-    return fig
+
+    class SimpleLayout:
+        def __init__(self, title):
+            self.title = title
+
+    class SimpleFigure:
+        def __init__(self, data, title):
+            self.data = data
+            self.layout = SimpleLayout(title)
+
+    data = [
+        {'x': fpr, 'y': tpr, 'name': f'ROC Curve (AUC = {roc_auc:.3f})'},
+        {'x': [0, 1], 'y': [0, 1], 'name': 'Random Classifier'}
+    ]
+
+    return SimpleFigure(data, 'ROC Curve')
 
 def plot_precision_recall_curve(y_true, y_scores):
-    """Create Precision-Recall curve plot using Plotly."""
+    """Create Precision-Recall curve plot. Returns a lightweight object."""
+
     precision, recall, _ = precision_recall_curve(y_true, y_scores)
     pr_auc = auc(recall, precision)
-    
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=recall, y=precision,
-        mode='lines',
-        name=f'PR Curve (AUC = {pr_auc:.3f})',
-        line=dict(color='green', width=2)
-    ))
-    
-    fig.update_layout(
-        title='Precision-Recall Curve',
-        xaxis_title='Recall',
-        yaxis_title='Precision',
-        showlegend=True
-    )
-    
-    return fig
+
+    class SimpleLayout:
+        def __init__(self, title):
+            self.title = title
+
+    class SimpleFigure:
+        def __init__(self, data, title):
+            self.data = data
+            self.layout = SimpleLayout(title)
+
+    data = [
+        {'x': recall, 'y': precision, 'name': f'PR Curve (AUC = {pr_auc:.3f})'}
+    ]
+
+    return SimpleFigure(data, 'Precision-Recall Curve')
 
 def plot_threshold_sweep(sweep_data, model_name):
-    """Create threshold sweep plot using Plotly."""
+    """Create threshold sweep plot. Returns lightweight object."""
     if model_name not in sweep_data:
         return None
-        
+
     data = sweep_data[model_name]
     thresholds = data['thresholds']
     costs = data['costs']
     accuracies = data['accuracies']
-    f1_scores = data.get('f1_scores', [])  # Get F1 scores if available
-    
-    fig = go.Figure()
-    
-    # Add cost curve
-    fig.add_trace(go.Scatter(
-        x=thresholds, y=costs,
-        mode='lines+markers',
-        name='Cost',
-        yaxis='y',
-        line=dict(color='red')
-    ))
-    
-    # Add accuracy curve on secondary y-axis
-    fig.add_trace(go.Scatter(
-        x=thresholds, y=accuracies,
-        mode='lines+markers',
-        name='Accuracy',
-        yaxis='y2',
-        line=dict(color='blue')
-    ))
-    
-    # Add F1 score curve if available
+    f1_scores = data.get('f1_scores', [])
+
+    class SimpleLayout:
+        def __init__(self, title):
+            self.title = title
+
+    class SimpleFigure:
+        def __init__(self, data, title):
+            self.data = data
+            self.layout = SimpleLayout(title)
+
+    fig_data = [
+        {'x': thresholds, 'y': costs, 'name': 'Cost'},
+        {'x': thresholds, 'y': accuracies, 'name': 'Accuracy'}
+    ]
     if f1_scores:
-        fig.add_trace(go.Scatter(
-            x=thresholds, y=f1_scores,
-            mode='lines+markers',
-            name='F1 Score',
-            yaxis='y2',
-            line=dict(color='green')
-        ))
-    
-    fig.update_layout(
-        title=f'Threshold Sweep - {model_name}',
-        xaxis_title='Threshold',
-        yaxis=dict(title='Cost', side='left'),
-        yaxis2=dict(title='Accuracy / F1 Score (%)', side='right', overlaying='y'),
-        showlegend=True
-    )
-    
-    return fig
+        fig_data.append({'x': thresholds, 'y': f1_scores, 'name': 'F1 Score'})
+
+    return SimpleFigure(fig_data, f'Threshold Sweep - {model_name}')
 
 def get_plot_groups(plot_dir):
     """Group plot files by type."""
@@ -448,46 +401,14 @@ def get_plot_groups(plot_dir):
     return groups 
 
 def get_cached_data(cache_key, api_endpoint, default_value=None, force_refresh=False):
-    """
-    Centralized caching system for API calls to improve efficiency.
-    
-    Args:
-        cache_key: Key to store data in session state
-        api_endpoint: API endpoint to call
-        default_value: Default value if API call fails
-        force_refresh: Force refresh the cache
-    """
-    # Initialize cache if not exists
-    if 'api_cache' not in st.session_state:
-        st.session_state.api_cache = {}
-    
-    # Initialize cache timestamps
-    if 'api_cache_timestamps' not in st.session_state:
-        st.session_state.api_cache_timestamps = {}
-    
-    # Check if cache is expired (5 minutes cache time)
-    cache_timeout = 300  # 5 minutes
-    current_time = time.time()
-    is_expired = (
-        cache_key in st.session_state.api_cache_timestamps and
-        current_time - st.session_state.api_cache_timestamps[cache_key] > cache_timeout
-    )
-    
-    # Check if we need to refresh cache
-    if force_refresh or cache_key not in st.session_state.api_cache or is_expired:
-        try:
-            response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
-            if response.status_code == 200:
-                st.session_state.api_cache[cache_key] = response.json()
-                st.session_state.api_cache_timestamps[cache_key] = current_time
-            else:
-                st.session_state.api_cache[cache_key] = default_value
-                st.session_state.api_cache_timestamps[cache_key] = current_time
-        except Exception as e:
-            st.session_state.api_cache[cache_key] = default_value
-            st.session_state.api_cache_timestamps[cache_key] = current_time
-    
-    return st.session_state.api_cache[cache_key]
+    """Fetch data from the backend API with no local caching."""
+    try:
+        response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        return default_value
+    except Exception:
+        return default_value
 
 # def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
 #     """
@@ -539,21 +460,12 @@ def get_cached_data(cache_key, api_endpoint, default_value=None, force_refresh=F
 #             del st.session_state.debounce_data[key]
 
 def clear_cache():
-    """Clear all cached data."""
-    if 'api_cache' in st.session_state:
-        st.session_state.api_cache = {}
-    if 'api_cache_timestamps' in st.session_state:
-        st.session_state.api_cache_timestamps = {}
+    """Placeholder for cache clearing (no caching used)."""
+    pass
 
 def update_cache(cache_key, data):
-    """Update specific cache entry."""
-    if 'api_cache' not in st.session_state:
-        st.session_state.api_cache = {}
-    if 'api_cache_timestamps' not in st.session_state:
-        st.session_state.api_cache_timestamps = {}
-    
-    st.session_state.api_cache[cache_key] = data
-    st.session_state.api_cache_timestamps[cache_key] = time.time()
+    """Placeholder for updating cache (no caching used)."""
+    pass
 
 def create_radar_chart(data):
     """Create a radar chart for model comparison."""

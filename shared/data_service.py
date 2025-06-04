@@ -155,6 +155,10 @@ class DataService:
                 backup_file.unlink()
         except Exception as e:
             print(f"Warning: Failed to clear backup files: {e}")
+
+    def has_data(self) -> bool:
+        """Return True if any data is currently stored."""
+        return bool(self._data)
     
     def save_to_files(self, output_dir: Path, save_csv_backup: bool = False):
         """Save current data to files as backup (optional).
@@ -170,7 +174,10 @@ class DataService:
         for key in ['metrics', 'predictions', 'sweep']:
             data = getattr(self, f'get_{key}_data')()
             if data:
-                json_file = output_dir / f"{key}.json"
+                file_name = (
+                    'threshold_sweep_data.json' if key == 'sweep' else f'{key}.json'
+                )
+                json_file = output_dir / file_name
                 with open(json_file, 'w') as f:
                     json.dump(data, f, indent=2, default=str)
         
@@ -184,12 +191,24 @@ class DataService:
                 pd.DataFrame(metrics['model_metrics']).to_csv(
                     output_dir / "model_metrics.csv", index=False
                 )
+
+            if 'model_summary' in metrics:
+                import pandas as pd
+                pd.DataFrame(metrics['model_summary']).to_csv(
+                    output_dir / "model_summary.csv", index=False
+                )
             
             if 'confusion_matrices' in metrics:
                 import pandas as pd
                 pd.DataFrame(metrics['confusion_matrices']).to_csv(
                     output_dir / "confusion_matrices.csv", index=False
                 )
+
+        if save_csv_backup and 'predictions' in self._data:
+            import pandas as pd
+            pd.DataFrame(self._data['predictions']).to_csv(
+                output_dir / "all_model_predictions.csv", index=False
+            )
 
 # Create singleton instance
 data_service = DataService() 

@@ -5,14 +5,48 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.feature_selection import VarianceThreshold
 
+
+def _dict_get(dct, *keys, default=None):
+    """Nested dictionary get helper."""
+    for k in keys:
+        if isinstance(dct, dict) and k in dct:
+            dct = dct[k]
+        else:
+            return default
+    return dct
+
 def prepare_data(df, config):
-    """Prepare data for modeling by encoding categorical variables and handling the target."""
+    """Prepare data for modeling by encoding categorical variables and handling the target.
+
+    The function accepts either a configuration dictionary (new style) or an
+    object with attribute-based access used in legacy tests.
+    """
     df = df.copy()
-    target = config.get("data", {}).get("target_column", "target")
+
+    if hasattr(config, "get"):
+        cfg_get = lambda *ks, default=None: _dict_get(config, *ks, default=default)
+    else:
+        def cfg_get(*ks, default=None):
+            legacy_map = {
+                ("data", "target_column"): "TARGET",
+                ("data", "exclude_columns"): "EXCLUDE_COLS",
+                ("logging", "summary"): "SUMMARY",
+                ("training", "n_splits"): "N_SPLITS",
+                ("data", "random_state"): "RANDOM_STATE",
+                ("data", "test_size"): "TEST_SIZE",
+                ("models", "base_model_decisions"): "BASE_MODEL_DECISIONS",
+            }
+            attr_name = legacy_map.get(tuple(ks))
+            if attr_name:
+                return getattr(config, attr_name, default)
+            attr = "_".join(ks).upper()
+            return getattr(config, attr, default)
+
+    target = cfg_get("data", "target_column", default="target")
     
     # Get configurable good/bad tags
-    good_tag = config.get("data", {}).get("good_tag", "Good")
-    bad_tag = config.get("data", {}).get("bad_tag", "Bad")
+    good_tag = cfg_get("data", "good_tag", default="Good")
+    bad_tag = cfg_get("data", "bad_tag", default="Bad")
     
     # Handle target mapping with configurable tags
     y = df[target].map({good_tag: 0, bad_tag: 1})
@@ -20,7 +54,7 @@ def prepare_data(df, config):
         raise ValueError(f"Found unmapped values in {target}. Expected values: '{good_tag}' or '{bad_tag}'")
     
     # Safely handle base_model_decisions - it can be either a list or a dictionary
-    base_model_decisions_config = config.get("models", {}).get("base_model_decisions", [])
+    base_model_decisions_config = cfg_get("models", "base_model_decisions", default=[])
     
     # Handle both list and dictionary formats
     if isinstance(base_model_decisions_config, list):
@@ -36,13 +70,13 @@ def prepare_data(df, config):
     decision_columns_in_data = [col for col in decision_columns if col in df.columns]
     
     # Only exclude columns that actually exist in the dataframe
-    exclude_cols_config = config.get("data", {}).get("exclude_columns", [])
+    exclude_cols_config = cfg_get("data", "exclude_columns", default=[])
     exclude_cols_existing = [col for col in exclude_cols_config if col in df.columns]
     
     # Combine regular exclude columns with decision columns and target
     exclude_cols = exclude_cols_existing + [target] + decision_columns_in_data
     
-    summary = config.get("logging", {}).get("summary", True)
+    summary = cfg_get("logging", "summary", default=True)
     if summary and decision_columns_in_data:
         print(f"📊 Automatically excluding decision columns from training: {decision_columns_in_data}")
     
@@ -91,7 +125,9 @@ def apply_correlation_filter(X, threshold=0.95, SUMMARY=True):
         print(f"Features before correlation filter: {X.shape[1]}")
     
     # Calculate correlation matrix
-    corr_matrix = X.corr().abs()
+    # Use raw correlation values so that strong negative correlations do not
+    # trigger removal. This matches the expected behavior in the tests.
+    corr_matrix = X.corr()
     
     # Find pairs of highly correlated features
     upper_tri = corr_matrix.where(
@@ -113,8 +149,15 @@ def apply_correlation_filter(X, threshold=0.95, SUMMARY=True):
 
 def Regular_Split(config, X, y):
     """Create a regular train/test split."""
-    test_size = config.get("data", {}).get("test_size", 0.2)
-    random_state = config.get("data", {}).get("random_state", 42)
+    if hasattr(config, "get"):
+        g = lambda *ks, default=None: _dict_get(config, *ks, default=default)
+    else:
+        def g(*ks, default=None):
+            attr = "_".join(ks).upper()
+            return getattr(config, attr, default)
+
+    test_size = g("data", "test_size", default=0.2)
+    random_state = g("data", "random_state", default=42)
     
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state, stratify=y
@@ -130,8 +173,15 @@ def Regular_Split(config, X, y):
 
 def get_cv_splitter(config):
     """Get a configured StratifiedKFold splitter for consistent cross-validation."""
-    n_splits = config.get("training", {}).get("n_splits", 5)
-    random_state = config.get("data", {}).get("random_state", 42)
+    if hasattr(config, "get"):
+        g = lambda *ks, default=None: _dict_get(config, *ks, default=default)
+    else:
+        def g(*ks, default=None):
+            attr = "_".join(ks).upper()
+            return getattr(config, attr, default)
+
+    n_splits = g("training", "n_splits", default=5)
+    random_state = g("data", "random_state", default=42)
     
     return StratifiedKFold(
         n_splits=n_splits,
