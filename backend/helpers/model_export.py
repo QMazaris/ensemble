@@ -8,14 +8,12 @@ import numpy as np
 from pathlib import Path
 
 # Try to import ONNX dependencies, but make them optional
-try:
-    import onnx
-    from skl2onnx import convert_sklearn
-    from skl2onnx.common.data_types import FloatTensorType
-    ONNX_AVAILABLE = True
-except ImportError:
-    ONNX_AVAILABLE = False
-    print("Warning: ONNX dependencies not available. ONNX export will be disabled.")
+
+import onnx
+from skl2onnx import convert_sklearn
+from skl2onnx.common.data_types import FloatTensorType
+
+
 
 def export_model(model, model_name, model_dir, config=None, feature_names=None):
     """
@@ -41,13 +39,13 @@ def export_model(model, model_name, model_dir, config=None, feature_names=None):
         
     export_onnx = config.get("export", {}).get("export_onnx", False)
     print(f"Export ONNX setting for {model_name}: {export_onnx}")
-    print(f"ONNX available: {ONNX_AVAILABLE}")
+  
     
-    if export_onnx and ONNX_AVAILABLE:
+    if export_onnx:
         print(f"Attempting ONNX export for {model_name}")
         return export_model_onnx(model, model_name, model_dir, config, feature_names)
     else:
-        if export_onnx and not ONNX_AVAILABLE:
+        if export_onnx:
             print(f"Warning: ONNX export requested but ONNX not available. Falling back to pickle export for {model_name}")
         else:
             print(f"ONNX export not requested for {model_name}, using pickle export")
@@ -84,8 +82,6 @@ def export_model_onnx(model, model_name, model_dir, config, feature_names=None):
     Returns:
         str: Path to the exported ONNX model file
     """
-    if not ONNX_AVAILABLE:
-        raise ImportError("ONNX dependencies not available. Install with: pip install onnx skl2onnx")
     
     print(f"Starting ONNX export for {model_name}")
     print(f"Model type: {type(model)}")
@@ -144,7 +140,7 @@ def get_model_file_extension(config=None):
     Returns:
         str: File extension ('.onnx' or '.pkl')
     """
-    if config is not None and config.get("export", {}).get("export_onnx", False) and ONNX_AVAILABLE:
+    if config is not None and config.get("export", {}).get("export_onnx", False):
         return '.onnx'
     else:
         return '.pkl' 
