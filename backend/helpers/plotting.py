@@ -8,7 +8,8 @@ def plot_threshold_sweep(sweep_results, C_FP, C_FN, output_path=None, cost_optim
     thresholds = list(sweep_results.keys())
     precision = [sweep_results[t]['precision'] for t in thresholds]
     recall = [sweep_results[t]['recall'] for t in thresholds]
-    f1_score = [sweep_results[t]['f1_score'] for t in thresholds]
+    # Handle optional F1 score key gracefully
+    f1_score = [sweep_results[t].get('f1_score') for t in thresholds]
     accuracy = [sweep_results[t]['accuracy'] for t in thresholds]
     cost = [sweep_results[t].get('cost', 0) for t in thresholds]
     
