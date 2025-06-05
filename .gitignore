@@ -10,3 +10,4 @@ __pycache__/
 # Ignore cache directories (if used)
 .cache/
 */__pycache__/
+output/logs/api.log
