@@ -1,5 +1,4 @@
 import streamlit as st
-import subprocess
 import os
 import sys
 from pathlib import Path
@@ -65,7 +64,7 @@ def load_config_from_api():
         return {}
 
 def run_pipeline():
-    """Run the main pipeline using the virtual environment's Python."""
+    """Run the main pipeline via the API endpoint."""
     with st.spinner("Syncing configuration and running pipeline..."):
         try:
             # First, always sync config to backend and wait for completion
@@ -83,35 +82,44 @@ def run_pipeline():
             # Small delay to ensure sync is fully complete
             time.sleep(0.5)
             
-            # Now run the pipeline
-            st.info("🚀 Starting pipeline execution...")
+            # Now run the pipeline via API
+            st.info("🚀 Starting pipeline execution via API...")
             
-            # Get the path to the virtual environment's Python
-            venv_python = os.path.join("venv", "Scripts", "python.exe")
-            if not os.path.exists(venv_python):
-                # Fallback to system Python if venv not found
-                venv_python = "python"
+            # Call the API pipeline endpoint
+            response = requests.post(f"{BACKEND_API_URL}/pipeline/run", timeout=300)  # 5 minute timeout
+            
+            if response.status_code == 200:
+                result = response.json()
                 
-            # Run the backend pipeline
-            subprocess.run([venv_python, "-m", "backend.run"], check=True, cwd=root_dir)
-            
-            # No caching anymore - data will be fresh on each load
-            # Use a single timestamp-based refresh mechanism instead of multiple flags
-            # This prevents race conditions between tabs
-            st.session_state.pipeline_completed_at = time.time()
-            
-            # Update sync tracking since we just synced
-            st.session_state.last_synced_config = copy.deepcopy(st.session_state.config_settings)
-            
-            # Show success message
-            st.success("✅ Pipeline completed successfully!")
-            st.info("🔄 Data will refresh automatically. You may need to interact with the page to see updates.")
-            st.balloons()
-            
-        except subprocess.CalledProcessError as e:
-            st.error(f"❌ Pipeline failed with error: {str(e)}")
-        except FileNotFoundError:
-            st.error("❌ Error: backend/run.py not found. Please ensure backend/run.py exists.")
+                # No caching anymore - data will be fresh on each load
+                # Use a single timestamp-based refresh mechanism instead of multiple flags
+                # This prevents race conditions between tabs
+                st.session_state.pipeline_completed_at = time.time()
+                
+                # Update sync tracking since we just synced
+                st.session_state.last_synced_config = copy.deepcopy(st.session_state.config_settings)
+                
+                # Show success message with data summary
+                st.success("✅ Pipeline completed successfully!")
+                
+                # Show data summary if available
+                if 'data_summary' in result:
+                    summary = result['data_summary']
+                    st.info(f"📊 Data stored: Metrics: {summary.get('metrics_stored', False)}, "
+                           f"Predictions: {summary.get('predictions_stored', False)}, "
+                           f"Sweep: {summary.get('sweep_stored', False)}")
+                
+                st.info("🔄 Data will refresh automatically. You may need to interact with the page to see updates.")
+                st.balloons()
+                
+            else:
+                error_detail = response.json().get('detail', 'Unknown error') if response.headers.get('content-type') == 'application/json' else response.text
+                st.error(f"❌ Pipeline failed: {error_detail}")
+                
+        except requests.exceptions.Timeout:
+            st.error("❌ Pipeline execution timed out. The pipeline may still be running in the background.")
+        except requests.exceptions.ConnectionError:
+            st.error("❌ Cannot connect to backend API. Please ensure the backend server is running on http://localhost:8000")
         except Exception as e:
             st.error(f"❌ Unexpected error: {str(e)}")
 
