@@ -14,20 +14,18 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 # Import utility functions
-from utils import get_cached_data, MODEL_DIR
+from utils import get_fresh_data, MODEL_DIR
 
 def render_downloads_tab():
     """Render the downloads tab content."""
     st.write("### Download Files")
     
-    # Download predictions - now using cached data instead of fresh API call
+    # Download predictions - get fresh data from API
     try:
-        # Use cached predictions data
-        predictions_data = get_cached_data(
-            cache_key="predictions_data",
+        # Get fresh predictions data
+        predictions_data = get_fresh_data(
             api_endpoint="/results/predictions",
-            default_value={"predictions": []},
-            force_refresh=False
+            default_value={"predictions": []}
         )
         
         if predictions_data and predictions_data.get('predictions'):

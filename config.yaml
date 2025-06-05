@@ -1,5 +1,5 @@
 costs:
-  false_negative: 60.0
+  false_negative: 30.0
   false_positive: 1.0
 data:
   exclude_columns: []

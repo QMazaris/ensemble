@@ -447,47 +447,22 @@ def get_plot_groups(plot_dir):
     
     return groups 
 
-def get_cached_data(cache_key, api_endpoint, default_value=None, force_refresh=False):
+def get_fresh_data(api_endpoint, default_value=None):
     """
-    Centralized caching system for API calls to improve efficiency.
+    Fetch fresh data from API without any caching.
     
     Args:
-        cache_key: Key to store data in session state
         api_endpoint: API endpoint to call
         default_value: Default value if API call fails
-        force_refresh: Force refresh the cache
     """
-    # Initialize cache if not exists
-    if 'api_cache' not in st.session_state:
-        st.session_state.api_cache = {}
-    
-    # Initialize cache timestamps
-    if 'api_cache_timestamps' not in st.session_state:
-        st.session_state.api_cache_timestamps = {}
-    
-    # Check if cache is expired (5 minutes cache time)
-    cache_timeout = 300  # 5 minutes
-    current_time = time.time()
-    is_expired = (
-        cache_key in st.session_state.api_cache_timestamps and
-        current_time - st.session_state.api_cache_timestamps[cache_key] > cache_timeout
-    )
-    
-    # Check if we need to refresh cache
-    if force_refresh or cache_key not in st.session_state.api_cache or is_expired:
-        try:
-            response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
-            if response.status_code == 200:
-                st.session_state.api_cache[cache_key] = response.json()
-                st.session_state.api_cache_timestamps[cache_key] = current_time
-            else:
-                st.session_state.api_cache[cache_key] = default_value
-                st.session_state.api_cache_timestamps[cache_key] = current_time
-        except Exception as e:
-            st.session_state.api_cache[cache_key] = default_value
-            st.session_state.api_cache_timestamps[cache_key] = current_time
-    
-    return st.session_state.api_cache[cache_key]
+    try:
+        response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return default_value
+    except Exception as e:
+        return default_value
 
 # def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
 #     """
@@ -538,22 +513,7 @@ def get_cached_data(cache_key, api_endpoint, default_value=None, force_refresh=F
 #             del st.session_state.debounce_timers[key]
 #             del st.session_state.debounce_data[key]
 
-def clear_cache():
-    """Clear all cached data."""
-    if 'api_cache' in st.session_state:
-        st.session_state.api_cache = {}
-    if 'api_cache_timestamps' in st.session_state:
-        st.session_state.api_cache_timestamps = {}
-
-def update_cache(cache_key, data):
-    """Update specific cache entry."""
-    if 'api_cache' not in st.session_state:
-        st.session_state.api_cache = {}
-    if 'api_cache_timestamps' not in st.session_state:
-        st.session_state.api_cache_timestamps = {}
-    
-    st.session_state.api_cache[cache_key] = data
-    st.session_state.api_cache_timestamps[cache_key] = time.time()
+# Cache functions removed - no longer using caching
 
 def create_radar_chart(data):
     """Create a radar chart for model comparison."""
@@ -683,12 +643,10 @@ def render_model_curves(model, sweep_data, model_data_split):
     
     # Load predictions and ensure we have the data
     try:
-        # Use cached predictions data instead of loading fresh each time
-        predictions_data = get_cached_data(
-            cache_key="predictions_data",
+        # Get fresh predictions data from API
+        predictions_data = get_fresh_data(
             api_endpoint="/results/predictions",
-            default_value={"predictions": []},
-            force_refresh=False  # Don't force refresh here
+            default_value={"predictions": []}
         )
         
         if predictions_data and predictions_data.get('predictions'):

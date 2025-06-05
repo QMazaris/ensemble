@@ -19,7 +19,7 @@ if root_dir not in sys.path:
 
 # Import utility functions
 from utils import (
-    get_cached_data, clear_cache, create_radar_chart,
+    get_fresh_data, create_radar_chart,
     render_threshold_comparison_plots, BACKEND_API_URL
 )
 from config_util import on_config_change
@@ -34,21 +34,11 @@ def render_overview_tab():
     cm_df = None
     sweep_data = None
     
-    # Use cached data to avoid redundant API calls
-    # Check if pipeline completed recently (within last 30 seconds) to force refresh
-    pipeline_completed_at = st.session_state.get('pipeline_completed_at', 0)
-    force_refresh = (time.time() - pipeline_completed_at) < 30
-    
-    metrics_data = get_cached_data(
-        cache_key="metrics_data",
+    # Get fresh data from API each time
+    metrics_data = get_fresh_data(
         api_endpoint="/results/metrics",
-        default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}},
-        force_refresh=force_refresh
+        default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}}
     )
-    
-    # Clear the pipeline completion timestamp after first use to prevent constant refreshing
-    if force_refresh and 'pipeline_completed_at' in st.session_state:
-        st.session_state.pipeline_completed_at = 0
     
     if metrics_data and metrics_data.get('results'):
         results = metrics_data['results']
@@ -58,9 +48,8 @@ def render_overview_tab():
         summary_df = pd.DataFrame(results.get('model_summary', []))
         cm_df = pd.DataFrame(results.get('confusion_matrices', []))
         
-        # Get sweep data from cache
-        sweep_data = get_cached_data(
-            cache_key="sweep_data",
+        # Get sweep data from API
+        sweep_data = get_fresh_data(
             api_endpoint="/debug/data-service",
             default_value=None
         )
@@ -276,10 +265,8 @@ def render_overview_tab():
                 
         except Exception as e:
             st.error(f"❌ Error displaying overview data: {str(e)}")
-            st.write("**Error Details:** Please try refreshing the page or clearing the cache.")
+            st.write("**Error Details:** Please try refreshing the page.")
             if st.button("🔄 Refresh Page", key="error_refresh_overview"):
-                clear_cache()
-                st.session_state.pipeline_completed_at = time.time()
                 st.rerun()
     else:
         # Enhanced error message with debugging information
@@ -305,7 +292,5 @@ def render_overview_tab():
                 
         with col2:
             if st.button("🔄 Try Again", key="retry_overview_data"):
-                clear_cache()
-                st.session_state.pipeline_completed_at = time.time()
                 st.rerun()
                 

@@ -4,16 +4,16 @@
       "model_name": "kfold_avg_XGBoost",
       "split": "Full",
       "threshold_type": "cost",
-      "accuracy": 88.81777931113794,
-      "precision": 87.48449398164769,
-      "recall": 100.0,
-      "f1_score": 93.06893382975426,
-      "cost": 20.8,
-      "threshold": 0.18,
-      "tp": 133.2,
-      "fp": 20.8,
-      "tn": 32.2,
-      "fn": 0.0
+      "accuracy": 96.34466103156805,
+      "precision": 96.1114271462786,
+      "recall": 98.94736842105263,
+      "f1_score": 97.49919696698812,
+      "cost": 8.2,
+      "threshold": 0.5900000000000001,
+      "tp": 131.8,
+      "fp": 5.4,
+      "tn": 47.6,
+      "fn": 1.4
     },
     {
       "model_name": "kfold_avg_XGBoost",
@@ -23,7 +23,7 @@
       "precision": 96.75679187194604,
       "recall": 98.49624060150374,
       "f1_score": 97.61632328636162,
-      "cost": 124.4,
+      "cost": 8.4,
       "threshold": 0.72,
       "tp": 131.2,
       "fp": 4.4,
@@ -34,16 +34,16 @@
       "model_name": "kfold_avg_RandomForest",
       "split": "Full",
       "threshold_type": "cost",
-      "accuracy": 84.41090219078833,
-      "precision": 82.96940103859224,
-      "recall": 100.0,
-      "f1_score": 90.4534820113404,
-      "cost": 29.0,
-      "threshold": 0.14,
-      "tp": 133.2,
-      "fp": 29.0,
-      "tn": 24.0,
-      "fn": 0.0
+      "accuracy": 95.05606348111091,
+      "precision": 95.72023795493469,
+      "recall": 97.4436090225564,
+      "f1_score": 96.56970559176952,
+      "cost": 12.6,
+      "threshold": 0.33,
+      "tp": 129.8,
+      "fp": 5.8,
+      "tn": 47.2,
+      "fn": 3.4
     },
     {
       "model_name": "kfold_avg_RandomForest",
@@ -53,7 +53,7 @@
       "precision": 96.2841204979781,
       "recall": 97.14285714285714,
       "f1_score": 96.70438572644966,
-      "cost": 233.0,
+      "cost": 12.6,
       "threshold": 0.35000000000000003,
       "tp": 129.4,
       "fp": 5.0,
@@ -119,6 +119,36 @@
       "fp": 53.0,
       "tn": 0.0,
       "fn": 0.0
+    },
+    {
+      "model_name": "kfold_avg_Burn-Through",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 72.18101316773043,
+      "precision": 72.11433960515747,
+      "recall": 99.69924812030075,
+      "f1_score": 83.68483684444267,
+      "cost": 52.2,
+      "threshold": 0.16,
+      "tp": 132.8,
+      "fp": 51.4,
+      "tn": 1.6,
+      "fn": 0.4
+    },
+    {
+      "model_name": "kfold_avg_Burn-Through",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 72.18101316773043,
+      "precision": 72.11433960515747,
+      "recall": 99.69924812030075,
+      "f1_score": 83.68483684444267,
+      "cost": 52.2,
+      "threshold": 0.16,
+      "tp": 132.8,
+      "fp": 51.4,
+      "tn": 1.6,
+      "fn": 0.4
     }
   ],
   "confusion_matrices": [
@@ -126,10 +156,10 @@
       "model_name": "kfold_avg_XGBoost",
       "split": "Full",
       "threshold_type": "cost",
-      "tp": 133.2,
-      "fp": 20.8,
-      "tn": 32.2,
-      "fn": 0.0
+      "tp": 131.8,
+      "fp": 5.4,
+      "tn": 47.6,
+      "fn": 1.4
     },
     {
       "model_name": "kfold_avg_XGBoost",
@@ -144,10 +174,10 @@
       "model_name": "kfold_avg_RandomForest",
       "split": "Full",
       "threshold_type": "cost",
-      "tp": 133.2,
-      "fp": 29.0,
-      "tn": 24.0,
-      "fn": 0.0
+      "tp": 129.8,
+      "fp": 5.8,
+      "tn": 47.2,
+      "fn": 3.4
     },
     {
       "model_name": "kfold_avg_RandomForest",
@@ -193,6 +223,24 @@
       "fp": 53.0,
       "tn": 0.0,
       "fn": 0.0
+    },
+    {
+      "model_name": "kfold_avg_Burn-Through",
+      "split": "Full",
+      "threshold_type": "cost",
+      "tp": 132.8,
+      "fp": 51.4,
+      "tn": 1.6,
+      "fn": 0.4
+    },
+    {
+      "model_name": "kfold_avg_Burn-Through",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "tp": 132.8,
+      "fp": 51.4,
+      "tn": 1.6,
+      "fn": 0.4
     }
   ],
   "model_summary": [
@@ -200,13 +248,13 @@
       "model_name": "kfold_avg_XGBoost",
       "split": "Full",
       "threshold_type": "cost",
-      "accuracy": 88.81777931113794,
-      "precision": 87.48449398164769,
-      "recall": 100.0,
-      "f1_score": 93.06893382975426,
-      "cost": 20.8,
-      "threshold": 0.18,
-      "total_samples": 186.2
+      "accuracy": 96.34466103156805,
+      "precision": 96.1114271462786,
+      "recall": 98.94736842105263,
+      "f1_score": 97.49919696698812,
+      "cost": 8.2,
+      "threshold": 0.5900000000000001,
+      "total_samples": 186.20000000000002
     },
     {
       "model_name": "kfold_avg_XGBoost",
@@ -216,7 +264,7 @@
       "precision": 96.75679187194604,
       "recall": 98.49624060150374,
       "f1_score": 97.61632328636162,
-      "cost": 124.4,
+      "cost": 8.4,
       "threshold": 0.72,
       "total_samples": 186.2
     },
@@ -224,13 +272,13 @@
       "model_name": "kfold_avg_RandomForest",
       "split": "Full",
       "threshold_type": "cost",
-      "accuracy": 84.41090219078833,
-      "precision": 82.96940103859224,
-      "recall": 100.0,
-      "f1_score": 90.4534820113404,
-      "cost": 29.0,
-      "threshold": 0.14,
-      "total_samples": 186.2
+      "accuracy": 95.05606348111091,
+      "precision": 95.72023795493469,
+      "recall": 97.4436090225564,
+      "f1_score": 96.56970559176952,
+      "cost": 12.6,
+      "threshold": 0.33,
+      "total_samples": 186.20000000000002
     },
     {
       "model_name": "kfold_avg_RandomForest",
@@ -240,7 +288,7 @@
       "precision": 96.2841204979781,
       "recall": 97.14285714285714,
       "f1_score": 96.70438572644966,
-      "cost": 233.0,
+      "cost": 12.6,
       "threshold": 0.35000000000000003,
       "total_samples": 186.20000000000002
     },
@@ -291,6 +339,30 @@
       "cost": 53.0,
       "threshold": 0.0,
       "total_samples": 186.2
+    },
+    {
+      "model_name": "kfold_avg_Burn-Through",
+      "split": "Full",
+      "threshold_type": "cost",
+      "accuracy": 72.18101316773043,
+      "precision": 72.11433960515747,
+      "recall": 99.69924812030075,
+      "f1_score": 83.68483684444267,
+      "cost": 52.2,
+      "threshold": 0.16,
+      "total_samples": 186.20000000000002
+    },
+    {
+      "model_name": "kfold_avg_Burn-Through",
+      "split": "Full",
+      "threshold_type": "accuracy",
+      "accuracy": 72.18101316773043,
+      "precision": 72.11433960515747,
+      "recall": 99.69924812030075,
+      "f1_score": 83.68483684444267,
+      "cost": 52.2,
+      "threshold": 0.16,
+      "total_samples": 186.20000000000002
     }
   ]
 }

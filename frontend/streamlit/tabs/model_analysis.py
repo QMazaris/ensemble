@@ -19,7 +19,7 @@ if root_dir not in sys.path:
 
 # Import utility functions
 from utils import (
-    get_cached_data, clear_cache, plot_confusion_matrix, 
+    get_fresh_data, plot_confusion_matrix, 
     render_model_curves
 )
 from config_util import on_config_change
@@ -28,27 +28,15 @@ def render_model_analysis_tab():
     """Render the model analysis tab content."""
     st.write("### Model Analysis")
     
-    # Add cache refresh button
-    if st.button("🔄 Refresh Data", key="model_analysis_refresh", help="Clear cache and reload model data"):
-        clear_cache()
-        st.session_state.pipeline_completed_at = time.time()
+    # Add data refresh button
+    if st.button("🔄 Refresh Data", key="model_analysis_refresh", help="Reload model data"):
         st.rerun()
     
-    # Use cached data to avoid redundant API calls
-    # Check if pipeline completed recently (within last 30 seconds) to force refresh
-    pipeline_completed_at = st.session_state.get('pipeline_completed_at', 0)
-    force_refresh = (time.time() - pipeline_completed_at) < 30
-    
-    metrics_data = get_cached_data(
-        cache_key="metrics_data",
+    # Get fresh data from API each time
+    metrics_data = get_fresh_data(
         api_endpoint="/results/metrics",
-        default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}},
-        force_refresh=force_refresh
+        default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}}
     )
-    
-    # Clear the pipeline completion timestamp after first use to prevent constant refreshing
-    if force_refresh and 'pipeline_completed_at' in st.session_state:
-        st.session_state.pipeline_completed_at = 0
     
     if metrics_data and metrics_data.get('results'):
         results = metrics_data['results']
@@ -153,10 +141,8 @@ def render_model_analysis_tab():
                 st.warning(f"No data available for model {model} on split {selected_split} with {selected_optimization} optimization")
         except Exception as e:
             st.error(f"❌ Error displaying model analysis: {str(e)}")
-            st.write("**Error Details:** Please try refreshing the data or clearing the cache.")
+            st.write("**Error Details:** Please try refreshing the data.")
             if st.button("🔄 Refresh Data", key="error_refresh_analysis"):
-                clear_cache()
-                st.session_state.pipeline_completed_at = time.time()
                 st.rerun()
     else:
         st.info("No model data available. Run the pipeline to see analysis here.")

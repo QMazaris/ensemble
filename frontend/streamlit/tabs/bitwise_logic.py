@@ -14,7 +14,7 @@ parent_dir = str(Path(__file__).parent.parent)
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
-from utils import clear_cache
+# No longer using cache functions
 
 def render_bitwise_logic_tab():
     """Render the bitwise logic configuration and application tab."""
@@ -419,10 +419,8 @@ def apply_bitwise_logic_rules():
             st.error(f"❌ Error applying bitwise logic: {str(e)}")
             return
         
-        # Step 2: Clear frontend cache and trigger refresh
+        # Step 2: Trigger refresh (no caching anymore)
         st.write("**Step 2:** Refreshing frontend data...")
-        
-        clear_cache()
         
         # Set a flag to indicate successful pipeline completion
         st.session_state.pipeline_completed_at = time.time()

@@ -16,7 +16,7 @@ parent_dir = str(Path(__file__).parent.parent)
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
-from utils import clear_cache
+# No longer using cache functions
 
 def render_preprocessing_tab():
     """Render the data preprocessing and configuration tab."""
@@ -321,4 +321,5 @@ def save_preprocessing_config():
 
 def clear_frontend_cache():
     """Clear the frontend cache to force data refresh."""
-    clear_cache()
+    # No longer using cache functions
+    pass

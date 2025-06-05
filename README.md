@@ -296,3 +296,37 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [ ] Real-time model monitoring
 - [ ] A/B testing framework
 - [ ] Model explainability with SHAP
+
+## Architecture Overview
+
+### Simplified Data Flow
+The pipeline now uses a maximally simple data flow architecture:
+
+1. **Pipeline Execution**: The main pipeline (`backend/run.py`) processes data and trains models
+2. **Direct Memory Export**: After completion, the pipeline exports all results directly to API memory via the `DataService` singleton
+3. **API Serving**: The API (`backend/api/main.py`) serves data directly from memory to the frontend
+4. **No Intermediate Files**: No CSV files or complex export processes - pure in-memory data flow
+
+### Key Components
+
+- **DataService** (`shared/data_service.py`): Simplified singleton for pure in-memory data storage
+- **Pipeline** (`backend/run.py`): Exports data directly to API memory after each run
+- **API** (`backend/api/main.py`): Serves data from memory to frontend
+
+### Benefits
+
+- **Maximum Simplicity**: No file I/O overhead, no backup complexity
+- **Real-time Updates**: Fresh data immediately available after pipeline completion
+- **Memory Efficient**: Data stored once in memory, served directly to frontend
+- **Clean Architecture**: Clear separation between pipeline execution and data serving
+
+### Usage
+
+1. Run the pipeline via API: `POST /pipeline/run`
+2. Pipeline automatically exports results to API memory
+3. Frontend gets fresh data immediately via API endpoints
+4. Re-run pipeline for updated results with new parameters
+
+## Installation and Setup
+
+// ... existing content ...

@@ -47,8 +47,7 @@ sys.path.insert(0, str(backend_dir.parent))  # Add project root too
 from backend import config_adapter as config
 from backend.helpers import (
     prepare_data, ModelEvaluationResult, ModelEvaluationRun,
-    plot_threshold_sweep, plot_runs_at_threshold, plot_class_balance,
-    save_all_model_probabilities_from_structure
+    plot_threshold_sweep, plot_runs_at_threshold, plot_class_balance
 )
 from backend.helpers.stacked_logic import generate_combined_runs
 
@@ -208,6 +207,9 @@ def fix_numeric_types(data):
                                 pass
     return data
 
+# Helper functions removed - data is served directly from singleton
+# Users re-run pipeline to get fresh data with new parameters
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Ensemble Pipeline API", "status": "running"}
@@ -276,6 +278,16 @@ def update_config_partial(partial_conf: Dict[str, Any]):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to write config.yaml: {e}")
 
+    # Log cost parameter updates (user can re-run pipeline for fresh data)
+    if 'costs' in partial_conf:
+        api_logger.info("🔄 Cost parameters updated - re-run pipeline to see changes in results")
+    
+    # Also check for nested cost updates
+    for key, value in partial_conf.items():
+        if isinstance(value, dict) and 'costs' in str(value):
+            api_logger.info("🔄 Nested cost parameters updated - re-run pipeline to see changes in results")
+            break
+
     return {"message": "Configuration partially updated successfully", "updated": partial_conf}
 
 
@@ -303,23 +315,32 @@ async def run_pipeline_endpoint(background_tasks: BackgroundTasks):
             # Import and run the main pipeline function
             from backend.run import main
             
-            # Don't clear cache here - let main() handle it to avoid double clearing
-            # and ensure the same data service instance is used
-            
             # Also clear training_data_info since we're starting fresh
             global training_data_info
             training_data_info = None
             
             api_logger.info("🚀 Starting pipeline execution via main()")
             
+            # Check data service state before pipeline
+            api_logger.info("🔍 Data service state BEFORE pipeline:")
+            api_logger.info(f"   Has data: {data_service.has_data()}")
+            api_logger.info(f"   Data keys: {list(data_service._data.keys())}")
+            
             # Run the pipeline with the loaded config
             pipeline_status = {"status": "running", "message": "Running pipeline...", "progress": 0.3}
             main(config_data)
             
-            # After main() completes, the data should be in the data service
-            api_logger.info("🔍 Checking data service state after pipeline completion...")
-            api_logger.info(f"Data service keys: {list(data_service._data.keys())}")
-            api_logger.info(f"Has metrics: {'metrics' in data_service._data}")
+            # After main() completes, check the data service state
+            api_logger.info("🔍 Data service state AFTER pipeline:")
+            api_logger.info(f"   Has data: {data_service.has_data()}")
+            api_logger.info(f"   Data keys: {list(data_service._data.keys())}")
+            api_logger.info(f"   Metrics available: {data_service.get_metrics_data() is not None}")
+            api_logger.info(f"   Predictions available: {data_service.get_predictions_data() is not None}")
+            api_logger.info(f"   Sweep data available: {data_service.get_sweep_data() is not None}")
+            
+            if data_service.get_metrics_data():
+                metrics = data_service.get_metrics_data()
+                api_logger.info(f"   Metrics details: {len(metrics.get('model_metrics', []))} model metrics")
             
             pipeline_status = {"status": "completed", "message": "Pipeline completed successfully", "progress": 1.0}
             api_logger.info("✅ Pipeline completed successfully")
@@ -421,7 +442,7 @@ def get_data_info():
 
 @app.get("/results/metrics")
 def get_model_metrics():
-    """Get the latest model evaluation metrics."""
+    """Get the latest model evaluation metrics from singleton."""
     try:
         api_logger.info("🔍 Fetching model metrics from data service...")
         metrics_data = data_service.get_metrics_data()
@@ -539,7 +560,7 @@ def get_model_comparison(threshold_type: str = "cost", split: str = "Full"):
 
 @app.get("/results/predictions")
 def get_predictions_data():
-    """Get model predictions data."""
+    """Get model predictions data from singleton."""
     api_logger.info("🔍 Fetching predictions data from data service...")
     
     predictions_data = data_service.get_predictions_data()
@@ -592,19 +613,7 @@ def clear_cached_data():
     data_service.clear_all_data()
     return {"message": "All cached data cleared successfully"}
 
-@app.post("/data/save-csv-backup")
-def save_csv_backup():
-    """Save predictions data as CSV backup."""
-    try:
-        config_data = load_config()
-        base_dir = config_data.get("output", {}).get("base_dir", "output")
-        output_dir = Path(base_dir) / "streamlit_data"
-        
-        data_service.save_to_files(output_dir, save_csv_backup=True)
-        return {"message": "CSV backup files saved successfully", "output_dir": str(output_dir)}
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save CSV backup: {str(e)}")
+
 
 @app.get("/config/base-models", response_model=BaseModelDecisionResponse)
 def get_base_model_config():
@@ -875,7 +884,7 @@ def cleanup_output_files():
         # Clear cached data
         global training_data_info
         training_data_info = None
-        data_service.clear_cache()
+        data_service.clear_all_data()
         
         return {"status": "success", "message": "Output files cleaned up"}
         
@@ -1032,104 +1041,23 @@ def apply_bitwise_logic(request: BitwiseLogicRequest):
         api_logger.error(f"❌ {error_details}")
         raise HTTPException(status_code=500, detail=f"Failed to apply bitwise logic: {str(e)}")
 
-@app.post("/debug/recover-predictions")
-def recover_predictions():
-    """Debug endpoint to manually trigger predictions data recovery."""
-    api_logger.info("🔧 Manual predictions recovery triggered")
-    
-    try:
-        # Force recovery of predictions data
-        success = data_service.recover_predictions_data(force_recreate=True)
-        
-        if success:
-            # Check what we recovered
-            predictions_data = data_service.get_predictions_data()
-            if predictions_data:
-                if isinstance(predictions_data, dict):
-                    model_count = len([k for k in predictions_data.keys() if k not in ['GT', 'index']])
-                    sample_count = len(predictions_data.get('GT', []))
-                elif isinstance(predictions_data, list):
-                    sample_count = len(predictions_data)
-                    model_count = len(predictions_data[0].keys()) - 2 if predictions_data else 0
-                else:
-                    sample_count = "Unknown"
-                    model_count = "Unknown"
-                
-                api_logger.info(f"✅ Predictions recovery successful: {model_count} models, {sample_count} samples")
-                return {
-                    "status": "success",
-                    "message": f"Predictions data recovered successfully",
-                    "models_recovered": model_count,
-                    "samples_recovered": sample_count
-                }
-            else:
-                api_logger.warning("⚠️ Recovery completed but no predictions data available")
-                return {
-                    "status": "warning", 
-                    "message": "Recovery completed but no predictions data available"
-                }
-        else:
-            api_logger.error("❌ Predictions recovery failed")
-            return {
-                "status": "error",
-                "message": "Failed to recover predictions data"
-            }
-            
-    except Exception as e:
-        import traceback
-        error_msg = f"Predictions recovery error: {str(e)}"
-        api_logger.error(f"❌ {error_msg}\nTraceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=error_msg)
+
 
 @app.get("/debug/data-service")
 def debug_data_service():
     """Debug endpoint to check data service status."""
     try:
+        summary = data_service.get_data_summary()
         status = {
-            "has_metrics": data_service.get_metrics_data() is not None,
-            "has_predictions": data_service.get_predictions_data() is not None,
-            "has_sweep": data_service.get_sweep_data() is not None,
-            "backup_files": {}
+            "storage_type": "Pure in-memory storage",
+            "data_summary": summary,
+            "memory_usage": f"{len(data_service._data)} datasets in memory"
         }
         
-        # Check backup files
-        backup_dir = Path("output/data_service_backup")
-        if backup_dir.exists():
-            for backup_file in backup_dir.glob("*.json"):
-                try:
-                    file_size = backup_file.stat().st_size
-                    status["backup_files"][backup_file.name] = f"{file_size} bytes"
-                except:
-                    status["backup_files"][backup_file.name] = "error reading"
-        
-        # If we have data, get some stats
-        if status["has_predictions"]:
-            predictions_data = data_service.get_predictions_data()
-            if isinstance(predictions_data, dict):
-                status["predictions_info"] = {
-                    "type": "dict",
-                    "model_count": len([k for k in predictions_data.keys() if k not in ['GT', 'index']]),
-                    "sample_count": len(predictions_data.get('GT', []))
-                }
-            elif isinstance(predictions_data, list):
-                status["predictions_info"] = {
-                    "type": "list",
-                    "sample_count": len(predictions_data),
-                    "model_count": len(predictions_data[0].keys()) - 2 if predictions_data else 0
-                }
-        
-        if status["has_metrics"]:
-            metrics_data = data_service.get_metrics_data()
-            status["metrics_info"] = {
-                "model_metrics_count": len(metrics_data.get('model_metrics', [])),
-                "model_summary_count": len(metrics_data.get('model_summary', [])),
-                "confusion_matrices_count": len(metrics_data.get('confusion_matrices', []))
-            }
-            
         return status
         
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Data service debug failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Data service debug failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
