@@ -107,16 +107,37 @@ def _mk_result(model_name, split_name, best, thr_type):
     )
 
 def _average_results(res_list, model_name):
-    """Average results across folds."""
-    fields = ['precision', 'recall', 'f1_score', 'accuracy', 'cost', 'tp', 'fp', 'tn', 'fn']
-    avg = {f: float(np.mean([getattr(r, f) for r in res_list])) for f in fields}
+    """Average results across folds, but sum confusion matrix values and costs."""
+    # Sum confusion matrix values and costs across folds
+    total_tp = sum(getattr(r, 'tp') for r in res_list)
+    total_fp = sum(getattr(r, 'fp') for r in res_list)
+    total_tn = sum(getattr(r, 'tn') for r in res_list)
+    total_fn = sum(getattr(r, 'fn') for r in res_list)
+    total_cost = sum(getattr(r, 'cost') for r in res_list)
+    
+    # Recalculate derived metrics from summed confusion matrix
+    precision = 100 * total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0
+    recall = 100 * total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0
+    precision_raw = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0
+    recall_raw = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0
+    f1_score = 100 * (2 * precision_raw * recall_raw) / (precision_raw + recall_raw) if (precision_raw + recall_raw) > 0 else 0
+    accuracy = 100 * (total_tp + total_tn) / (total_tp + total_tn + total_fp + total_fn)
+    
     return ModelEvaluationResult(
         model_name=f'kfold_avg_{model_name}',
         split='Full',
         threshold_type=res_list[0].threshold_type,
         threshold=float(np.mean([r.threshold for r in res_list])),
         is_base_model=False,
-        **avg
+        precision=precision,
+        recall=recall,
+        f1_score=f1_score,
+        accuracy=accuracy,
+        cost=total_cost,
+        tp=total_tp,
+        fp=total_fp,
+        tn=total_tn,
+        fn=total_fn
     )
 
 def _average_probabilities(prob_arrays):
@@ -127,7 +148,7 @@ def _average_probabilities(prob_arrays):
     return np.mean([p[:min_len] for p in prob_arrays], axis=0)
 
 def _average_sweep_data(fold_sweeps):
-    """Average sweep data across multiple folds.
+    """Average sweep data across multiple folds, but sum confusion matrix values and costs.
     
     Args:
         fold_sweeps: List of sweep dictionaries from different folds
@@ -143,12 +164,39 @@ def _average_sweep_data(fold_sweeps):
     all_thresholds = sorted(set().union(*[set(s.keys()) for s in fold_sweeps]))
     
     for thr in all_thresholds:
-        # For each threshold, average the metrics across folds
-        metrics = {}
-        for metric in ['cost', 'accuracy', 'precision', 'recall', 'f1_score', 'tp', 'fp', 'tn', 'fn']:
-            values = [s[thr][metric] for s in fold_sweeps if thr in s]
-            if values:  # Only average if we have values for this threshold
-                metrics[metric] = float(np.mean(values))
+        # Sum confusion matrix values and costs, average other metrics
+        confusion_values = {}
+        for cm_metric in ['tp', 'fp', 'tn', 'fn', 'cost']:
+            values = [s[thr][cm_metric] for s in fold_sweeps if thr in s and cm_metric in s[thr]]
+            if values:
+                confusion_values[cm_metric] = float(np.sum(values))
+        
+        # Recalculate derived metrics from summed confusion matrix if we have all values
+        if all(cm_metric in confusion_values for cm_metric in ['tp', 'fp', 'tn', 'fn']):
+            total_tp, total_fp, total_tn, total_fn = confusion_values['tp'], confusion_values['fp'], confusion_values['tn'], confusion_values['fn']
+            
+            precision = 100 * total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0
+            recall = 100 * total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0
+            precision_raw = total_tp / (total_tp + total_fp) if (total_tp + total_fp) > 0 else 0
+            recall_raw = total_tp / (total_tp + total_fn) if (total_tp + total_fn) > 0 else 0
+            f1_score = 100 * (2 * precision_raw * recall_raw) / (precision_raw + recall_raw) if (precision_raw + recall_raw) > 0 else 0
+            accuracy = 100 * (total_tp + total_tn) / (total_tp + total_tn + total_fp + total_fn)
+            
+            metrics = {
+                'precision': precision,
+                'recall': recall,
+                'f1_score': f1_score,
+                'accuracy': accuracy,
+                **confusion_values  # Include summed tp, fp, tn, fn, cost
+            }
+        else:
+            # Fallback to averaging if confusion matrix is incomplete
+            metrics = {}
+            for metric in ['cost', 'accuracy', 'precision', 'recall', 'f1_score', 'tp', 'fp', 'tn', 'fn']:
+                values = [s[thr][metric] for s in fold_sweeps if thr in s and metric in s[thr]]
+                if values:
+                    metrics[metric] = float(np.mean(values))
+        
         if metrics:  # Only add if we have metrics
             avg_sweep[float(thr)] = metrics
             

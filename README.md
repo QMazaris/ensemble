@@ -202,7 +202,7 @@ python tests/run_tests.py
 ### Run Specific Test Categories
 ```bash
 pytest tests/backend/          # Backend tests
-pytest tests/frontend/         # Frontend tests  
+pytest tests/frontend/         # Frontend tests
 pytest tests/shared/           # Shared component tests
 pytest tests/test_api.py       # API tests
 ```
@@ -247,7 +247,7 @@ flake8 .
 - **⚡ Real-time Updates**: Frontend gets data immediately after backend processing
 - **📊 Interactive Plots**: Plotly charts instead of static matplotlib images
 
-### Code Quality Improvements  
+### Code Quality Improvements
 - **🧹 Cleaner K-Fold Logic**: Extracted helper functions reduce code duplication
 - **🔧 Better Testing**: Comprehensive test suite with 90%+ coverage
 - **📁 Organized Structure**: Clear separation between backend, frontend, and shared code

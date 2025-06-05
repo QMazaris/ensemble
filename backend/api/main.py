@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
@@ -51,8 +51,12 @@ from backend.helpers import (
 )
 from backend.helpers.stacked_logic import generate_combined_runs
 
-# Import data service for in-memory data storage
-from shared import data_service
+# Global variables for storing pipeline results directly in API memory
+pipeline_results = {
+    'metrics_data': None,
+    'predictions_data': None,
+    'sweep_data': None
+}
 
 app = FastAPI(title="Ensemble Pipeline API", version="1.0.0")
 
@@ -157,6 +161,8 @@ class BitwiseLogicConfigResponse(BaseModel):
 
 # Global variables for pipeline status
 pipeline_status = {"status": "idle", "message": "Ready to run", "progress": 0.0}
+
+# Old store function removed - using store_results_in_api_memory instead
 
 # In-memory storage for training data info to avoid CSV dependency
 training_data_info = None
@@ -297,65 +303,265 @@ def get_pipeline_status():
     return PipelineStatus(**pipeline_status)
 
 @app.post("/pipeline/run")
-async def run_pipeline_endpoint(background_tasks: BackgroundTasks):
-    """Run the ML pipeline in the background."""
-    global pipeline_status
+def run_pipeline_endpoint():
+    """Run the ML pipeline synchronously and store results in API memory."""
+    global pipeline_status, pipeline_results, training_data_info
     
     if pipeline_status["status"] == "running":
         raise HTTPException(status_code=400, detail="Pipeline is already running")
     
-    def run_pipeline_task():
-        try:
-            global pipeline_status
-            pipeline_status = {"status": "running", "message": "Pipeline started...", "progress": 0.1}
+    try:
+        pipeline_status = {"status": "running", "message": "Pipeline started...", "progress": 0.1}
+        api_logger.info("🚀 Starting pipeline execution...")
+        
+        # Clear any existing data
+        training_data_info = None
+        pipeline_results = {
+            'metrics_data': None,
+            'predictions_data': None,
+            'sweep_data': None
+        }
+        api_logger.info("🗑️ Cleared existing data")
+        
+        # Load config
+        config_data = load_config()
+        api_logger.info(f"📋 Config loaded with {len(config_data)} sections")
+        
+        # Import and run pipeline
+        from backend.run import main
+        
+        pipeline_status = {"status": "running", "message": "Executing pipeline...", "progress": 0.3}
+        api_logger.info("⚙️ Executing pipeline main function...")
+        
+        # Run pipeline and get results
+        results_total, df, y, meta_model_names = main(config_data)
+        
+        api_logger.info(f"📊 Pipeline completed with {len(results_total)} model runs")
+        api_logger.info(f"📊 Dataset shape: {df.shape}")
+        api_logger.info(f"📊 Target distribution: {y.value_counts().to_dict()}")
+        
+        # Store results directly in API memory
+        pipeline_status = {"status": "running", "message": "Storing results...", "progress": 0.8}
+        api_logger.info("💾 Storing results in API memory...")
+        
+        # Store the data directly without calling separate function
+        store_results_in_api_memory(results_total, df, y, meta_model_names)
+        
+        # Verify storage
+        api_logger.info("🔍 Verifying data storage:")
+        api_logger.info(f"   ✓ Metrics: {pipeline_results['metrics_data'] is not None}")
+        api_logger.info(f"   ✓ Predictions: {pipeline_results['predictions_data'] is not None}")
+        api_logger.info(f"   ✓ Sweep: {pipeline_results['sweep_data'] is not None}")
+        
+        if pipeline_results['metrics_data']:
+            metrics_count = len(pipeline_results['metrics_data'].get('model_metrics', []))
+            api_logger.info(f"   ✓ {metrics_count} metrics stored")
+        
+        if pipeline_results['predictions_data']:
+            pred_count = len(pipeline_results['predictions_data'])
+            api_logger.info(f"   ✓ {pred_count} predictions stored")
             
-            # Load current config
-            config_data = load_config()
-            
-            # Import and run the main pipeline function
-            from backend.run import main
-            
-            # Also clear training_data_info since we're starting fresh
-            global training_data_info
-            training_data_info = None
-            
-            api_logger.info("🚀 Starting pipeline execution via main()")
-            
-            # Check data service state before pipeline
-            api_logger.info("🔍 Data service state BEFORE pipeline:")
-            api_logger.info(f"   Has data: {data_service.has_data()}")
-            api_logger.info(f"   Data keys: {list(data_service._data.keys())}")
-            
-            # Run the pipeline with the loaded config
-            pipeline_status = {"status": "running", "message": "Running pipeline...", "progress": 0.3}
-            main(config_data)
-            
-            # After main() completes, check the data service state
-            api_logger.info("🔍 Data service state AFTER pipeline:")
-            api_logger.info(f"   Has data: {data_service.has_data()}")
-            api_logger.info(f"   Data keys: {list(data_service._data.keys())}")
-            api_logger.info(f"   Metrics available: {data_service.get_metrics_data() is not None}")
-            api_logger.info(f"   Predictions available: {data_service.get_predictions_data() is not None}")
-            api_logger.info(f"   Sweep data available: {data_service.get_sweep_data() is not None}")
-            
-            if data_service.get_metrics_data():
-                metrics = data_service.get_metrics_data()
-                api_logger.info(f"   Metrics details: {len(metrics.get('model_metrics', []))} model metrics")
-            
-            pipeline_status = {"status": "completed", "message": "Pipeline completed successfully", "progress": 1.0}
-            api_logger.info("✅ Pipeline completed successfully")
-            
-        except Exception as e:
-            import traceback
-            error_msg = f"Pipeline failed: {str(e)}"
-            error_details = f"Error in pipeline: {str(e)}\nTraceback: {traceback.format_exc()}"
-            
-            pipeline_status = {"status": "failed", "message": error_msg, "progress": None}
-            api_logger.error(f"❌ {error_details}")
-            print(f"Pipeline error: {error_details}")  # Also print to console for debugging
+        if pipeline_results['sweep_data']:
+            sweep_count = len(pipeline_results['sweep_data'])
+            api_logger.info(f"   ✓ {sweep_count} models with sweep data")
+        
+        pipeline_status = {"status": "completed", "message": "Pipeline completed successfully", "progress": 1.0}
+        api_logger.info("✅ Pipeline completed and data stored successfully")
+        
+        return {
+            "message": "Pipeline completed successfully", 
+            "status": pipeline_status,
+            "data_summary": {
+                "metrics_stored": pipeline_results['metrics_data'] is not None,
+                "predictions_stored": pipeline_results['predictions_data'] is not None,
+                "sweep_stored": pipeline_results['sweep_data'] is not None
+            }
+        }
+        
+    except Exception as e:
+        import traceback
+        error_msg = f"Pipeline failed: {str(e)}"
+        error_details = f"Error in pipeline: {str(e)}\nTraceback: {traceback.format_exc()}"
+        
+        pipeline_status = {"status": "failed", "message": error_msg, "progress": None}
+        api_logger.error(f"❌ {error_details}")
+        print(f"Pipeline error: {error_details}")
+        raise HTTPException(status_code=500, detail=error_msg)
+
+def store_results_in_api_memory(results_total, df, y, meta_model_names=None):
+    """Store pipeline results directly in API memory - simplified version."""
+    global pipeline_results
     
-    background_tasks.add_task(run_pipeline_task)
-    return {"message": "Pipeline started in background", "status": "running"}
+    api_logger.info(f"🔄 Processing {len(results_total)} model runs for storage...")
+    
+    # 1. Store metrics data
+    metrics_data = []
+    cm_data = []
+    summary_data = []
+    
+    for run in results_total:
+        api_logger.info(f"   📊 Processing {run.model_name}...")
+        
+        # Handle both list and dict cases for results
+        if isinstance(run.results, list):
+            for result in run.results:
+                metric_dict = {
+                    'model_name': run.model_name,
+                    'split': result.split,
+                    'threshold_type': result.threshold_type,
+                    'accuracy': float(result.accuracy),
+                    'precision': float(result.precision),
+                    'recall': float(result.recall),
+                    'f1_score': float(result.f1_score),
+                    'cost': float(result.cost),
+                    'threshold': float(result.threshold),
+                    'tp': int(result.tp),
+                    'fp': int(result.fp),
+                    'tn': int(result.tn),
+                    'fn': int(result.fn)
+                }
+                metrics_data.append(metric_dict)
+                summary_data.append({**metric_dict, 'total_samples': (result.tp + result.fp + result.tn + result.fn)})
+                
+                cm_data.append({
+                    'model_name': run.model_name,
+                    'split': result.split,
+                    'threshold_type': result.threshold_type,
+                    'tp': int(result.tp),
+                    'fp': int(result.fp),
+                    'tn': int(result.tn),
+                    'fn': int(result.fn)
+                })
+        else:  # dict case
+            for split_name, result in run.results.items():
+                metric_dict = {
+                    'model_name': run.model_name,
+                    'split': split_name,
+                    'threshold_type': result.threshold_type,
+                    'accuracy': float(result.accuracy),
+                    'precision': float(result.precision),
+                    'recall': float(result.recall),
+                    'f1_score': float(result.f1_score),
+                    'cost': float(result.cost),
+                    'threshold': float(result.threshold),
+                    'tp': int(result.tp),
+                    'fp': int(result.fp),
+                    'tn': int(result.tn),
+                    'fn': int(result.fn)
+                }
+                metrics_data.append(metric_dict)
+                summary_data.append({**metric_dict, 'total_samples': (result.tp + result.fp + result.tn + result.fn)})
+                
+                cm_data.append({
+                    'model_name': run.model_name,
+                    'split': split_name,
+                    'threshold_type': result.threshold_type,
+                    'tp': int(result.tp),
+                    'fp': int(result.fp),
+                    'tn': int(result.tn),
+                    'fn': int(result.fn)
+                })
+    
+    # Store metrics
+    pipeline_results['metrics_data'] = {
+        'model_metrics': metrics_data,
+        'confusion_matrices': cm_data,
+        'model_summary': summary_data
+    }
+    api_logger.info(f"📊 Stored {len(metrics_data)} metrics")
+    
+    # 2. Store threshold sweep data
+    sweep_data = {}
+    for run in results_total:
+        if (hasattr(run, 'probabilities') and run.probabilities and 
+            hasattr(run, 'sweep_data') and run.sweep_data):
+            
+            # Get sweep data from first available split
+            if 'Full' in run.sweep_data:
+                sweep = run.sweep_data['Full']
+            elif 'oof' in run.sweep_data:
+                sweep = run.sweep_data['oof']
+            elif run.sweep_data:
+                first_split = list(run.sweep_data.keys())[0]
+                sweep = run.sweep_data[first_split]
+            else:
+                continue
+                
+            # Convert sweep data to lists
+            thresholds = [float(t) for t in sweep.keys()]
+            costs = [float(sweep[t]['cost']) for t in sweep.keys()]
+            accuracies = [float(sweep[t]['accuracy']) for t in sweep.keys()]
+            f1_scores = [float(sweep[t]['f1_score']) for t in sweep.keys()]
+            
+            # Get probabilities from corresponding split
+            if 'oof' in run.probabilities:
+                probs = run.probabilities['oof']
+            elif 'Full' in run.probabilities:
+                probs = run.probabilities['Full']
+            else:
+                first_split = list(run.probabilities.keys())[0]
+                probs = run.probabilities[first_split]
+                
+            # Convert to list
+            if hasattr(probs, 'tolist'):
+                probs = [float(p) for p in probs.tolist()]
+            else:
+                probs = [float(p) for p in probs]
+                
+            sweep_data[run.model_name] = {
+                'probabilities': probs,
+                'thresholds': thresholds,
+                'costs': costs,
+                'accuracies': accuracies,
+                'f1_scores': f1_scores
+            }
+    
+    pipeline_results['sweep_data'] = sweep_data
+    api_logger.info(f"📊 Stored sweep data for {len(sweep_data)} models")
+    
+    # 3. Store predictions data
+    def pick_best_probabilities(probas):
+        if not probas:
+            return None
+        if 'oof' in probas:
+            return probas['oof']
+        if 'Full' in probas:
+            return probas['Full']
+        # Get longest array
+        non_empty = [arr for arr in probas.values() if arr is not None and hasattr(arr, 'shape')]
+        if not non_empty:
+            return None
+        return max(non_empty, key=lambda arr: arr.shape[0])
+    
+    # Build predictions
+    y_values = y.loc[df.index].values
+    predictions_data = []
+    
+    for i, idx in enumerate(df.index):
+        sample_data = {
+            'index': int(idx),
+            'GT': int(y_values[i])
+        }
+        
+        # Add model predictions
+        for run in results_total:
+            probas = pick_best_probabilities(run.probabilities)
+            if probas is not None and i < len(probas):
+                prob_value = probas[i]
+                if hasattr(prob_value, 'item'):
+                    prob_value = float(prob_value.item())
+                else:
+                    prob_value = float(prob_value)
+                sample_data[run.model_name] = prob_value
+            else:
+                sample_data[run.model_name] = None
+        
+        predictions_data.append(sample_data)
+    
+    pipeline_results['predictions_data'] = predictions_data
+    api_logger.info(f"📊 Stored {len(predictions_data)} prediction samples")
+    
+    api_logger.info("✅ All data stored successfully in API memory")
 
 @app.get("/models/list")
 def list_available_models():
@@ -442,10 +648,10 @@ def get_data_info():
 
 @app.get("/results/metrics")
 def get_model_metrics():
-    """Get the latest model evaluation metrics from singleton."""
+    """Get the latest model evaluation metrics from API memory."""
     try:
-        api_logger.info("🔍 Fetching model metrics from data service...")
-        metrics_data = data_service.get_metrics_data()
+        api_logger.info("🔍 Fetching model metrics from API memory...")
+        metrics_data = pipeline_results['metrics_data']
         
         if metrics_data is None:
             api_logger.warning("❌ No pipeline results available")
@@ -478,7 +684,7 @@ def get_threshold_sweep_data(model_name: str, data_type: str = "costs"):
     """
     api_logger.info(f"🔍 Fetching threshold sweep data for model: {model_name}, data_type: {data_type}")
     
-    sweep_data = data_service.get_sweep_data()
+    sweep_data = pipeline_results['sweep_data']
     
     if sweep_data is None:
         api_logger.warning("❌ No threshold sweep data available")
@@ -510,7 +716,7 @@ def get_threshold_sweep_data(model_name: str, data_type: str = "costs"):
 def get_model_comparison(threshold_type: str = "cost", split: str = "Full"):
     """Get model comparison data."""
     try:
-        metrics_data = data_service.get_metrics_data()
+        metrics_data = pipeline_results['metrics_data']
         
         if metrics_data is None:
             raise HTTPException(status_code=404, detail="No metrics data available. Run the pipeline first.")
@@ -560,10 +766,10 @@ def get_model_comparison(threshold_type: str = "cost", split: str = "Full"):
 
 @app.get("/results/predictions")
 def get_predictions_data():
-    """Get model predictions data from singleton."""
-    api_logger.info("🔍 Fetching predictions data from data service...")
+    """Get model predictions data from API memory."""
+    api_logger.info("🔍 Fetching predictions data from API memory...")
     
-    predictions_data = data_service.get_predictions_data()
+    predictions_data = pipeline_results['predictions_data']
     
     if predictions_data is None:
         api_logger.warning("❌ No predictions data available")
@@ -608,9 +814,13 @@ def load_training_data():
 @app.delete("/data/clear")
 def clear_cached_data():
     """Clear all cached data from memory."""
-    global training_data_info
+    global training_data_info, pipeline_results
     training_data_info = None
-    data_service.clear_all_data()
+    pipeline_results = {
+        'metrics_data': None,
+        'predictions_data': None,
+        'sweep_data': None
+    }
     return {"message": "All cached data cleared successfully"}
 
 
@@ -882,9 +1092,13 @@ def cleanup_output_files():
             output_dir.mkdir(parents=True, exist_ok=True)
         
         # Clear cached data
-        global training_data_info
+        global training_data_info, pipeline_results
         training_data_info = None
-        data_service.clear_all_data()
+        pipeline_results = {
+            'metrics_data': None,
+            'predictions_data': None,
+            'sweep_data': None
+        }
         
         return {"status": "success", "message": "Output files cleaned up"}
         
@@ -902,12 +1116,12 @@ def apply_bitwise_logic(request: BitwiseLogicRequest):
             return {"message": "No bitwise logic rules provided", "combined_models_created": 0}
         
         # Get existing model results
-        metrics_data = data_service.get_metrics_data()
+        metrics_data = pipeline_results['metrics_data']
         if not metrics_data:
             raise HTTPException(status_code=404, detail="No model results available. Run the pipeline first.")
         
         # Load current predictions to get y_true
-        predictions_data = data_service.get_predictions_data()
+        predictions_data = pipeline_results['predictions_data']
         if not predictions_data:
             raise HTTPException(status_code=404, detail="No predictions data available. Run the pipeline first.")
         
@@ -1021,9 +1235,9 @@ def apply_bitwise_logic(request: BitwiseLogicRequest):
             if 'Full' in new_run.probabilities:
                 predictions_df[new_run.model_name] = new_run.probabilities['Full']
         
-        # Update data service with new combined data
-        data_service.set_metrics_data(metrics_data)
-        data_service.set_predictions_data(predictions_df.to_dict('records'))
+        # Update pipeline results with new combined data
+        pipeline_results['metrics_data'] = metrics_data
+        pipeline_results['predictions_data'] = predictions_df.to_dict('records')
         
         api_logger.info(f"Applied bitwise logic: created {len(new_runs)} combined models")
         
@@ -1043,21 +1257,156 @@ def apply_bitwise_logic(request: BitwiseLogicRequest):
 
 
 
-@app.get("/debug/data-service")
-def debug_data_service():
-    """Debug endpoint to check data service status."""
+@app.get("/debug/pipeline-data")
+def debug_pipeline_data():
+    """Debug endpoint to check pipeline results status with detailed information."""
     try:
-        summary = data_service.get_data_summary()
+        has_metrics = pipeline_results['metrics_data'] is not None
+        has_predictions = pipeline_results['predictions_data'] is not None
+        has_sweep = pipeline_results['sweep_data'] is not None
+        
+        summary = {
+            "has_metrics": has_metrics,
+            "has_predictions": has_predictions,
+            "has_sweep": has_sweep,
+            "total_datasets": sum([has_metrics, has_predictions, has_sweep])
+        }
+        
+        if has_metrics:
+            metrics = pipeline_results['metrics_data']
+            summary["metrics_count"] = len(metrics.get('model_metrics', []))
+            summary["metrics_models"] = list(set(m['model_name'] for m in metrics.get('model_metrics', [])))
+        
+        if has_predictions:
+            predictions = pipeline_results['predictions_data']
+            summary["prediction_count"] = len(predictions)
+            if predictions:
+                summary["model_count"] = len([k for k in predictions[0].keys() if k not in ['GT', 'index']])
+                summary["prediction_models"] = [k for k in predictions[0].keys() if k not in ['GT', 'index']]
+        
+        if has_sweep:
+            sweep = pipeline_results['sweep_data']
+            summary["sweep_models"] = list(sweep.keys())
+            summary["sweep_count"] = len(sweep)
+        
         status = {
-            "storage_type": "Pure in-memory storage",
+            "storage_type": "Direct API memory storage",
+            "pipeline_status": pipeline_status,
             "data_summary": summary,
-            "memory_usage": f"{len(data_service._data)} datasets in memory"
+            "memory_usage": f"{summary['total_datasets']} datasets in memory"
         }
         
         return status
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Data service debug failed: {str(e)}")
+        import traceback
+        error_details = f"Error in debug endpoint: {str(e)}\nTraceback: {traceback.format_exc()}"
+        api_logger.error(f"❌ {error_details}")
+        return {"error": str(e), "details": error_details}
+
+@app.get("/debug/data-service")  
+def debug_data_service():
+    """Legacy debug endpoint - redirects to new pipeline data endpoint."""
+    return debug_pipeline_data()
+
+@app.post("/test/store-sample-data")
+def test_store_sample_data():
+    """Test endpoint to manually store sample data in API memory."""
+    global pipeline_results
+    
+    try:
+        # Store sample data
+        pipeline_results['metrics_data'] = {
+            'model_metrics': [
+                {
+                    'model_name': 'TestModel',
+                    'split': 'test',
+                    'threshold_type': 'cost',
+                    'accuracy': 0.95,
+                    'precision': 0.90,
+                    'recall': 0.85,
+                    'f1_score': 0.87,
+                    'cost': 10.0,
+                    'threshold': 0.5,
+                    'tp': 85, 'fp': 10, 'tn': 90, 'fn': 15
+                }
+            ],
+            'confusion_matrices': [
+                {
+                    'model_name': 'TestModel',
+                    'split': 'test',
+                    'threshold_type': 'cost',
+                    'tp': 85, 'fp': 10, 'tn': 90, 'fn': 15
+                }
+            ],
+            'model_summary': [
+                {
+                    'model_name': 'TestModel',
+                    'split': 'test',
+                    'threshold_type': 'cost',
+                    'accuracy': 0.95,
+                    'precision': 0.90,
+                    'recall': 0.85,
+                    'f1_score': 0.87,
+                    'cost': 10.0,
+                    'threshold': 0.5,
+                    'tp': 85, 'fp': 10, 'tn': 90, 'fn': 15,
+                    'total_samples': 200
+                }
+            ]
+        }
+        
+        pipeline_results['predictions_data'] = [
+            {'index': 0, 'GT': 1, 'TestModel': 0.85},
+            {'index': 1, 'GT': 0, 'TestModel': 0.15},
+            {'index': 2, 'GT': 1, 'TestModel': 0.92}
+        ]
+        
+        pipeline_results['sweep_data'] = {
+            'TestModel': {
+                'thresholds': [0.1, 0.5, 0.9],
+                'costs': [50.0, 10.0, 25.0],
+                'accuracies': [0.80, 0.95, 0.90],
+                'f1_scores': [0.75, 0.87, 0.85],
+                'probabilities': [0.85, 0.15, 0.92]
+            }
+        }
+        
+        api_logger.info("✅ Sample data stored successfully")
+        
+        return {
+            "message": "Sample data stored successfully",
+            "data_summary": {
+                "metrics_stored": pipeline_results['metrics_data'] is not None,
+                "predictions_stored": pipeline_results['predictions_data'] is not None,
+                "sweep_stored": pipeline_results['sweep_data'] is not None
+            }
+        }
+        
+    except Exception as e:
+        api_logger.error(f"❌ Failed to store sample data: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to store sample data: {str(e)}")
+
+@app.get("/test/check-memory")
+def test_check_memory():
+    """Test endpoint to check what's currently in API memory."""
+    global pipeline_results, pipeline_status
+    
+    try:
+        return {
+            "pipeline_status": pipeline_status,
+            "pipeline_results": {
+                "metrics_data": pipeline_results['metrics_data'] is not None,
+                "predictions_data": pipeline_results['predictions_data'] is not None,
+                "sweep_data": pipeline_results['sweep_data'] is not None
+            },
+            "global_vars": {
+                "pipeline_results_id": id(pipeline_results),
+                "pipeline_status_id": id(pipeline_status)
+            }
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

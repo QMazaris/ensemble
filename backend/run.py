@@ -73,16 +73,7 @@ from .helpers.modeling import FinalModelCreateAndAnalyize
 # Import bitwise logic functionality
 from .helpers.stacked_logic import generate_combined_runs
 
-# Import data service for direct memory export
-from shared import data_service
-
-# Clear all cached data at the start to ensure fresh results
-try:
-    print("🗑️ Clearing all cached data...")
-    data_service.clear_all_data()
-    print("✅ Cache cleared successfully")
-except Exception as e:
-    print(f"⚠️ Warning: Could not clear cache: {e}")
+# Note: Data will be returned to API for direct storage
 
 def load_config():
     """Load configuration from API endpoint."""
@@ -132,197 +123,7 @@ def create_output_directories(config):
     return dirs_to_create
 
 
-def export_data_to_api_memory(results_total, df, y, meta_model_names=None):
-    """Export pipeline results directly to API memory via data service."""
-    print("🔄 Exporting data directly to API memory...")
-    print(f"📊 Data to export: {len(results_total)} runs")
-    
-    # Clear any existing data to ensure fresh results
-    data_service.clear_all_data()
-    
-    # 1. Export metrics data
-    metrics_data = []
-    cm_data = []
-    summary_data = []
-    
-    for run in results_total:
-        print(f"   Processing run: {run.model_name}")
-        # Handle both list and dict cases for results
-        if isinstance(run.results, list):
-            for result in run.results:
-                metric_dict = {
-                    'model_name': run.model_name,
-                    'split': result.split,
-                    'threshold_type': result.threshold_type,
-                    'accuracy': result.accuracy,
-                    'precision': result.precision,
-                    'recall': result.recall,
-                    'f1_score': result.f1_score,
-                    'cost': result.cost,
-                    'threshold': result.threshold,
-                    'tp': result.tp,
-                    'fp': result.fp,
-                    'tn': result.tn,
-                    'fn': result.fn
-                }
-                metrics_data.append(metric_dict)
-                summary_data.append({**metric_dict, 'total_samples': (result.tp + result.fp + result.tn + result.fn)})
-                
-                cm_data.append({
-                    'model_name': run.model_name,
-                    'split': result.split,
-                    'threshold_type': result.threshold_type,
-                    'tp': result.tp,
-                    'fp': result.fp,
-                    'tn': result.tn,
-                    'fn': result.fn
-                })
-        else:  # dict case
-            for split_name, result in run.results.items():
-                metric_dict = {
-                    'model_name': run.model_name,
-                    'split': split_name,
-                    'threshold_type': result.threshold_type,
-                    'accuracy': result.accuracy,
-                    'precision': result.precision,
-                    'recall': result.recall,
-                    'f1_score': result.f1_score,
-                    'cost': result.cost,
-                    'threshold': result.threshold,
-                    'tp': result.tp,
-                    'fp': result.fp,
-                    'tn': result.tn,
-                    'fn': result.fn
-                }
-                metrics_data.append(metric_dict)
-                summary_data.append({**metric_dict, 'total_samples': (result.tp + result.fp + result.tn + result.fn)})
-                
-                cm_data.append({
-                    'model_name': run.model_name,
-                    'split': split_name,
-                    'threshold_type': result.threshold_type,
-                    'tp': result.tp,
-                    'fp': result.fp,
-                    'tn': result.tn,
-                    'fn': result.fn
-                })
-    
-    # Store metrics data
-    metrics_package = {
-        'model_metrics': metrics_data,
-        'confusion_matrices': cm_data,
-        'model_summary': summary_data
-    }
-    print(f"📊 Storing metrics package with {len(metrics_data)} metrics")
-    data_service.set_metrics_data(metrics_package)
-    
-    # 2. Export threshold sweep data
-    sweep_data = {}
-    for run in results_total:
-        if (hasattr(run, 'probabilities') and run.probabilities and 
-            hasattr(run, 'sweep_data') and run.sweep_data):
-            
-            # Use the 'Full' split sweep data if available, otherwise use the first available split
-            if 'Full' in run.sweep_data:
-                sweep = run.sweep_data['Full']
-            elif run.sweep_data:
-                first_split = list(run.sweep_data.keys())[0]
-                sweep = run.sweep_data[first_split]
-            else:
-                continue
-                
-            # Convert sweep data to lists for JSON serialization
-            thresholds = [float(t) for t in sweep.keys()]
-            costs = [float(sweep[t]['cost']) for t in sweep.keys()]
-            accuracies = [float(sweep[t]['accuracy']) for t in sweep.keys()]
-            f1_scores = [float(sweep[t]['f1_score']) for t in sweep.keys()]
-            
-            # Get probabilities for the same split
-            if 'oof' in run.probabilities:
-                probs = run.probabilities['oof']
-            elif 'Full' in run.probabilities:
-                probs = run.probabilities['Full']
-            else:
-                first_split = list(run.probabilities.keys())[0]
-                probs = run.probabilities[first_split]
-                
-            # Convert to list and ensure all values are Python native types
-            if hasattr(probs, 'tolist'):
-                probs = [float(p) for p in probs.tolist()]
-            elif not isinstance(probs, list):
-                probs = [float(p) for p in list(probs)]
-            else:
-                probs = [float(p) for p in probs]
-                
-            sweep_data[run.model_name] = {
-                'probabilities': probs,
-                'thresholds': thresholds,
-                'costs': costs,
-                'accuracies': accuracies,
-                'f1_scores': f1_scores
-            }
-    
-    print(f"📊 Storing sweep data for {len(sweep_data)} models")
-    data_service.set_sweep_data(sweep_data)
-    
-    # 3. Export predictions data
-    def pick_oof_or_full_or_longest(probas):
-        if not probas:
-            return None
-        if 'oof' in probas:
-            return probas['oof']
-        if 'Full' in probas:
-            return probas['Full']
-        non_empty = [arr for arr in probas.values() if arr is not None and hasattr(arr, 'shape')]
-        if not non_empty:
-            return None
-        return max(non_empty, key=lambda arr: arr.shape[0])
-    
-    # Build predictions data structure
-    y_full = y.loc[df.index].values
-    predictions_data = []
-    
-    # Create a list of dictionaries for each sample
-    for i, idx in enumerate(df.index):
-        sample_data = {
-            'index': int(idx) if hasattr(idx, 'item') else idx,
-            'GT': int(y_full[i]) if hasattr(y_full[i], 'item') else y_full[i]
-        }
-        
-        # Add predictions from each model
-        for run in results_total:
-            probas = pick_oof_or_full_or_longest(run.probabilities)
-            if probas is not None and i < len(probas):
-                prob_value = probas[i]
-                if hasattr(prob_value, 'item'):
-                    prob_value = float(prob_value.item())
-                elif prob_value is not None:
-                    prob_value = float(prob_value)
-                sample_data[run.model_name] = prob_value
-            else:
-                sample_data[run.model_name] = None
-        
-        predictions_data.append(sample_data)
-    
-    print(f"📊 Storing predictions data with {len(predictions_data)} samples")
-    data_service.set_predictions_data(predictions_data)
-    
-    print(f"✅ Exported to API memory: {len(metrics_data)} metrics, {len(sweep_data)} sweep datasets, {len(predictions_data)} predictions")
-    
-    # Verify data was stored correctly
-    print("🔍 Verifying data storage...")
-    stored_metrics = data_service.get_metrics_data()
-    stored_predictions = data_service.get_predictions_data()
-    stored_sweep = data_service.get_sweep_data()
-    
-    print(f"   Metrics stored: {stored_metrics is not None}")
-    print(f"   Predictions stored: {stored_predictions is not None}")
-    print(f"   Sweep data stored: {stored_sweep is not None}")
-    
-    # Print performance summary
-    if meta_model_names is not None:
-        print("\nPerformance Summary:")
-        print_performance_summary(results_total, meta_model_names)
+# Data export function removed - data is now returned directly to API
 
 # ---------- Main Function ----------
 def main(config_dict=None):
@@ -490,8 +291,8 @@ def main(config_dict=None):
 
     print("\nPipeline complete")
 
-    # Export data directly to API memory
-    export_data_to_api_memory(results_total, df, y, meta_model_names=set(MODELS.keys()))
+    # Return data for API to store directly
+    return results_total, df, y, set(MODELS.keys())
 
 def Legacy_Base(
     config,

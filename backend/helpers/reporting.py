@@ -71,4 +71,4 @@ def print_performance_summary(runs, meta_model_names, splits=('Train', 'Test', '
                     print(f"    Accuracy:  {r.accuracy:.1f}%  Precision: {r.precision:.1f}%  Recall: {r.recall:.1f}%")
                     print(f"    Threshold: {r.threshold:.3f}")
                     print(f"    Cost:      {r.cost}")
-                    print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]") 
+                    print(f"    Confusion Matrix: [[TN={r.tn} FP={r.fp}], [FN={r.fn} TP={r.tp}]]")
