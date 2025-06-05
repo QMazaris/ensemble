@@ -9,16 +9,29 @@ from pathlib import Path
 
 # Try to import ONNX dependencies, but make them optional
 ONNX_AVAILABLE = False
+XGBOOST_ONNX_AVAILABLE = False
 try:
     import onnx
     from skl2onnx import convert_sklearn
     from skl2onnx.common.data_types import FloatTensorType
     ONNX_AVAILABLE = True
     print("ONNX dependencies loaded successfully")
+    
+    # Try to import XGBoost ONNX conversion tools
+    try:
+        import onnxmltools
+        from onnxmltools.convert import convert_xgboost
+        XGBOOST_ONNX_AVAILABLE = True
+        print("XGBoost ONNX conversion tools loaded successfully")
+    except ImportError:
+        print("XGBoost ONNX conversion tools not available - XGBoost models will use pickle export")
+        XGBOOST_ONNX_AVAILABLE = False
+        
 except ImportError as e:
     print(f"Warning: ONNX dependencies not available: {e}")
     print("ONNX export will not be available. Models will be exported as pickle files.")
     ONNX_AVAILABLE = False
+    XGBOOST_ONNX_AVAILABLE = False
 
 
 
@@ -107,32 +120,17 @@ def export_model_onnx(model, model_name, model_dir, config, feature_names=None):
     else:
         raise ValueError("Cannot determine number of features. Please provide feature_names.")
     
-    # Define the input type for ONNX conversion
-    initial_type = [('float_input', FloatTensorType([None, n_features]))]
-    print(f"Initial type for ONNX: {initial_type}")
-    
     # Get ONNX opset version from config
     opset_version = config.get("export", {}).get("onnx_opset_version", 12)
     print(f"Using ONNX opset version: {opset_version}")
     
     try:
-        # Convert the model to ONNX format
-        print(f"Converting {model_name} to ONNX...")
-        onnx_model = convert_sklearn(
-            model,
-            initial_types=initial_type,
-            target_opset=opset_version
-        )
-        
-        # Save the ONNX model
-        onnx_path = os.path.join(model_dir, f"{model_name}.onnx")
-        print(f"Saving ONNX model to: {onnx_path}")
-        with open(onnx_path, "wb") as f:
-            f.write(onnx_model.SerializeToString())
-        
-        print(f"✅ Model '{model_name}' exported to ONNX format: {onnx_path}")
-        return onnx_path
-        
+        # Check if this is an XGBoost model
+        if 'xgboost' in str(type(model)).lower():
+            return _export_xgboost_onnx(model, model_name, model_dir, n_features, opset_version)
+        else:
+            return _export_sklearn_onnx(model, model_name, model_dir, n_features, opset_version)
+            
     except Exception as e:
         print(f"❌ Error exporting {model_name} to ONNX: {str(e)}")
         print(f"Exception type: {type(e)}")
@@ -140,6 +138,127 @@ def export_model_onnx(model, model_name, model_dir, config, feature_names=None):
         print(f"Full traceback: {traceback.format_exc()}")
         print(f"Falling back to pickle export for {model_name}")
         return export_model_pickle(model, model_name, model_dir)
+
+def _export_sklearn_onnx(model, model_name, model_dir, n_features, opset_version):
+    """Export sklearn-compatible models to ONNX"""
+    # Define the input type for ONNX conversion
+    initial_type = [('float_input', FloatTensorType([None, n_features]))]
+    print(f"Initial type for ONNX: {initial_type}")
+    
+    # Convert the model to ONNX format
+    print(f"Converting {model_name} to ONNX using sklearn-onnx...")
+    onnx_model = convert_sklearn(
+        model,
+        initial_types=initial_type,
+        target_opset=opset_version
+    )
+    
+    # Save the ONNX model
+    onnx_path = os.path.join(model_dir, f"{model_name}.onnx")
+    print(f"Saving ONNX model to: {onnx_path}")
+    with open(onnx_path, "wb") as f:
+        f.write(onnx_model.SerializeToString())
+    
+    print(f"✅ Model '{model_name}' exported to ONNX format: {onnx_path}")
+    return onnx_path
+
+def _export_xgboost_onnx(model, model_name, model_dir, n_features, opset_version):
+    """Export XGBoost models to ONNX"""
+    if not XGBOOST_ONNX_AVAILABLE:
+        raise ValueError(f"XGBoost ONNX conversion not available. Install onnxmltools: pip install onnxmltools")
+    
+    print(f"Converting {model_name} to ONNX using onnxmltools...")
+    
+    # Define the input type for ONNX conversion
+    initial_type = [('float_input', FloatTensorType([None, n_features]))]
+    print(f"Initial type for ONNX: {initial_type}")
+    
+    onnx_model = None  # Initialize the variable
+    
+    # Strategy 1: Try direct conversion
+    try:
+        print("Attempting direct XGBoost->ONNX conversion...")
+        onnx_model = convert_xgboost(
+            model,
+            initial_types=initial_type,
+            target_opset=opset_version
+        )
+        print("✅ Direct conversion successful")
+    except Exception as e1:
+        print(f"Direct conversion failed: {str(e1)}")
+        
+        # Strategy 2: Try with workaround for feature names
+        if "feature names should follow pattern 'f%d'" in str(e1):
+            try:
+                print("Attempting conversion with XGBoost native ONNX export...")
+                # Use XGBoost's native save_model with ONNX format
+                import tempfile
+                with tempfile.NamedTemporaryFile(suffix='.json', delete=False) as tmp_file:
+                    temp_json_path = tmp_file.name
+                
+                # Save model in JSON format first
+                model.save_model(temp_json_path)
+                
+                # Load back and try conversion
+                import xgboost as xgb
+                temp_model = xgb.XGBClassifier()
+                temp_model.load_model(temp_json_path)
+                os.unlink(temp_json_path)
+                
+                # Try conversion again
+                onnx_model = convert_xgboost(
+                    temp_model,
+                    initial_types=initial_type,
+                    target_opset=opset_version
+                )
+                print("✅ Workaround conversion successful")
+                
+            except Exception as e2:
+                print(f"Workaround conversion also failed: {str(e2)}")
+                
+                # Strategy 3: Final fallback - create dummy model with f%d names
+                try:
+                    print("Attempting final fallback with feature renaming...")
+                    # Create a dummy dataset with proper feature names
+                    import pandas as pd
+                    dummy_feature_names = [f'f{i}' for i in range(n_features)]
+                    X_dummy = pd.DataFrame(np.random.random((10, n_features)), columns=dummy_feature_names)
+                    y_dummy = np.random.randint(0, 2, 10)
+                    
+                    # Create and train a new model with proper feature names
+                    import xgboost as xgb
+                    fallback_model = xgb.XGBClassifier(**model.get_params())
+                    fallback_model.fit(X_dummy, y_dummy)
+                    
+                    # Copy the booster from the original model
+                    fallback_model._Booster = model._Booster.copy()
+                    
+                    onnx_model = convert_xgboost(
+                        fallback_model,
+                        initial_types=initial_type,
+                        target_opset=opset_version
+                    )
+                    print("✅ Fallback conversion successful")
+                    
+                except Exception as e3:
+                    print(f"All conversion strategies failed. Final error: {str(e3)}")
+                    raise RuntimeError(f"XGBoost ONNX conversion failed with all strategies. Last error: {str(e3)}")
+        else:
+            # Re-raise the original exception if it's not about feature names
+            raise e1
+    
+    # Check if conversion was successful
+    if onnx_model is None:
+        raise RuntimeError("ONNX model conversion failed - no valid ONNX model was created")
+    
+    # Save the ONNX model
+    onnx_path = os.path.join(model_dir, f"{model_name}.onnx")
+    print(f"Saving ONNX model to: {onnx_path}")
+    with open(onnx_path, "wb") as f:
+        f.write(onnx_model.SerializeToString())
+    
+    print(f"✅ Model '{model_name}' exported to ONNX format: {onnx_path}")
+    return onnx_path
 
 def get_model_file_extension(config=None):
     """
