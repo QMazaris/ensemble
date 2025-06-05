@@ -7667,3 +7667,110 @@
 2025-06-05 11:48:57,561 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.003s
 2025-06-05 11:48:59,686 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
 2025-06-05 11:48:59,686 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.000s
+2025-06-05 11:49:35,746 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/health
+2025-06-05 11:49:35,749 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/health - Status: 200 - Time: 0.002s
+2025-06-05 11:49:37,772 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/test/store-sample-data
+2025-06-05 11:49:37,774 - ensemble_api - INFO - ✅ Sample data stored successfully
+2025-06-05 11:49:37,776 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/test/store-sample-data - Status: 200 - Time: 0.004s
+2025-06-05 11:49:39,806 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:49:39,806 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:49:39,806 - ensemble_api - INFO - ✅ Returning metrics data: 1 model metrics, 1 summaries, 1 confusion matrices
+2025-06-05 11:49:39,806 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.000s
+2025-06-05 11:49:41,845 - ensemble_api - INFO - 📥 API CALL: DELETE http://localhost:8000/data/clear
+2025-06-05 11:49:41,846 - ensemble_api - INFO - 📤 API RESPONSE: DELETE http://localhost:8000/data/clear - Status: 200 - Time: 0.001s
+2025-06-05 11:49:43,882 - ensemble_api - INFO - 📥 API CALL: POST http://localhost:8000/pipeline/run
+2025-06-05 11:49:43,884 - ensemble_api - INFO - 🚀 Starting pipeline execution...
+2025-06-05 11:49:43,884 - ensemble_api - INFO - 🗑️ Cleared existing data
+2025-06-05 11:49:43,911 - ensemble_api - INFO - 📋 Config loaded with 13 sections
+2025-06-05 11:49:44,937 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:49:44,939 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:49:44,940 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-06-05 11:49:44,942 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.005s
+2025-06-05 11:49:45,093 - ensemble_api - INFO - ⚙️ Executing pipeline main function...
+2025-06-05 11:49:47,054 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:49:47,054 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:49:47,054 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-06-05 11:49:47,054 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.000s
+2025-06-05 11:49:48,903 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-05 11:49:48,905 - ensemble_api - INFO - 🔍 Fetching predictions data from API memory...
+2025-06-05 11:49:48,906 - ensemble_api - WARNING - ❌ No predictions data available
+2025-06-05 11:49:48,908 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 404 - Time: 0.005s
+2025-06-05 11:49:49,088 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-05 11:49:49,089 - ensemble_api - INFO - 🔍 Fetching predictions data from API memory...
+2025-06-05 11:49:49,090 - ensemble_api - WARNING - ❌ No predictions data available
+2025-06-05 11:49:49,092 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 404 - Time: 0.004s
+2025-06-05 11:51:46,036 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:51:46,037 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:51:46,038 - ensemble_api - WARNING - ❌ No pipeline results available
+2025-06-05 11:51:46,041 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 404 - Time: 0.005s
+2025-06-05 11:51:48,075 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-05 11:51:48,079 - ensemble_api - INFO - 🔍 Fetching predictions data from API memory...
+2025-06-05 11:51:48,080 - ensemble_api - WARNING - ❌ No predictions data available
+2025-06-05 11:51:48,083 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 404 - Time: 0.007s
+2025-06-05 11:51:50,211 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/threshold-sweep?model_name=kfold_avg_XGBoost&data_type=costs
+2025-06-05 11:51:50,214 - ensemble_api - INFO - 📥 Query Params: {'model_name': 'kfold_avg_XGBoost', 'data_type': 'costs'}
+2025-06-05 11:51:50,214 - ensemble_api - INFO - 🔍 Fetching threshold sweep data for model: kfold_avg_XGBoost, data_type: costs
+2025-06-05 11:51:50,214 - ensemble_api - WARNING - ❌ No threshold sweep data available
+2025-06-05 11:51:50,214 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/threshold-sweep?model_name=kfold_avg_XGBoost&data_type=costs - Status: 404 - Time: 0.002s
+2025-06-05 11:51:52,262 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/model-comparison
+2025-06-05 11:51:52,262 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/model-comparison - Status: 404 - Time: 0.000s
+2025-06-05 11:51:52,654 - ensemble_api - INFO - 📊 Pipeline completed with 4 model runs
+2025-06-05 11:51:52,654 - ensemble_api - INFO - 📊 Dataset shape: (2412, 24)
+2025-06-05 11:51:52,663 - ensemble_api - INFO - 📊 Target distribution: {0: 2374, 1: 38}
+2025-06-05 11:51:52,664 - ensemble_api - INFO - 💾 Storing results in API memory...
+2025-06-05 11:51:52,664 - ensemble_api - INFO - 🔄 Processing 4 model runs for storage...
+2025-06-05 11:51:52,665 - ensemble_api - INFO -    📊 Processing kfold_avg_XGBoost...
+2025-06-05 11:51:52,665 - ensemble_api - INFO -    📊 Processing kfold_avg_RandomForest...
+2025-06-05 11:51:52,666 - ensemble_api - INFO -    📊 Processing kfold_avg_AnomalyScore...
+2025-06-05 11:51:52,666 - ensemble_api - INFO -    📊 Processing kfold_avg_Good...
+2025-06-05 11:51:52,668 - ensemble_api - INFO - 📊 Stored 8 metrics
+2025-06-05 11:51:52,669 - ensemble_api - INFO - 📊 Stored sweep data for 4 models
+2025-06-05 11:51:52,670 - ensemble_api - INFO - 📊 Stored 2412 prediction samples
+2025-06-05 11:51:52,670 - ensemble_api - INFO - ✅ All data stored successfully in API memory
+2025-06-05 11:51:52,686 - ensemble_api - INFO - 🔍 Verifying data storage:
+2025-06-05 11:51:52,686 - ensemble_api - INFO -    ✓ Metrics: True
+2025-06-05 11:51:52,686 - ensemble_api - INFO -    ✓ Predictions: True
+2025-06-05 11:51:52,687 - ensemble_api - INFO -    ✓ Sweep: True
+2025-06-05 11:51:52,688 - ensemble_api - INFO -    ✓ 8 metrics stored
+2025-06-05 11:51:52,688 - ensemble_api - INFO -    ✓ 2412 predictions stored
+2025-06-05 11:51:52,688 - ensemble_api - INFO -    ✓ 4 models with sweep data
+2025-06-05 11:51:52,688 - ensemble_api - INFO - ✅ Pipeline completed and data stored successfully
+2025-06-05 11:51:52,699 - ensemble_api - INFO - 📤 API RESPONSE: POST http://localhost:8000/pipeline/run - Status: 200 - Time: 128.817s
+2025-06-05 11:51:54,286 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/pipeline-data
+2025-06-05 11:51:54,286 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/pipeline-data - Status: 200 - Time: 0.000s
+2025-06-05 11:52:05,629 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-05 11:52:05,643 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.014s
+2025-06-05 11:52:07,688 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:52:07,690 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:52:07,690 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-06-05 11:52:07,692 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-06-05 11:52:09,738 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-05 11:52:09,738 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.000s
+2025-06-05 11:52:10,871 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:52:10,873 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:52:10,873 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-06-05 11:52:10,876 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-05 11:52:28,588 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/config/load
+2025-06-05 11:52:28,588 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/config/load - Status: 200 - Time: 0.000s
+2025-06-05 11:52:30,649 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:52:30,651 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:52:30,651 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-06-05 11:52:30,654 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.005s
+2025-06-05 11:52:32,694 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/debug/data-service
+2025-06-05 11:52:32,699 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/debug/data-service - Status: 200 - Time: 0.005s
+2025-06-05 11:53:12,889 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:53:12,891 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:53:12,891 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-06-05 11:53:12,893 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.004s
+2025-06-05 11:53:14,957 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-05 11:53:14,957 - ensemble_api - INFO - 🔍 Fetching predictions data from API memory...
+2025-06-05 11:53:14,957 - ensemble_api - INFO - ✅ Returning predictions data: 2412 predictions
+2025-06-05 11:53:15,026 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.070s
+2025-06-05 11:53:17,124 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/metrics
+2025-06-05 11:53:17,126 - ensemble_api - INFO - 🔍 Fetching model metrics from API memory...
+2025-06-05 11:53:17,127 - ensemble_api - INFO - ✅ Returning metrics data: 8 model metrics, 8 summaries, 8 confusion matrices
+2025-06-05 11:53:17,131 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/metrics - Status: 200 - Time: 0.007s
+2025-06-05 11:53:19,215 - ensemble_api - INFO - 📥 API CALL: GET http://localhost:8000/results/predictions
+2025-06-05 11:53:19,218 - ensemble_api - INFO - 🔍 Fetching predictions data from API memory...
+2025-06-05 11:53:19,218 - ensemble_api - INFO - ✅ Returning predictions data: 2412 predictions
+2025-06-05 11:53:19,297 - ensemble_api - INFO - 📤 API RESPONSE: GET http://localhost:8000/results/predictions - Status: 200 - Time: 0.083s
