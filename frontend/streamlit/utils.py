@@ -447,22 +447,22 @@ def get_plot_groups(plot_dir):
     
     return groups 
 
-def get_fresh_data(api_endpoint, default_value=None):
-    """
-    Fetch fresh data from API without any caching.
-    
-    Args:
-        api_endpoint: API endpoint to call
-        default_value: Default value if API call fails
-    """
+@st.cache_data(ttl=300)
+def fetch_cached(endpoint: str, timestamp: float | None):
+    """Fetch data from the backend API and cache the result."""
     try:
-        response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
+        response = requests.get(f"{BACKEND_API_URL}{endpoint}", timeout=10)
         if response.status_code == 200:
             return response.json()
-        else:
-            return default_value
-    except Exception as e:
-        return default_value
+    except Exception:
+        pass
+    return None
+
+
+def get_fresh_data(api_endpoint, default_value=None):
+    """Fetch data using the cached helper with a timestamp key."""
+    data = fetch_cached(api_endpoint, st.session_state.get('pipeline_completed_at'))
+    return data if data is not None else default_value
 
 # def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
 #     """

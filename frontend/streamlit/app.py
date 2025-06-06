@@ -91,10 +91,9 @@ def run_pipeline():
             if response.status_code == 200:
                 result = response.json()
                 
-                # No caching anymore - data will be fresh on each load
-                # Use a single timestamp-based refresh mechanism instead of multiple flags
-                # This prevents race conditions between tabs
+                # Record completion time and clear cached data so fresh results are loaded
                 st.session_state.pipeline_completed_at = time.time()
+                st.cache_data.clear()
                 
                 # Update sync tracking since we just synced
                 st.session_state.last_synced_config = copy.deepcopy(st.session_state.config_settings)
@@ -149,7 +148,7 @@ def main():
     if st.sidebar.button("▶️ Run Pipeline", use_container_width=True, type="primary"):
         run_pipeline()
     
-    # Add a refresh data button (no caching anymore)
+    # Add a refresh data button
     if st.sidebar.button("🔄 Refresh Data", use_container_width=True, help="Force refresh all data from backend"):
         try:
             # Force clear backend cache via API
@@ -158,11 +157,12 @@ def main():
                 st.sidebar.success("✅ Backend data refreshed!")
             else:
                 st.sidebar.warning(f"⚠️ Backend refresh returned status {response.status_code}")
-                
+
             # Reset pipeline completion timestamp to force fresh data
             if 'pipeline_completed_at' in st.session_state:
                 del st.session_state['pipeline_completed_at']
-                    
+            st.cache_data.clear()
+
             st.rerun()
         except Exception as e:
             st.sidebar.error(f"❌ Error refreshing data: {str(e)}")
