@@ -116,7 +116,7 @@ models:
   - XGBoost
   - RandomForest
 optimization:
-  enabled: true
+  enabled: false
   iterations: 25
   n_jobs: -1
   optimize_final_model: true

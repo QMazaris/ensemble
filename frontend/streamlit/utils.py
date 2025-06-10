@@ -54,70 +54,71 @@ def load_initial_config():
         st.error(f"❌ Error loading config settings from API: {e}")
         return {}
 
-def fetch_data_from_api(endpoint):
-    """Fetch data from backend API with detailed logging."""
-    start_time = time.time()
-    full_url = f"{BACKEND_API_URL}{endpoint}"
+def _get_cache_keys(api_endpoint):
+    """
+    Helper to generate consistent session state cache keys for a given API endpoint.
+    """
+    sanitized_endpoint = api_endpoint.replace('/', '_').replace('.', '_').lstrip('_') # Remove leading underscore
+    return f"cached_data_{sanitized_endpoint}", f"cached_data_{sanitized_endpoint}_timestamp"
+
+def should_reload_data(api_endpoint: str) -> bool:
+    """
+    Determines if data for a given API endpoint should be reloaded from the backend.
+    Reload is needed if data is not cached, or if a new pipeline run has completed.
+    """
+    cache_key_data, cache_key_timestamp = _get_cache_keys(api_endpoint)
+
+    # Get the global pipeline completion timestamp
+    # Default to 0 if not set, meaning no pipeline has run yet or it was cleared
+    pipeline_completed_at = st.session_state.get('pipeline_completed_at', 0)
+
+    # Get cached data and its last loaded timestamp
+    cached_data = st.session_state.get(cache_key_data)
+    last_loaded_timestamp = st.session_state.get(cache_key_timestamp, 0)
+
+    # Reload if no data is cached OR if the global pipeline_completed_at is newer
+    if cached_data is None or pipeline_completed_at > last_loaded_timestamp:
+        frontend_logger.info(f"Decision: RELOAD {api_endpoint} (cached_exists: {cached_data is not None}, last_loaded: {last_loaded_timestamp}, pipeline_completed_at: {pipeline_completed_at})")
+        return True
+    else:
+        frontend_logger.info(f"Decision: USE CACHED {api_endpoint} (last_loaded: {last_loaded_timestamp}, pipeline_completed_at: {pipeline_completed_at})")
+        return False
+
+def get_fresh_data(api_endpoint, default_value=None):
+    """
+    Fetch data from API with caching based on pipeline completion timestamp.
+    Data is cached in session state and only re-fetched if should_reload_data returns True.
     
-    frontend_logger.info(f"🚀 FRONTEND API CALL: GET {full_url}")
-    
-    try:
-        response = requests.get(full_url)
-        response_time = time.time() - start_time
-        
-        if response.status_code == 200:
-            try:
-                data = response.json()
-                
-                # Log success with data details
-                data_size = len(str(data))
-                data_type = type(data).__name__
-                
-                # Try to extract meaningful info about the data structure
-                if isinstance(data, dict):
-                    if 'results' in data:
-                        # Metrics data
-                        results = data['results']
-                        metrics_count = len(results.get('model_metrics', []))
-                        summary_count = len(results.get('model_summary', []))
-                        cm_count = len(results.get('confusion_matrices', []))
-                        frontend_logger.info(f"✅ FRONTEND API SUCCESS: {endpoint} - {response_time:.3f}s - Metrics: {metrics_count}, Summaries: {summary_count}, CM: {cm_count}")
-                    elif 'predictions' in data:
-                        # Predictions data
-                        pred_count = len(data['predictions'])
-                        frontend_logger.info(f"✅ FRONTEND API SUCCESS: {endpoint} - {response_time:.3f}s - Predictions: {pred_count} items")
-                    elif 'data' in data and 'model_name' in data:
-                        # Threshold sweep data
-                        data_points = len(data['data']) if isinstance(data['data'], list) else "N/A"
-                        model_name = data['model_name']
-                        data_type_name = data.get('data_type', 'unknown')
-                        frontend_logger.info(f"✅ FRONTEND API SUCCESS: {endpoint} - {response_time:.3f}s - Model: {model_name}, Type: {data_type_name}, Points: {data_points}")
-                    else:
-                        # Generic data
-                        keys = list(data.keys()) if isinstance(data, dict) else []
-                        frontend_logger.info(f"✅ FRONTEND API SUCCESS: {endpoint} - {response_time:.3f}s - Data keys: {keys[:5]}")
-                elif isinstance(data, list):
-                    frontend_logger.info(f"✅ FRONTEND API SUCCESS: {endpoint} - {response_time:.3f}s - List with {len(data)} items")
-                else:
-                    frontend_logger.info(f"✅ FRONTEND API SUCCESS: {endpoint} - {response_time:.3f}s - {data_type}, Size: {data_size} chars")
-                
-                return data
-                
-            except json.JSONDecodeError as e:
-                frontend_logger.error(f"❌ FRONTEND API JSON ERROR: {endpoint} - {response_time:.3f}s - Invalid JSON: {str(e)}")
-                return None
-        else:
-            frontend_logger.error(f"❌ FRONTEND API ERROR: {endpoint} - Status: {response.status_code} - Time: {response_time:.3f}s - Response: {response.text[:200]}")
-            return None
-            
-    except requests.exceptions.ConnectionError as e:
-        response_time = time.time() - start_time
-        frontend_logger.error(f"❌ FRONTEND API CONNECTION ERROR: {endpoint} - {response_time:.3f}s - Could not connect to {BACKEND_API_URL}")
-        return None
-    except Exception as e:
-        response_time = time.time() - start_time
-        frontend_logger.error(f"❌ FRONTEND API EXCEPTION: {endpoint} - {response_time:.3f}s - {str(e)}")
-        return None
+    Args:
+        api_endpoint: API endpoint to call (e.g., "/results/metrics")
+        default_value: Default value if API call fails or no data is available initially
+    """
+    cache_key_data, cache_key_timestamp = _get_cache_keys(api_endpoint)
+
+    if should_reload_data(api_endpoint):
+        # Fetch new data if reload is needed
+        frontend_logger.info(f"🔄 Fetching fresh data for {api_endpoint} as instructed by should_reload_data.")
+        try:
+            response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
+            if response.status_code == 200:
+                new_data = response.json()
+                st.session_state[cache_key_data] = new_data
+                # Store the current pipeline_completed_at as the data's loaded timestamp
+                st.session_state[cache_key_timestamp] = st.session_state.get('pipeline_completed_at', time.time()) # Fallback to current time if pipeline_completed_at isn't set
+                frontend_logger.info(f"✅ Successfully fetched and cached new data for {api_endpoint}")
+                return new_data
+            else:
+                frontend_logger.error(f"❌ Failed to fetch data for {api_endpoint}: HTTP {response.status_code} - {response.text[:100]}")
+                # If API fails, try to return existing cached data if any
+                return st.session_state.get(cache_key_data, default_value)
+        except Exception as e:
+            frontend_logger.error(f"❌ Error fetching data for {api_endpoint}: {str(e)}")
+            # If error occurs, try to return existing cached data if any
+            return st.session_state.get(cache_key_data, default_value)
+    else:
+        # Return cached data if no reload is needed
+        frontend_logger.info(f"💾 Using cached data for {api_endpoint} as instructed by should_reload_data.")
+        return st.session_state.get(cache_key_data, default_value) # Ensure default_value is returned if cache is empty
 
 def load_metrics_data():
     """Load all metrics data for visualization using API first, then data service, then file fallback."""
@@ -125,7 +126,7 @@ def load_metrics_data():
     
     # Try API first
     frontend_logger.info("📡 Attempting to load metrics data from API...")
-    api_data = fetch_data_from_api("/results/metrics")
+    api_data = get_fresh_data("/results/metrics")
     if api_data and 'results' in api_data:
         frontend_logger.info("✅ Successfully loaded metrics data from API")
         metrics_data = api_data['results']
@@ -247,7 +248,7 @@ def load_predictions_data():
     
     # Try API first
     frontend_logger.info("📡 Attempting to load predictions data from API...")
-    api_data = fetch_data_from_api("/results/predictions")
+    api_data = get_fresh_data("/results/predictions")
     if api_data and 'predictions' in api_data:
         predictions_count = len(api_data['predictions'])
         frontend_logger.info(f"✅ Successfully loaded {predictions_count} predictions from API")
@@ -446,74 +447,6 @@ def get_plot_groups(plot_dir):
         groups[group].append(plot_file)
     
     return groups 
-
-def get_fresh_data(api_endpoint, default_value=None):
-    """
-    Fetch fresh data from API without any caching.
-    
-    Args:
-        api_endpoint: API endpoint to call
-        default_value: Default value if API call fails
-    """
-    try:
-        response = requests.get(f"{BACKEND_API_URL}{api_endpoint}", timeout=10)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return default_value
-    except Exception as e:
-        return default_value
-
-# def debounced_auto_save(save_function, config_data, notification_container, debounce_key, delay=2.0):
-#     """
-#     Debounced auto-save function to prevent excessive API calls.
-    
-#     Args:
-#         save_function: Function to call for saving
-#         config_data: Data to save
-#         notification_container: Streamlit container for notifications
-#         debounce_key: Unique key for this auto-save operation
-#         delay: Delay in seconds before saving
-#     """
-#     # Initialize debounce storage
-#     if 'debounce_timers' not in st.session_state:
-#         st.session_state.debounce_timers = {}
-    
-#     if 'debounce_data' not in st.session_state:
-#         st.session_state.debounce_data = {}
-    
-#     # Store the current time and data
-#     current_time = time.time()
-#     st.session_state.debounce_timers[debounce_key] = current_time
-#     st.session_state.debounce_data[debounce_key] = {
-#         'save_function': save_function,
-#         'config_data': config_data,
-#         'notification_container': notification_container
-#     }
-    
-#     # Check if enough time has passed for any pending saves
-#     keys_to_process = []
-#     for key, timestamp in st.session_state.debounce_timers.items():
-#         if current_time - timestamp >= delay:
-#             keys_to_process.append(key)
-    
-#     # Process debounced saves
-#     for key in keys_to_process:
-#         if key in st.session_state.debounce_data:
-#             data = st.session_state.debounce_data[key]
-#             try:
-#                 result = data['save_function'](data['config_data'], data['notification_container'])
-#                 if result:
-#                     # Only show success message for actual saves
-#                     pass  # The save function itself handles notifications
-#             except Exception as e:
-#                 data['notification_container'].error(f"❌ Auto-save failed: {str(e)}")
-            
-#             # Clean up
-#             del st.session_state.debounce_timers[key]
-#             del st.session_state.debounce_data[key]
-
-# Cache functions removed - no longer using caching
 
 def create_radar_chart(data):
     """Create a radar chart for model comparison."""

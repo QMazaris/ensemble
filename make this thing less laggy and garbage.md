@@ -136,5 +136,9 @@ render_view()
 
 refresh_handler()
 
-Keep app.py clean and declarative.
+Keep app.py clean and declarative
 
+
+In overview, made it only call the api when the pipeline has run or the page is reloaded. Would prop need to do that for the rest to get ideal results. 
+
+In the future, I should make the api calls more specific / useful so the front end needs to do less processing. Also, there should be one centeralized function that properly handles all the cashing so there is no garbage where only some of it works. 

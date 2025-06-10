@@ -20,7 +20,7 @@ if root_dir not in sys.path:
 # Import utility functions
 from utils import (
     get_fresh_data, create_radar_chart,
-    render_threshold_comparison_plots, BACKEND_API_URL
+    render_threshold_comparison_plots, BACKEND_API_URL, should_reload_data
 )
 from config_util import on_config_change
 
@@ -28,40 +28,70 @@ def render_overview_tab():
     """Render the simplified overview tab with basic model analysis."""
     st.write("### 📊 Model Performance Dashboard")
     
-    # Initialize variables
-    summary_df = None
-    metrics_df = None
-    cm_df = None
-    sweep_data = None
-    
-    # Get fresh data from API each time
-    metrics_data = get_fresh_data(
-        api_endpoint="/results/metrics",
-        default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}}
-    )
-    
-    if metrics_data and metrics_data.get('results'):
-        results = metrics_data['results']
-        
-        # Convert to DataFrames for compatibility
-        metrics_df = pd.DataFrame(results.get('model_metrics', []))
-        summary_df = pd.DataFrame(results.get('model_summary', []))
-        cm_df = pd.DataFrame(results.get('confusion_matrices', []))
-        
-        # Get sweep data from API
-        sweep_data = get_fresh_data(
-            api_endpoint="/debug/data-service",
-            default_value=None
+    # Define session state keys for caching processed data
+    OVERVIEW_SUMMARY_KEY = "overview_summary_df"
+    OVERVIEW_METRICS_KEY = "overview_metrics_df"
+    OVERVIEW_CM_KEY = "overview_cm_df"
+    OVERVIEW_SWEEP_KEY = "overview_sweep_data"
+    OVERVIEW_DATA_INITIALIZED_KEY = "overview_data_initialized"
+
+    # Check if we should reload data for metrics (primary data source)
+    # If pipeline_completed_at is updated, or data not yet initialized, reload
+    if should_reload_data("/results/metrics") or not st.session_state.get(OVERVIEW_DATA_INITIALIZED_KEY, False):
+        st.session_state[OVERVIEW_DATA_INITIALIZED_KEY] = True # Mark as initialized after first fetch attempt
+        st.info("🔄 Loading or refreshing model performance data...")
+
+        metrics_data = get_fresh_data(
+            api_endpoint="/results/metrics",
+            default_value={"results": {"model_metrics": [], "model_summary": [], "confusion_matrices": []}}
         )
         
-        # Try to get actual sweep data from data service
-        try:
-            from shared import data_service
-            sweep_data = data_service.get_sweep_data()
-        except Exception as e:
-            sweep_data = None
-    
-    # Check if we have data to display
+        if metrics_data and metrics_data.get('results'):
+            results = metrics_data['results']
+            
+            # Convert to DataFrames for compatibility and store in session state
+            st.session_state[OVERVIEW_METRICS_KEY] = pd.DataFrame(results.get('model_metrics', []))
+            st.session_state[OVERVIEW_SUMMARY_KEY] = pd.DataFrame(results.get('model_summary', []))
+            st.session_state[OVERVIEW_CM_KEY] = pd.DataFrame(results.get('confusion_matrices', []))
+            
+            # Get sweep data from API using get_fresh_data (which also caches internally)
+            # We still call it here, but it will internally use its own caching logic
+            st.session_state[OVERVIEW_SWEEP_KEY] = get_fresh_data(
+                api_endpoint="/debug/data-service",
+                default_value=None
+            )
+
+            # Try to get actual sweep data from data service as a fallback/alternative source
+            # This might override the API data if data_service is more authoritative/faster for local development
+            try:
+                from shared import data_service
+                local_sweep_data = data_service.get_sweep_data()
+                if local_sweep_data:
+                    st.session_state[OVERVIEW_SWEEP_KEY] = local_sweep_data
+                    st.info("Local data service provided sweep data.")
+            except Exception as e:
+                # frontend_logger.warning(f"⚠️ Could not load sweep data from data service: {e}") # already logged by get_fresh_data
+                pass # Suppress redundant error if get_fresh_data already logged
+
+            if st.session_state[OVERVIEW_SUMMARY_KEY].empty:
+                st.warning("🔍 Data loaded, but summary dataframe is empty. This might indicate no models or issues with data processing.")
+        else:
+            # If metrics_data is empty or invalid, clear session state data to indicate no data
+            st.session_state[OVERVIEW_METRICS_KEY] = pd.DataFrame()
+            st.session_state[OVERVIEW_SUMMARY_KEY] = pd.DataFrame()
+            st.session_state[OVERVIEW_CM_KEY] = pd.DataFrame()
+            st.session_state[OVERVIEW_SWEEP_KEY] = None
+            st.error("❌ Failed to load primary model performance data.")
+    else:
+        st.info("💾 Using cached model performance data.")
+
+    # Retrieve data from session state for rendering
+    summary_df = st.session_state.get(OVERVIEW_SUMMARY_KEY)
+    metrics_df = st.session_state.get(OVERVIEW_METRICS_KEY)
+    cm_df = st.session_state.get(OVERVIEW_CM_KEY)
+    sweep_data = st.session_state.get(OVERVIEW_SWEEP_KEY)
+
+    # Check if we have data to display after potential refresh or retrieval from cache
     if summary_df is not None and not summary_df.empty:
         try:
             # ========= UPDATED THRESHOLD SELECTOR WITH "ALL" OPTION =========
