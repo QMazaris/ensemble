@@ -12,7 +12,7 @@ This version runs entirely via **prebuilt Docker images** — no manual builds o
 
 ```bash
 git clone https://github.com/QMazaris/ensemble.git
-cd ensemble-inspection
+cd ensemble
 ```
 
 ### 2. Start the system
