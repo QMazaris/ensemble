@@ -1,8 +1,6 @@
-version: "3.8"
-
 services:
   backend:
-    image: qmazaris/ensemble-backend:latest
+    image: ghcr.io/qmazaris/ensemble-backend:latest
     container_name: ensemble-backend
     ports:
       - "${BACKEND_PORT:-8000}:8000"
@@ -15,8 +13,7 @@ services:
       - BACKEND_HOST=${BACKEND_HOST:-0.0.0.0}
       - BACKEND_PORT=${BACKEND_PORT:-8000}
       - DEBUG=${DEBUG:-false}
-    env_file:
-      - .env
+
     networks:
       - app-network
     restart: unless-stopped
@@ -28,7 +25,7 @@ services:
       start_period: 40s
 
   frontend:
-    image: qmazaris/ensemble-frontend:latest
+    image: ghcr.io/qmazaris/ensemble-frontend:latest
     container_name: ensemble-frontend
     ports:
       - "${FRONTEND_PORT:-8501}:8501"
@@ -42,8 +39,7 @@ services:
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
       - STREAMLIT_SERVER_HEADLESS=true
       - STREAMLIT_SERVER_FILE_WATCHER_TYPE=none
-    env_file:
-      - .env
+
     depends_on:
       backend:
         condition: service_healthy
