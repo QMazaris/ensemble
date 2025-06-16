@@ -11,7 +11,7 @@ This version runs entirely via **prebuilt Docker images** — no manual builds o
 ### 1. Clone this repository
 
 ```bash
-git clone https://github.com/QMazaris/ensemble.git
+git clone -b Run-only https://github.com/QMazaris/ensemble.git
 cd ensemble
 ```
 
