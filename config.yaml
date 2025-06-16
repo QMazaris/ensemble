@@ -108,10 +108,7 @@ model_params:
     scale_pos_weight: 62.5
     subsample: 0.8
 models:
-  base_model_columns:
-  - AnomalyScore
-  - Good
-  - OD1_Conf
+  base_model_columns: []
   base_model_decisions: []
   enabled:
   - XGBoost

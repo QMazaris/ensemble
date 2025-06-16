@@ -1,4 +1,5 @@
 from .data import (
+    load_csv_robust,
     prepare_data,
     apply_variance_filter,
     apply_correlation_filter,
@@ -46,6 +47,7 @@ from .model_export import export_model
 __all__ = [
     'ModelEvaluationResult',
     'ModelEvaluationRun',
+    'load_csv_robust',
     'prepare_data',
     'apply_variance_filter',
     'apply_correlation_filter',
@@ -67,6 +69,7 @@ __all__ = [
     '_average_sweep_data',
     'plot_threshold_sweep',
     'plot_runs_at_threshold',
+    'plot_class_balance',
     'print_performance_summary',
     'create_directories',
     'export_model'

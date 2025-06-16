@@ -29,7 +29,7 @@ from frontend.streamlit.utils import ensure_directories, sync_frontend_to_backen
 from frontend.streamlit.sidebar import render_sidebar
 from shared.config_manager import get_config
 
-BACKEND_API_URL = "http://localhost:8000"
+BACKEND_API_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Page config
 st.set_page_config(
@@ -57,7 +57,7 @@ def load_config_from_api():
             st.error(f"❌ Failed to load config: HTTP {response.status_code}")
             return {}
     except requests.exceptions.ConnectionError:
-        st.error("❌ Cannot connect to backend API. Please ensure the backend server is running on http://localhost:8000")
+        st.error(f"❌ Cannot connect to backend API. Please ensure the backend server is running on {BACKEND_API_URL}")
         return {}
     except Exception as e:
         st.error(f"❌ Error loading config from API: {e}")
@@ -119,7 +119,7 @@ def run_pipeline():
         except requests.exceptions.Timeout:
             st.error("❌ Pipeline execution timed out. The pipeline may still be running in the background.")
         except requests.exceptions.ConnectionError:
-            st.error("❌ Cannot connect to backend API. Please ensure the backend server is running on http://localhost:8000")
+            st.error(f"❌ Cannot connect to backend API. Please ensure the backend server is running on {BACKEND_API_URL}")
         except Exception as e:
             st.error(f"❌ Unexpected error: {str(e)}")
 

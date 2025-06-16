@@ -630,7 +630,8 @@ def get_data_info():
         if not os.path.exists(data_path):
             raise HTTPException(status_code=404, detail="Training data not found")
         
-        df = pd.read_csv(data_path)
+        from ..helpers.data import load_csv_robust
+        df = load_csv_robust(data_path)
         
         # Store in memory for future requests
         training_data_info = {
@@ -794,7 +795,8 @@ def load_training_data():
         if not os.path.exists(data_path):
             raise HTTPException(status_code=404, detail=f"Training data not found at {data_path}")
         
-        df = pd.read_csv(data_path)
+        from ..helpers.data import load_csv_robust
+        df = load_csv_robust(data_path)
         
         # Update cached info
         training_data_info = {

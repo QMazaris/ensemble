@@ -1,9 +1,34 @@
 import os
+import time
 import joblib
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.feature_selection import VarianceThreshold
+
+def load_csv_robust(file_path):
+    """Load CSV with file replacement handling."""
+
+    # Needed for the docker
+    file_path = os.path.join("/app", file_path)
+
+    # Force filesystem sync and clear any cached file handles
+    if os.path.exists(file_path):
+        # Get fresh file stats to ensure we see the current file
+        stat_info = os.stat(file_path)
+        if stat_info.st_size == 0:
+            raise ValueError(f"File is empty: {file_path}")
+    else:
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    # Load with explicit file handle management
+    with open(file_path, 'r') as f:
+        df = pd.read_csv(f, low_memory=False)
+    
+    if df.empty:
+        raise ValueError(f"Loaded empty dataframe from: {file_path}")
+    
+    return df
 
 def prepare_data(df, config):
     """Prepare data for modeling by encoding categorical variables and handling the target."""

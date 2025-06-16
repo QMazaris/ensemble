@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import json
 import requests
+import os
 from pathlib import Path
 import plotly.graph_objects as go
 import plotly.express as px
@@ -38,7 +39,7 @@ PREDICTIONS_DIR = OUTPUT_DIR / "predictions"
 STREAMLIT_DATA_DIR = OUTPUT_DIR / "streamlit_data"
 
 # Backend API configuration
-BACKEND_API_URL = "http://localhost:8000"  # Adjust as needed
+BACKEND_API_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 def ensure_directories():
     """Ensure all required directories exist."""
@@ -47,7 +48,7 @@ def ensure_directories():
 
 def load_initial_config():
     try:
-        resp = requests.get("http://localhost:8000/config/load", timeout=5) 
+        resp = requests.get(f"{BACKEND_API_URL}/config/load", timeout=5) 
         return resp.json().get("config", {})
     except Exception as e:
         import streamlit as st

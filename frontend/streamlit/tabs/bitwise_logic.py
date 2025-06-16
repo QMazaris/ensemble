@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 from pathlib import Path
 import requests
 import time
 
 # Backend API URL
-BACKEND_API_URL = "http://localhost:8000"
+BACKEND_API_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 # Import utility functions
 import sys

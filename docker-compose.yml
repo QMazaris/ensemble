@@ -1,33 +1,74 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: Dockerfile
+      target: backend
+    container_name: ensemble-backend
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data:ro
       - ./output:/app/output
+      - ./models:/app/models
     environment:
       - PYTHONPATH=/app
-    command: uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --reload
+      - BACKEND_HOST=${BACKEND_HOST:-0.0.0.0}
+      - BACKEND_PORT=${BACKEND_PORT:-8000}
+      - DEBUG=${DEBUG:-false}
+    env_file:
+      - .env
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     build:
       context: .
-      dockerfile: frontend/Dockerfile
+      dockerfile: Dockerfile
+      target: frontend
+    container_name: ensemble-frontend
     ports:
-      - "8501:8501"
+      - "${FRONTEND_PORT:-8501}:8501"
     volumes:
       - ./output:/app/output
     environment:
+      - PYTHONPATH=/app
       - BACKEND_URL=http://backend:8000
+      - STREAMLIT_SERVER_PORT=${FRONTEND_PORT:-8501}
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_FILE_WATCHER_TYPE=none
+    env_file:
+      - .env
     depends_on:
-      - backend
-    command: streamlit run frontend/streamlit/app.py --server.port=8501 --server.address=0.0.0.0
+      backend:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  app-network:
+    driver: bridge
+    name: ensemble-network
 
 volumes:
   data:
-  output: 
+    driver: local
+  output:
+    driver: local
+  models:
+    driver: local 

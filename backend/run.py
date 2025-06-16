@@ -31,6 +31,7 @@ from sklearn.svm import SVC
 from .helpers import (
     # Data preparation
     prepare_data,
+    load_csv_robust,
     apply_variance_filter,
     apply_correlation_filter,
     CV_Split,
@@ -508,7 +509,9 @@ def Core_KFold(config, C_FP, C_FN, base_cols, MODELS, df, X, y):
 def Initalize(config, SAVE_MODEL):
     # Load data
     data_path = config.get("data", {}).get("path", "data/training_data.csv")
-    df = pd.read_csv(data_path)
+    # Needed for the docker
+    
+    df = load_csv_robust(data_path)
     
     # Prepare data
     X, y, numeric_cols, encoded_cols = prepare_data(df, config)

@@ -1,9 +1,10 @@
 import streamlit as st
 from pathlib import Path
 import requests
+import os
 
-# Backend API URL
-BACKEND_API_URL = "http://localhost:8000"
+# Backend API URL - use environment variable for Docker compatibility
+BACKEND_API_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 
 def on_config_change(section: str, key: str, state_key: str):
     """Generic callback for updating config and pushing it to the backend API."""
