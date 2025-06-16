@@ -29,11 +29,10 @@ FROM base as backend
 # Copy shared modules and backend code
 COPY shared/ ./shared/
 COPY backend/ ./backend/
-COPY data/ ./data/
 COPY config.yaml ./
 
 # Create necessary directories
-RUN mkdir -p output models
+RUN mkdir -p data output models output/logs output/plots output/predictions output/streamlit_data
 
 # Expose backend port
 EXPOSE 8000

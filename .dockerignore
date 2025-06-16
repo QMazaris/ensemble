@@ -95,4 +95,7 @@ logs/
 .env*
 
 # Old directories
-OLD/ 
+OLD/
+
+# New data directory
+data/ 

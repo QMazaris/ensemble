@@ -24,7 +24,9 @@ def render_preprocessing_tab():
     
     st.write("### Data Preprocessing & Configuration")
     
-    data_dir = Path("data")
+    # Needed for the docker container to run
+    # data_dir = Path("data")
+    data_dir = Path("/data")
     if not data_dir.exists():
         st.warning("Data directory not found. Please upload data in the Data Management tab.")
         return

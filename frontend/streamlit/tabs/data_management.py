@@ -129,7 +129,10 @@ def render_data_management_tab():
                     return
                     
                 # Create data directory if it doesn't exist
-                data_dir = Path("data")
+                # data_dir = Path("data")
+
+                # Needed for the docker container to run
+                data_dir = Path("/data")
                 data_dir.mkdir(exist_ok=True)
                 
                 # Save the file
@@ -147,7 +150,9 @@ def render_data_management_tab():
     
     # Current Dataset Information
     st.write("#### Current Dataset Information")
-    data_dir = Path("data")
+    # Needed for the docker container to run
+    # data_dir = Path("data")
+    data_dir = Path("/data")
     if data_dir.exists():
         training_files = list(data_dir.glob("*.csv"))
         if training_files:

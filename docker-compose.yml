@@ -8,9 +8,9 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      - ./data:/app/data:ro
-      - ./output:/app/output
-      - ./models:/app/models
+      - shared_data:/data
+      - shared_models:/app/models
+      - shared_output:/app/output
     environment:
       - PYTHONPATH=/app
       - BACKEND_HOST=${BACKEND_HOST:-0.0.0.0}
@@ -37,7 +37,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-8501}:8501"
     volumes:
-      - ./output:/app/output
+      - shared_output:/app/output
     environment:
       - PYTHONPATH=/app
       - BACKEND_URL=http://backend:8000
@@ -66,9 +66,9 @@ networks:
     name: ensemble-network
 
 volumes:
-  data:
+  shared_data:
     driver: local
-  output:
+  shared_models:
     driver: local
-  models:
-    driver: local 
+  shared_output:
+    driver: local

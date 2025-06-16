@@ -46,7 +46,7 @@ def on_dataset_change():
         st.session_state['config_settings']['data'] = {}
     
     selected_dataset_name = st.session_state['dataset_selection']
-    data_dir = Path("data")
+    data_dir = Path("/data")
     selected_dataset_path = data_dir / selected_dataset_name
     st.session_state['config_settings']['data']['path'] = selected_dataset_path.as_posix()
 

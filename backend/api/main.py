@@ -23,6 +23,9 @@ import traceback
 #  Constants
 CONFIG_PATH = Path("config.yaml")
 
+# Ensure logs directory exists before setting up logging
+os.makedirs('output/logs', exist_ok=True)
+
 # Set up logging configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -35,9 +38,6 @@ logging.basicConfig(
 
 # Create logger for API calls
 api_logger = logging.getLogger('ensemble_api')
-
-# Ensure logs directory exists
-os.makedirs('output/logs', exist_ok=True)
 
 # Add backend directory to path
 backend_dir = Path(__file__).parent.parent
