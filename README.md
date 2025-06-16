@@ -13,12 +13,15 @@ This version runs entirely via **prebuilt Docker images** — no manual builds o
 ```bash
 git clone https://github.com/QMazaris/ensemble.git
 cd ensemble-inspection
+```
 
 ### 2. Start the system
+```bash
 docker compose up -d
+```
 
 ### 3. Open in your browser
+```bash
 Frontend (Streamlit UI): http://localhost:8501
-
 Backend (FastAPI): http://localhost:8000/docs
-
+```
