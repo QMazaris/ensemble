@@ -46,30 +46,35 @@ def render_model_analysis_tab():
         summary_df = pd.DataFrame(results.get('model_summary', []))
         cm_df = pd.DataFrame(results.get('confusion_matrices', []))
         
-        # Get sweep data from cache
-        try:
-            from shared import data_service
-            sweep_data = data_service.get_sweep_data()
-        except Exception as e:
-            sweep_data = None
+        # # Get sweep data from cache
+        # try:
+        #     from shared import data_service
+        #     sweep_data = data_service.get_sweep_data()
+        # except Exception as e:
+        #     sweep_data = None
     
     if summary_df is not None and not summary_df.empty:
         try:
             # Optimization Type Selection - new dropdown for cost vs accuracy
-            optimization_options = ['Cost Optimized', 'Accuracy Optimized']
+            optimization_options = ['Any', 'Cost Optimized', 'Accuracy Optimized']
             selected_optimization = st.selectbox(
                 "Select Optimization", 
                 optimization_options,
-                index=0,  # Default to cost optimized
+                index=0,  # Default to Any
                 key="model_analysis_optimization_select"
             )
             
-            # Convert selection to threshold_type
-            threshold_type = 'cost' if selected_optimization == 'Cost Optimized' else 'accuracy'
-            
             # Filter data by threshold type
-            summary_df_filtered = summary_df[summary_df['threshold_type'] == threshold_type]
-            cm_df_filtered = cm_df[cm_df['threshold_type'] == threshold_type]
+            if selected_optimization == 'Any':
+                # Show all models regardless of threshold type
+                summary_df_filtered = summary_df
+                cm_df_filtered = cm_df
+                threshold_type = None  # No specific threshold type
+            else:
+                # Convert selection to threshold_type
+                threshold_type = 'cost' if selected_optimization == 'Cost Optimized' else 'accuracy'
+                summary_df_filtered = summary_df[summary_df['threshold_type'] == threshold_type]
+                cm_df_filtered = cm_df[cm_df['threshold_type'] == threshold_type]
             
             # Model Selection - frontend only, resets to default
             model_options = summary_df_filtered['model_name'].unique()
@@ -126,17 +131,19 @@ def render_model_analysis_tab():
                 # Confusion Matrix
                 if not model_cm_split.empty:
                     st.write("#### Confusion Matrix")
+                    # Handle threshold_type being None for "Any" selection
+                    threshold_key = threshold_type if threshold_type else "any"
                     st.plotly_chart(
                         plot_confusion_matrix(model_cm_split.iloc[0]),
                         use_container_width=True,
-                        key=f"confusion_matrix_{model}_{selected_split}_{threshold_type}"
+                        key=f"confusion_matrix_{model}_{selected_split}_{threshold_key}"
                     )
 
-                # Model Curves
-                if sweep_data and model in sweep_data:
-                    render_model_curves(model, sweep_data, model_data_split)
-                else:
-                    st.info("Threshold sweep data not available for detailed analysis.")
+                # # Model Curves
+                # if sweep_data and model in sweep_data:
+                #     render_model_curves(model, sweep_data, model_data_split)
+                # else:
+                #     st.info("Threshold sweep data not available for detailed analysis.")
             else:
                 st.warning(f"No data available for model {model} on split {selected_split} with {selected_optimization} optimization")
         except Exception as e:

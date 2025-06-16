@@ -9,9 +9,6 @@ from sklearn.feature_selection import VarianceThreshold
 def load_csv_robust(file_path):
     """Load CSV with file replacement handling."""
 
-    # Needed for the docker
-    file_path = os.path.join("/app", file_path)
-
     # Force filesystem sync and clear any cached file handles
     if os.path.exists(file_path):
         # Get fresh file stats to ensure we see the current file

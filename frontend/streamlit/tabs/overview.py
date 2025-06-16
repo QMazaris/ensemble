@@ -289,9 +289,9 @@ def render_overview_tab():
             }), use_container_width=True)
             
             # Additional visualizations if sweep data is available
-            if sweep_data:
-                st.write("### 🔄 Threshold Analysis Dashboard")
-                render_threshold_comparison_plots(sweep_data, summary_df)
+            # if sweep_data:
+            #     st.write("### 🔄 Threshold Analysis Dashboard")
+            #     render_threshold_comparison_plots(sweep_data, summary_df)
                 
         except Exception as e:
             st.error(f"❌ Error displaying overview data: {str(e)}")

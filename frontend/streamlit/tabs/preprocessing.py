@@ -63,6 +63,10 @@ def render_preprocessing_tab():
     
     selected_dataset_path = data_dir / selected_dataset_name
     
+    # Auto-update config if this dataset differs from stored path
+    if current_data_path != selected_dataset_path.as_posix():
+        update_config_direct('data', 'path', selected_dataset_path.as_posix())
+    
     # Load and preview dataset
     df = None
     try:

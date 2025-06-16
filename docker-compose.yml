@@ -37,6 +37,7 @@ services:
     ports:
       - "${FRONTEND_PORT:-8501}:8501"
     volumes:
+      - shared_data:/data
       - shared_output:/app/output
     environment:
       - PYTHONPATH=/app
