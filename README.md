@@ -326,7 +326,3 @@ The pipeline now uses a maximally simple data flow architecture:
 2. Pipeline automatically exports results to API memory
 3. Frontend gets fresh data immediately via API endpoints
 4. Re-run pipeline for updated results with new parameters
-
-## Installation and Setup
-
-// ... existing content ...
