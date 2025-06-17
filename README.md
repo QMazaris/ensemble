@@ -25,3 +25,11 @@ docker compose up -d
 Frontend (Streamlit UI): http://localhost:8501
 Backend (FastAPI): http://localhost:8000/docs
 ```
+### How to actually use the site
+1. Upload data to the **Data Management** tab and scroll through all of the data to ensure its good. 
+2. Name and save the data at the bottom. Errors in the csv are  OK.
+3. In the **Preprocessing Config** tab, select the correct dataset, target column, any base models and exclude columns. You must click save under each for the backend to update. 
+4. use the **Pipeline Settings** to configure it and press **Run Pipeline**. You will see baloons when it is done. 
+
+#### Notes:
+Optomize hyperparameters can take a long time
