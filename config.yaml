@@ -3,7 +3,7 @@ costs:
   false_positive: 1.0
 data:
   exclude_columns: []
-  path: data/Plug Welds Simple.csv
+  path: /data/training_data.csv
   random_state: 42
   target_column: GT_Label
   test_size: 0.2

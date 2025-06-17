@@ -326,3 +326,8 @@ The pipeline now uses a maximally simple data flow architecture:
 2. Pipeline automatically exports results to API memory
 3. Frontend gets fresh data immediately via API endpoints
 4. Re-run pipeline for updated results with new parameters
+
+
+### How to run in debug mode
+python -m uvicorn backend.api.main:app --reload --host 0.0.0.0 --port 8000
+streamlit run frontend/streamlit/app.py

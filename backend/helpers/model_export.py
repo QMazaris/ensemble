@@ -164,19 +164,64 @@ def _export_sklearn_onnx(model, model_name, model_dir, n_features, opset_version
     return onnx_path
 
 def _export_xgboost_onnx(model, model_name, model_dir, n_features, opset_version):
-    """Export XGBoost models to ONNX using simplified approach"""
+    """Export XGBoost models to ONNX using simplified approach with feature name conversion"""
     if not XGBOOST_ONNX_AVAILABLE:
         raise ValueError(f"XGBoost ONNX conversion not available. Install onnxmltools: pip install onnxmltools")
     
     print(f"Converting {model_name} to ONNX using onnxmltools...")
     
-    # Define the input type for ONNX conversion - using the working approach from export_test.py
+    # Define the input type for ONNX conversion
     initial_type = [('input', XGBFloatTensorType([None, n_features]))]
     print(f"Initial type for ONNX: {initial_type}")
     
+    # Create ONNX-compatible feature names (f0, f1, f2, ...)
+    onnx_feature_names = [f'f{i}' for i in range(n_features)]
+    print(f"ONNX-compatible feature names: {onnx_feature_names}")
+    
     try:
-        # Convert to ONNX using the simple, working approach
-        onnx_model = convert_xgboost(model, initial_types=initial_type)
+        # Create a new model with ONNX-compatible feature names
+        import xgboost as xgb
+        import numpy as np
+        
+        # Create dummy data with ONNX feature names to initialize the model
+        X_dummy = np.random.random((10, n_features))
+        y_dummy = np.random.randint(0, 2, 10)
+        
+        # Create new model with same parameters
+        onnx_model_instance = xgb.XGBClassifier(**model.get_params())
+        onnx_model_instance.fit(X_dummy, y_dummy)
+        
+        # Copy the trained booster from original model to new model
+        # This preserves all learned parameters while using new feature names
+        original_booster = model.get_booster()
+        new_booster = onnx_model_instance.get_booster()
+        
+        # ---------------------------------------------
+        # Ensure ONNX-compatible feature names (f0, f1, …)
+        # Conversion fails if feature names are arbitrary strings
+        # like "Porosity". We overwrite the booster feature names
+        # *after* loading the real model to guarantee the JSON dump
+        # used by onnxmltools only contains names following the
+        # pattern `f%d`.
+        # ---------------------------------------------
+        # Save original model to temporary buffer and load into new model
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix='.json') as tmp_file:
+            original_booster.save_model(tmp_file.name)
+            new_booster.load_model(tmp_file.name)
+            
+            # After loading, overwrite feature names again to preserve fN mapping
+            new_booster.feature_names = onnx_feature_names  # type: ignore[attr-defined]
+            # If the booster already tracks feature types, reset them to 'q'
+            if hasattr(new_booster, "feature_types"):
+                # XGBoost expects 'i' (indicator) or 'q' (quantitative) strings per feature.
+                # Default everything to quantitative.
+                new_booster.feature_types = ['q'] * n_features  # type: ignore[attr-defined]
+        
+        print("✅ Successfully created XGBoost model with ONNX-compatible feature names")
+        
+        # Convert to ONNX using the model with proper feature names
+        onnx_model = convert_xgboost(onnx_model_instance, initial_types=initial_type)
         print("✅ XGBoost ONNX conversion successful!")
         
     except Exception as e:
@@ -192,6 +237,33 @@ def _export_xgboost_onnx(model, model_name, model_dir, n_features, opset_version
     with open(onnx_path, "wb") as f:
         f.write(onnx_model.SerializeToString())
     
+    # Also save feature name mapping for inference
+    feature_mapping_path = os.path.join(model_dir, f"{model_name}_feature_mapping.json")
+    import json
+    
+    # Get original feature names if available
+    original_feature_names = []
+    if hasattr(model, 'feature_names_in_') and model.feature_names_in_ is not None:
+        original_feature_names = list(model.feature_names_in_)
+    elif hasattr(model, 'get_booster'):
+        # Try to get feature names from booster
+        try:
+            booster = model.get_booster()
+            original_feature_names = booster.feature_names or []
+        except:
+            pass
+    
+    # Create mapping
+    feature_mapping = {
+        'onnx_features': onnx_feature_names,
+        'original_features': original_feature_names,
+        'mapping': {original: f'f{i}' for i, original in enumerate(original_feature_names)} if original_feature_names else {}
+    }
+    
+    with open(feature_mapping_path, 'w') as f:
+        json.dump(feature_mapping, f, indent=2)
+    
+    print(f"💾 Feature mapping saved to: {feature_mapping_path}")
     print(f"✅ Model '{model_name}' exported to ONNX format: {onnx_path}")
     return onnx_path
 

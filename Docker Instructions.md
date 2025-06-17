@@ -14,3 +14,9 @@ docker tag ensemble-frontend ghcr.io/qmazaris/ensemble-frontend:latest
 docker push ghcr.io/qmazaris/ensemble-backend:latest
 docker push ghcr.io/qmazaris/ensemble-frontend:latest
 ```
+
+## If the images need to be updated, first you must delete them
+```bash
+docker rmi -f ghcr.io/qmazaris/ensemble-backend:latest
+docker rmi -f ghcr.io/qmazaris/ensemble-frontend:latest
+```
